@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { CreditCard, ChevronRight, GripVertical } from 'lucide-react';
+import { CreditCard, ChevronRight, GripVertical, Zap, Calendar } from 'lucide-react';
 import { 
   calculateUtilization, 
   calculateMinimumPayment,
@@ -91,9 +91,52 @@ export default function CreditCardItem({ card, isDragging }) {
               {formatCurrency(minPayment)}
             </span>
           </div>
-        </div>
-      </Card>
-    </Link>
-    </div>
-  );
-}
+
+          {/* Payment Info */}
+          <div className="pt-2 space-y-1.5">
+            {card.due_date && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                <Calendar className="w-3 h-3" />
+                <span>Due: {card.due_date}{getOrdinalSuffix(card.due_date)} of month</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 text-xs">
+              {card.payment_method === 'autopay' ? (
+                <>
+                  <Zap className="w-3 h-3 text-blue-600" />
+                  <span className="text-blue-600 font-medium">
+                    Autopay: {getAutopayAmount(card)}
+                  </span>
+                </>
+              ) : (
+                <span className="text-slate-500">Manual payments</span>
+              )}
+            </div>
+          </div>
+          </div>
+          </Card>
+          </Link>
+          </div>
+          );
+          }
+
+          // Helper function for ordinal suffix
+          function getOrdinalSuffix(day) {
+          if (day > 3 && day < 21) return 'th';
+          switch (day % 10) {
+          case 1: return 'st';
+          case 2: return 'nd';
+          case 3: return 'rd';
+          default: return 'th';
+          }
+          }
+
+          // Helper function to get autopay amount display
+          function getAutopayAmount(card) {
+          if (card.autopay_amount_type === 'minimum') return 'Minimum';
+          if (card.autopay_amount_type === 'full_balance') return 'Full Balance';
+          if (card.autopay_amount_type === 'custom' && card.autopay_custom_amount) {
+          return formatCurrency(card.autopay_custom_amount);
+          }
+          return 'Minimum';
+          }

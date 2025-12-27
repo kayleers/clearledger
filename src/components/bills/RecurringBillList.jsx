@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Receipt, Plus, Edit2, Trash2, Calendar } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import { format } from 'date-fns';
+import CurrencySelector from '@/components/currency/CurrencySelector';
 
 const categoryIcons = {
   utilities: '⚡',
@@ -20,6 +21,7 @@ const categoryIcons = {
 };
 
 const frequencyLabels = {
+  one_time: 'One-Time',
   weekly: 'Weekly',
   monthly: 'Monthly',
   quarterly: 'Quarterly',
@@ -82,7 +84,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
                     <div>
                       <p className="font-semibold text-slate-800">{bill.name}</p>
                       <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <span>{formatCurrency(bill.amount)}</span>
+                        <span>{bill.currency} {formatCurrency(bill.amount)}</span>
                         <span>•</span>
                         <span>{frequencyLabels[bill.frequency]}</span>
                         {bill.due_date && (
@@ -175,6 +177,7 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
   const [formData, setFormData] = useState({
     name: bill?.name || '',
     amount: bill?.amount?.toString() || '',
+    currency: bill?.currency || 'USD',
     frequency: bill?.frequency || 'monthly',
     due_date: bill?.due_date?.toString() || '',
     bank_account_id: bill?.bank_account_id || '',
@@ -187,6 +190,7 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
     onSubmit({
       name: formData.name,
       amount: parseFloat(formData.amount) || 0,
+      currency: formData.currency,
       frequency: formData.frequency,
       due_date: formData.due_date ? parseInt(formData.due_date) : null,
       bank_account_id: formData.bank_account_id,
@@ -223,6 +227,14 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
         </div>
       </div>
       <div className="space-y-2">
+        <Label htmlFor="billCurrency">Currency</Label>
+        <CurrencySelector
+          value={formData.currency}
+          onChange={(currency) => setFormData({ ...formData, currency })}
+          className="w-full"
+        />
+      </div>
+      <div className="space-y-2">
         <Label htmlFor="billFrequency">Frequency</Label>
         <select
           id="billFrequency"
@@ -230,6 +242,7 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
           onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
           className="w-full h-10 px-3 rounded-md border border-slate-200"
         >
+          <option value="one_time">One-Time</option>
           <option value="weekly">Weekly</option>
           <option value="monthly">Monthly</option>
           <option value="quarterly">Quarterly</option>

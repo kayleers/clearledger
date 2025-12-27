@@ -525,27 +525,31 @@ export default function CardDetail() {
             <DialogHeader>
               <DialogTitle>Edit {editingTransaction?.type === 'purchase' ? 'Purchase' : 'Payment'}</DialogTitle>
             </DialogHeader>
-            {editingTransaction?.type === 'purchase' ? (
-              <EditPurchaseForm
-                purchase={editingTransaction.data}
-                onSave={(data) => updatePurchaseMutation.mutate({
-                  id: editingTransaction.data.id,
-                  data,
-                  oldAmount: editingTransaction.data.amount
-                })}
-                isLoading={updatePurchaseMutation.isPending}
-              />
-            ) : (
-              <EditPaymentForm
-                payment={editingTransaction?.data}
-                card={card}
-                onSave={(data) => updatePaymentMutation.mutate({
-                  id: editingTransaction.data.id,
-                  data,
-                  oldAmount: editingTransaction.data.amount
-                })}
-                isLoading={updatePaymentMutation.isPending}
-              />
+            {editingTransaction && (
+              <>
+                {editingTransaction.type === 'purchase' ? (
+                  <EditPurchaseForm
+                    purchase={editingTransaction.data}
+                    onSave={(data) => updatePurchaseMutation.mutate({
+                      id: editingTransaction.data.id,
+                      data,
+                      oldAmount: editingTransaction.data.amount
+                    })}
+                    isLoading={updatePurchaseMutation.isPending}
+                  />
+                ) : (
+                  <EditPaymentForm
+                    payment={editingTransaction.data}
+                    card={card}
+                    onSave={(data) => updatePaymentMutation.mutate({
+                      id: editingTransaction.data.id,
+                      data,
+                      oldAmount: editingTransaction.data.amount
+                    })}
+                    isLoading={updatePaymentMutation.isPending}
+                  />
+                )}
+              </>
             )}
           </DialogContent>
         </Dialog>

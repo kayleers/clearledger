@@ -269,6 +269,7 @@ export default function CardDetail() {
   const monthlyInterest = calculateMonthlyInterest(card.balance, card.apr);
   const threeYearPayment = calculatePaymentFor3YearPayoff(card.balance, card.apr);
   const gradient = cardColors[card.color] || cardColors.slate;
+  const currency = card.currency || 'USD';
 
   const handleSaveScenario = (scenarioData) => {
     setPendingScenario(scenarioData);
@@ -350,9 +351,9 @@ export default function CardDetail() {
             </div>
           </div>
 
-          <div className="text-4xl font-bold mb-2">{formatCurrency(card.balance)}</div>
+          <div className="text-4xl font-bold mb-2">{formatCurrency(card.balance, currency)}</div>
           <p className="text-white/70 text-sm">
-            {formatCurrency(card.credit_limit - card.balance)} available
+            {formatCurrency(card.credit_limit - card.balance, currency)} available
           </p>
         </div>
       </div>
@@ -371,11 +372,11 @@ export default function CardDetail() {
               </div>
               <div>
                 <p className="text-xs text-slate-500 mb-1">Min Payment</p>
-                <p className="text-lg font-bold text-slate-800">{formatCurrency(minPayment)}</p>
+                <p className="text-lg font-bold text-slate-800">{formatCurrency(minPayment, currency)}</p>
               </div>
               <div>
                 <p className="text-xs text-slate-500 mb-1">Monthly Interest</p>
-                <p className="text-lg font-bold text-red-600">{formatCurrency(monthlyInterest)}</p>
+                <p className="text-lg font-bold text-red-600">{formatCurrency(monthlyInterest, currency)}</p>
               </div>
             </div>
 
@@ -414,7 +415,7 @@ export default function CardDetail() {
                     <PlusCircle className="w-3 h-3" />
                     <span>Additional {card.additional_payment_type === 'one_time' ? 'one-time' : 'recurring'} payment</span>
                   </div>
-                  <span className="font-semibold">{formatCurrency(card.additional_payment_amount)}</span>
+                  <span className="font-semibold">{formatCurrency(card.additional_payment_amount, currency)}</span>
                 </div>
               )}
             </div>
@@ -507,6 +508,7 @@ export default function CardDetail() {
                 <TransactionList 
                   purchases={purchases}
                   payments={payments}
+                  currency={currency}
                   onDeletePurchase={(p) => deletePurchaseMutation.mutate(p)}
                   onDeletePayment={(p) => deletePaymentMutation.mutate(p)}
                   onEditPurchase={(p) => setEditingTransaction({ type: 'purchase', data: p })}
@@ -521,6 +523,7 @@ export default function CardDetail() {
               <h3 className="font-semibold text-slate-800">Saved Payoff Plans</h3>
               <SavedScenarios 
                 scenarios={scenarios}
+                currency={currency}
                 onDelete={(s) => deleteScenarioMutation.mutate(s)}
                 onToggleFavorite={(s) => toggleFavoriteMutation.mutate(s)}
               />
@@ -587,7 +590,7 @@ export default function CardDetail() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Total Interest</span>
-                    <span className="font-medium">{formatCurrency(pendingScenario.total_interest)}</span>
+                    <span className="font-medium">{formatCurrency(pendingScenario.total_interest, currency)}</span>
                   </div>
                 </div>
               )}

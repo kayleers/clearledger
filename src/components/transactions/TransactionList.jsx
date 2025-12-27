@@ -16,7 +16,7 @@ const categoryIcons = {
   other: '📦'
 };
 
-export default function TransactionList({ purchases = [], payments = [], onDeletePurchase, onDeletePayment, onEditPurchase, onEditPayment }) {
+export default function TransactionList({ purchases = [], payments = [], onDeletePurchase, onDeletePayment, onEditPurchase, onEditPayment, currency = 'USD' }) {
   // Combine and sort by date
   const transactions = [
     ...purchases.map(p => ({ ...p, type: 'purchase' })),
@@ -60,7 +60,7 @@ export default function TransactionList({ purchases = [], payments = [], onDelet
           </div>
           <div className="flex items-center gap-2">
             <span className={`font-semibold ${tx.type === 'purchase' ? 'text-red-600' : 'text-emerald-600'}`}>
-              {tx.type === 'purchase' ? '+' : '-'}{formatCurrency(tx.amount)}
+              {tx.type === 'purchase' ? '+' : '-'}{formatCurrency(tx.amount, currency)}
             </span>
             <Button
               variant="ghost"

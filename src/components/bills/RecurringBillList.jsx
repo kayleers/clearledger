@@ -84,7 +84,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
                     <div>
                       <p className="font-semibold text-slate-800">{bill.name}</p>
                       <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <span>{bill.currency} {formatCurrency(bill.amount)}</span>
+                        <span>{formatCurrency(bill.amount, bill.currency || 'USD')}</span>
                         <span>•</span>
                         <span>{frequencyLabels[bill.frequency]}</span>
                         {bill.due_date && (

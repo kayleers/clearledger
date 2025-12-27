@@ -27,6 +27,7 @@ export default function CreditCardItem({ card, isDragging }) {
   const utilization = calculateUtilization(card.balance, card.credit_limit);
   const minPayment = calculateMinimumPayment(card.min_payment, card.balance);
   const gradient = cardColors[card.color] || cardColors.slate;
+  const currency = card.currency || 'USD';
 
   return (
     <div className="relative group">

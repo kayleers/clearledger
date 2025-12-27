@@ -30,6 +30,7 @@ import {
 import PayoffChart from './PayoffChart';
 
 export default function PayoffSimulator({ card, onSaveScenario, payments = [] }) {
+  const currency = card.currency || 'USD';
   const [paymentType, setPaymentType] = useState('fixed');
   const [fixedPayment, setFixedPayment] = useState('');
   const [variablePayments, setVariablePayments] = useState(
@@ -137,18 +138,18 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl">
             <p className="text-xs text-amber-700 mb-1">Minimum Payment</p>
-            <p className="text-xl font-bold text-amber-900">{formatCurrency(minPayment)}</p>
+            <p className="text-xl font-bold text-amber-900">{formatCurrency(minPayment, currency)}</p>
           </div>
           <div className="p-3 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl">
             <p className="text-xs text-emerald-700 mb-1">Pay Off in 3 Years</p>
-            <p className="text-xl font-bold text-emerald-900">{formatCurrency(threeYearPayment)}</p>
+            <p className="text-xl font-bold text-emerald-900">{formatCurrency(threeYearPayment, currency)}</p>
           </div>
         </div>
 
         {/* Monthly Interest Warning */}
         <div className="p-3 bg-red-50 border border-red-100 rounded-xl">
           <p className="text-xs text-red-600 mb-1">Monthly Interest Charges</p>
-          <p className="text-lg font-semibold text-red-700">{formatCurrency(monthlyInterest)}</p>
+          <p className="text-lg font-semibold text-red-700">{formatCurrency(monthlyInterest, currency)}</p>
           <p className="text-xs text-red-500 mt-1">
             You need to pay more than this just to reduce your balance
           </p>
@@ -187,8 +188,8 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                   className="py-4"
                 />
                 <div className="flex justify-between text-xs text-slate-500">
-                  <span>Min: {formatCurrency(minPayment)}</span>
-                  <span>3-Year: {formatCurrency(threeYearPayment)}</span>
+                  <span>Min: {formatCurrency(minPayment, currency)}</span>
+                  <span>3-Year: {formatCurrency(threeYearPayment, currency)}</span>
                 </div>
               </div>
 
@@ -292,7 +293,7 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                     }
                   }
 
-                  const pastMonthPlaceholder = actualPayment !== null ? formatCurrency(actualPayment) : 'N/A';
+                  const pastMonthPlaceholder = actualPayment !== null ? formatCurrency(actualPayment, currency) : 'N/A';
 
                   return (
                     <div key={index} className="space-y-1">
@@ -397,7 +398,7 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                 <p className="text-red-700 font-medium">Payment too low!</p>
                 <p className="text-sm text-red-600">
                   Your payment doesn't cover the monthly interest. 
-                  You need to pay at least {formatCurrency(monthlyInterest + 1)} to reduce your balance.
+                  You need to pay at least {formatCurrency(monthlyInterest + 1, currency)} to reduce your balance.
                 </p>
               </div>
             ) : (
@@ -413,7 +414,7 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                   <div className="p-4 bg-purple-50 rounded-xl text-center">
                     <DollarSign className="w-5 h-5 text-purple-600 mx-auto mb-1" />
                     <p className="text-2xl font-bold text-purple-900">
-                      {formatCurrency(currentScenario.totalInterest)}
+                      {formatCurrency(currentScenario.totalInterest, currency)}
                     </p>
                     <p className="text-xs text-purple-600">total interest</p>
                   </div>
@@ -428,7 +429,7 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-2xl font-bold">{formatCurrency(interestSaved)}</p>
+                        <p className="text-2xl font-bold">{formatCurrency(interestSaved, currency)}</p>
                         <p className="text-xs text-emerald-100">in interest</p>
                       </div>
                       <div>
@@ -471,10 +472,10 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                         {currentScenario.breakdown.slice(0, 60).map((row) => (
                           <tr key={row.month} className="border-b">
                             <td className="p-2">{row.month}</td>
-                            <td className="text-right p-2 text-orange-600">{row.purchase > 0 ? `+${formatCurrency(row.purchase)}` : '-'}</td>
-                            <td className="text-right p-2">{formatCurrency(row.payment)}</td>
-                            <td className="text-right p-2 text-red-600">{formatCurrency(row.interest)}</td>
-                            <td className="text-right p-2 font-medium">{formatCurrency(row.balance)}</td>
+                            <td className="text-right p-2 text-orange-600">{row.purchase > 0 ? `+${formatCurrency(row.purchase, currency)}` : '-'}</td>
+                            <td className="text-right p-2">{formatCurrency(row.payment, currency)}</td>
+                            <td className="text-right p-2 text-red-600">{formatCurrency(row.interest, currency)}</td>
+                            <td className="text-right p-2 font-medium">{formatCurrency(row.balance, currency)}</td>
                           </tr>
                         ))}
                       </tbody>

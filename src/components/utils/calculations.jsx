@@ -151,10 +151,10 @@ export const calculateMinimumPaymentPayoff = (balance, apr, minPayment) => {
   };
 };
 
-export const formatCurrency = (amount) => {
+export const formatCurrency = (amount, currency = 'USD') => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 2
   }).format(amount || 0);

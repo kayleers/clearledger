@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Plus, CreditCard, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import CreditCardItem from '@/components/cards/CreditCardItem';
@@ -18,7 +19,10 @@ export default function Dashboard() {
 
   const { data: cards = [], isLoading } = useQuery({
     queryKey: ['credit-cards'],
-    queryFn: () => base44.entities.CreditCard.list('-created_date')
+    queryFn: async () => {
+      const allCards = await base44.entities.CreditCard.list();
+      return allCards.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    }
   });
 
   const createCardMutation = useMutation({
@@ -28,6 +32,30 @@ export default function Dashboard() {
       setShowAddCard(false);
     }
   });
+
+  const reorderCardsMutation = useMutation({
+    mutationFn: async (reorderedCards) => {
+      await Promise.all(
+        reorderedCards.map((card, index) => 
+          base44.entities.CreditCard.update(card.id, { display_order: index })
+        )
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+    }
+  });
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    
+    const items = Array.from(cards);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    
+    queryClient.setQueryData(['credit-cards'], items);
+    reorderCardsMutation.mutate(items);
+  };
 
   const canAddCard = cards.length < MAX_FREE_CARDS;
 
@@ -118,18 +146,42 @@ export default function Dashboard() {
                   </Button>
                 </motion.div>
               ) : (
-                <div className="space-y-4">
-                  {cards.map((card, index) => (
-                    <motion.div
-                      key={card.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <CreditCardItem card={card} />
-                    </motion.div>
-                  ))}
-                </div>
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  <Droppable droppableId="cards">
+                    {(provided) => (
+                      <div 
+                        {...provided.droppableProps} 
+                        ref={provided.innerRef}
+                        className="space-y-4"
+                      >
+                        {cards.map((card, index) => (
+                          <Draggable key={card.id} draggableId={card.id} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                style={{
+                                  ...provided.draggableProps.style,
+                                  opacity: snapshot.isDragging ? 0.9 : 1,
+                                }}
+                              >
+                                <motion.div
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: index * 0.1 }}
+                                >
+                                  <CreditCardItem card={card} isDragging={snapshot.isDragging} />
+                                </motion.div>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
               )}
             </div>
 

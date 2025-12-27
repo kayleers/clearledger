@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Building2, Plus, Edit2, Trash2 } from 'lucide-react';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 
-export default function BankAccountList({ accounts = [] }) {
+export default function BankAccountList({ bankAccounts = [] }) {
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
   const queryClient = useQueryClient();

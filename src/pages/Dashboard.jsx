@@ -18,6 +18,7 @@ const MAX_FREE_CARDS = 2;
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
+  const [sectionOrder, setSectionOrder] = useState(['banks', 'bills', 'loans']);
   const queryClient = useQueryClient();
 
   const { data: cards = [], isLoading } = useQuery({
@@ -73,6 +74,12 @@ export default function Dashboard() {
     }
   });
 
+  const reorderSectionsMutation = useMutation({
+    mutationFn: async (newOrder) => {
+      await base44.auth.updateMe({ section_order: newOrder });
+    }
+  });
+
   const handleDragEnd = (result) => {
     if (!result.destination) return;
     
@@ -83,6 +90,31 @@ export default function Dashboard() {
     queryClient.setQueryData(['credit-cards'], items);
     reorderCardsMutation.mutate(items);
   };
+
+  const handleSectionDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(sectionOrder);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setSectionOrder(items);
+    reorderSectionsMutation.mutate(items);
+  };
+
+  React.useEffect(() => {
+    const fetchSectionOrder = async () => {
+      try {
+        const user = await base44.auth.me();
+        if (user.section_order) {
+          setSectionOrder(user.section_order);
+        }
+      } catch (error) {
+        console.error('Error fetching section order:', error);
+      }
+    };
+    fetchSectionOrder();
+  }, []);
 
   const canAddCard = cards.length < MAX_FREE_CARDS;
 
@@ -224,19 +256,33 @@ export default function Dashboard() {
               </Button>
             )}
 
-            {/* Bank Accounts Section */}
-            <div className="mb-6 mt-8">
-              <BankAccountList accounts={bankAccounts} />
-            </div>
-
-            {/* Recurring Bills Section */}
-            <div className="mb-6">
-              <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />
-            </div>
-
-            {/* Mortgages & Loans Section */}
-            <div className="mb-6">
-              <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} />
+            {/* Draggable Sections */}
+            <div className="mt-8">
+              <DragDropContext onDragEnd={handleSectionDragEnd}>
+                <Droppable droppableId="sections">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef}>
+                      {sectionOrder.map((section, index) => (
+                        <Draggable key={section} draggableId={section} index={index}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className="mb-6"
+                            >
+                              {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}
+                              {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />}
+                              {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} />}
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             </div>
           </>
         )}

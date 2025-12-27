@@ -34,6 +34,7 @@ import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';
 import AddPaymentForm from '@/components/transactions/AddPaymentForm';
 import TransactionList from '@/components/transactions/TransactionList';
 import SavedScenarios from '@/components/scenarios/SavedScenarios';
+import CurrencySelector from '@/components/currency/CurrencySelector';
 import { 
   formatCurrency, 
   calculateUtilization, 
@@ -99,6 +100,12 @@ export default function CardDetail() {
     queryKey: ['scenarios', cardId],
     queryFn: () => base44.entities.PayoffScenario.filter({ card_id: cardId }, '-created_date'),
     enabled: !!cardId
+  });
+
+  // Fetch bank accounts
+  const { data: bankAccounts = [] } = useQuery({
+    queryKey: ['bank-accounts'],
+    queryFn: () => base44.entities.BankAccount.filter({ is_active: true }),
   });
 
   // Mutations
@@ -291,7 +298,8 @@ export default function CardDetail() {
                     <DialogTitle>Edit Card</DialogTitle>
                   </DialogHeader>
                   <EditCardForm 
-                    card={card} 
+                    card={card}
+                    bankAccounts={bankAccounts}
                     onSave={(data) => {
                       updateCardMutation.mutate({ id: cardId, data });
                       setShowEditCard(false);
@@ -614,7 +622,7 @@ function getOrdinalSuffix(day) {
 }
 
 // Edit Card Form Component
-function EditCardForm({ card, onSave }) {
+function EditCardForm({ card, bankAccounts, onSave }) {
   const [formData, setFormData] = useState({
     name: card.name || '',
     balance: card.balance?.toString() || '',
@@ -622,6 +630,8 @@ function EditCardForm({ card, onSave }) {
     apr: ((card.apr || 0) * 100).toString(),
     min_payment: card.min_payment?.toString() || '',
     due_date: card.due_date?.toString() || '',
+    currency: card.currency || 'USD',
+    bank_account_id: card.bank_account_id || '',
     payment_method: card.payment_method || 'manual',
     autopay_date: card.autopay_date?.toString() || '',
     autopay_amount_type: card.autopay_amount_type || 'minimum',
@@ -645,6 +655,8 @@ function EditCardForm({ card, onSave }) {
       apr: parseFloat(formData.apr) / 100 || 0,
       min_payment: parseFloat(formData.min_payment) || 0,
       due_date: formData.due_date ? parseInt(formData.due_date) : null,
+      currency: formData.currency,
+      bank_account_id: formData.bank_account_id || null,
       payment_method: formData.payment_method
     };
 
@@ -746,6 +758,33 @@ function EditCardForm({ card, onSave }) {
           value={formData.due_date}
           onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="editCurrency">Currency</Label>
+        <CurrencySelector
+          value={formData.currency}
+          onChange={(currency) => setFormData({ ...formData, currency })}
+          className="w-full"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="editBankAccount">Bank Account (Optional)</Label>
+        <select
+          id="editBankAccount"
+          value={formData.bank_account_id}
+          onChange={(e) => setFormData({ ...formData, bank_account_id: e.target.value })}
+          className="w-full h-10 px-3 rounded-md border border-slate-200"
+        >
+          <option value="">None</option>
+          {bankAccounts.map(account => (
+            <option key={account.id} value={account.id}>
+              {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-slate-500">Select which account payments will be withdrawn from</p>
       </div>
 
       <div className="pt-4 border-t space-y-4">

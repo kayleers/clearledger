@@ -260,12 +260,18 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
                   const effectivePayment = parseFloat(payment.amount) || defaultPayment;
                   const isPaidOff = index > 0 && currentScenario.months <= index;
                   const displayDefault = isPaidOff ? "0" : (defaultMonthlyPayment || "0");
-                  
+
+                  // Check if month is in the past
+                  const now = new Date();
+                  const currentMonth = now.getMonth(); // 0-11
+                  const currentYear = now.getFullYear();
+                  const isPastMonth = selectedYear < currentYear || (selectedYear === currentYear && index < currentMonth);
+
                   return (
                     <div key={index} className="space-y-1">
                       <Label className="text-xs text-slate-500 font-medium">
                         {monthNames[index]}
-                        {!payment.amount && !isPaidOff && defaultMonthlyPayment && (
+                        {!payment.amount && !isPaidOff && !isPastMonth && defaultMonthlyPayment && (
                           <span className="text-slate-400 font-normal ml-1">
                             (${defaultMonthlyPayment})
                           </span>
@@ -273,6 +279,11 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
                         {isPaidOff && (
                           <span className="text-emerald-600 font-normal ml-1">
                             ✓ Paid Off
+                          </span>
+                        )}
+                        {isPastMonth && (
+                          <span className="text-slate-400 font-normal ml-1">
+                            (Past)
                           </span>
                         )}
                       </Label>
@@ -285,8 +296,8 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
                           placeholder={displayDefault}
                           value={payment.amount}
                           onChange={(e) => updateVariablePayment(index, e.target.value)}
-                          className={`pl-7 h-10 ${isPaidOff ? 'bg-emerald-50 border-emerald-200' : ''}`}
-                          disabled={isPaidOff && !payment.amount}
+                          className={`pl-7 h-10 ${isPaidOff ? 'bg-emerald-50 border-emerald-200' : ''} ${isPastMonth ? 'bg-slate-100 border-slate-200' : ''}`}
+                          disabled={isPaidOff || isPastMonth}
                         />
                       </div>
                     </div>

@@ -486,6 +486,7 @@ export default function CardDetail() {
             <PayoffSimulator 
               card={card} 
               onSaveScenario={handleSaveScenario}
+              payments={payments}
             />
           </TabsContent>
 

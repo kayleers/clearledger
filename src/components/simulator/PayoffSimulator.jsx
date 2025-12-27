@@ -29,7 +29,7 @@ import {
 } from '@/components/utils/calculations';
 import PayoffChart from './PayoffChart';
 
-export default function PayoffSimulator({ card, onSaveScenario }) {
+export default function PayoffSimulator({ card, onSaveScenario, payments = [] }) {
   const [paymentType, setPaymentType] = useState('fixed');
   const [fixedPayment, setFixedPayment] = useState('');
   const [variablePayments, setVariablePayments] = useState(
@@ -267,6 +267,21 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
                   const currentYear = now.getFullYear();
                   const isPastMonth = selectedYear < currentYear || (selectedYear === currentYear && index < currentMonth);
 
+                  // Calculate actual payment for this past month
+                  let actualPayment = null;
+                  if (isPastMonth && payments.length > 0) {
+                    const monthPayments = payments.filter(p => {
+                      const paymentDate = new Date(p.date);
+                      return paymentDate.getFullYear() === selectedYear && 
+                             paymentDate.getMonth() === index;
+                    });
+                    if (monthPayments.length > 0) {
+                      actualPayment = monthPayments.reduce((sum, p) => sum + p.amount, 0);
+                    }
+                  }
+
+                  const pastMonthPlaceholder = actualPayment !== null ? formatCurrency(actualPayment) : 'N/A';
+
                   return (
                     <div key={index} className="space-y-1">
                       <Label className="text-xs text-slate-500 font-medium">
@@ -290,10 +305,8 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
                         <Input
-                          type="number"
-                          step="1"
-                          min="0"
-                          placeholder={displayDefault}
+                          type="text"
+                          placeholder={isPastMonth ? pastMonthPlaceholder : displayDefault}
                           value={payment.amount}
                           onChange={(e) => updateVariablePayment(index, e.target.value)}
                           className={`pl-7 h-10 ${isPaidOff ? 'bg-emerald-50 border-emerald-200' : ''} ${isPastMonth ? 'bg-slate-100 border-slate-200' : ''}`}

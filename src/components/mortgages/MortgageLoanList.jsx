@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Home, Plus, Edit2, Trash2, TrendingDown } from 'lucide-react';
+import { Home, Plus, Edit2, Trash2, TrendingDown, GripVertical } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 
@@ -58,6 +59,28 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
     }
   });
 
+  const updateLoanOrderMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.MortgageLoan.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mortgage-loans'] });
+    }
+  });
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(loans);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    items.forEach((loan, index) => {
+      updateLoanOrderMutation.mutate({
+        id: loan.id,
+        data: { display_order: index }
+      });
+    });
+  };
+
   const calculateProgress = (current, original) => {
     const paid = original - current;
     return Math.round((paid / original) * 100);
@@ -77,28 +100,40 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
         </Button>
       </div>
 
-      <div className="grid gap-3">
-        {loans.map((loan) => {
-          const account = bankAccounts.find(a => a.id === loan.bank_account_id);
-          const progress = calculateProgress(loan.current_balance, loan.loan_amount);
-          const currency = loan.currency || 'USD';
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="mortgage-loans">
+          {(provided) => (
+            <div className="grid gap-3" {...provided.droppableProps} ref={provided.innerRef}>
+              {loans.map((loan, index) => {
+                const account = bankAccounts.find(a => a.id === loan.bank_account_id);
+                const progress = calculateProgress(loan.current_balance, loan.loan_amount);
+                const currency = loan.currency || 'USD';
 
-          return (
-            <Link key={loan.id} to={createPageUrl('LoanDetail') + `?id=${loan.id}`}>
-              <Card className="border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-4">
+                return (
+                  <Draggable key={loan.id} draggableId={loan.id} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                      >
+                        <Link to={createPageUrl('LoanDetail') + `?id=${loan.id}`}>
+                          <Card className="border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow cursor-pointer">
+                            <CardContent className="p-4">
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-lg">
-                        {loanTypeIcons[loan.loan_type] || '📄'}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-800">{loan.name}</p>
-                        <p className="text-xs text-slate-500">{loanTypeLabels[loan.loan_type]}</p>
-                      </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing" onClick={(e) => e.preventDefault()}>
+                      <GripVertical className="w-5 h-5 text-slate-400" />
                     </div>
-                    <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
+                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-lg">
+                      {loanTypeIcons[loan.loan_type] || '📄'}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-800">{loan.name}</p>
+                      <p className="text-xs text-slate-500">{loanTypeLabels[loan.loan_type]}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -164,10 +199,17 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
                 </div>
               </CardContent>
             </Card>
-            </Link>
-          );
-        })}
-      </div>
+                        </Link>
+                      </div>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {loans.length === 0 && (
         <Card className="border-dashed">

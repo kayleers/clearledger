@@ -30,17 +30,26 @@ export default function Dashboard() {
 
   const { data: bankAccounts = [] } = useQuery({
     queryKey: ['bank-accounts'],
-    queryFn: () => base44.entities.BankAccount.filter({ is_active: true })
+    queryFn: async () => {
+      const accounts = await base44.entities.BankAccount.filter({ is_active: true });
+      return accounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    }
   });
 
   const { data: recurringBills = [] } = useQuery({
     queryKey: ['recurring-bills'],
-    queryFn: () => base44.entities.RecurringBill.filter({ is_active: true })
+    queryFn: async () => {
+      const bills = await base44.entities.RecurringBill.filter({ is_active: true });
+      return bills.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    }
   });
 
   const { data: mortgageLoans = [] } = useQuery({
     queryKey: ['mortgage-loans'],
-    queryFn: () => base44.entities.MortgageLoan.filter({ is_active: true })
+    queryFn: async () => {
+      const loans = await base44.entities.MortgageLoan.filter({ is_active: true });
+      return loans.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    }
   });
 
   const createCardMutation = useMutation({

@@ -56,6 +56,28 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
     }
   });
 
+  const updateBillOrderMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.RecurringBill.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-bills'] });
+    }
+  });
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(bills);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    items.forEach((bill, index) => {
+      updateBillOrderMutation.mutate({
+        id: bill.id,
+        data: { display_order: index }
+      });
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">

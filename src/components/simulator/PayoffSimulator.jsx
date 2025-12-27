@@ -239,30 +239,43 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
             <div className="space-y-2">
               <Label className="text-sm font-medium text-slate-700">Override Specific Months (Optional)</Label>
               <div className="grid grid-cols-2 gap-3">
-                {variablePayments.map((payment, index) => (
-                  <div key={index} className="space-y-1">
-                    <Label className="text-xs text-slate-500 font-medium">
-                      {monthNames[index]}
-                      {!payment.amount && defaultMonthlyPayment && (
-                        <span className="text-slate-400 font-normal ml-1">
-                          (${defaultMonthlyPayment})
-                        </span>
-                      )}
-                    </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                      <Input
-                        type="number"
-                        step="1"
-                        min="0"
-                        placeholder={defaultMonthlyPayment || "0"}
-                        value={payment.amount}
-                        onChange={(e) => updateVariablePayment(index, e.target.value)}
-                        className="pl-7 h-10"
-                      />
+                {variablePayments.map((payment, index) => {
+                  const defaultPayment = parseFloat(defaultMonthlyPayment) || 0;
+                  const effectivePayment = parseFloat(payment.amount) || defaultPayment;
+                  const isPaidOff = index > 0 && currentScenario.months <= index;
+                  const displayDefault = isPaidOff ? "0" : (defaultMonthlyPayment || "0");
+                  
+                  return (
+                    <div key={index} className="space-y-1">
+                      <Label className="text-xs text-slate-500 font-medium">
+                        {monthNames[index]}
+                        {!payment.amount && !isPaidOff && defaultMonthlyPayment && (
+                          <span className="text-slate-400 font-normal ml-1">
+                            (${defaultMonthlyPayment})
+                          </span>
+                        )}
+                        {isPaidOff && (
+                          <span className="text-emerald-600 font-normal ml-1">
+                            ✓ Paid Off
+                          </span>
+                        )}
+                      </Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                        <Input
+                          type="number"
+                          step="1"
+                          min="0"
+                          placeholder={displayDefault}
+                          value={payment.amount}
+                          onChange={(e) => updateVariablePayment(index, e.target.value)}
+                          className={`pl-7 h-10 ${isPaidOff ? 'bg-emerald-50 border-emerald-200' : ''}`}
+                          disabled={isPaidOff && !payment.amount}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </TabsContent>

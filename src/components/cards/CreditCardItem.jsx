@@ -62,7 +62,7 @@ export default function CreditCardItem({ card, isDragging }) {
           <div className="flex justify-between items-baseline">
             <span className="text-slate-500 text-sm">Balance</span>
             <span className="text-2xl font-bold text-slate-900">
-              {formatCurrency(card.balance)}
+              {formatCurrency(card.balance, currency)}
             </span>
           </div>
 
@@ -81,7 +81,7 @@ export default function CreditCardItem({ card, isDragging }) {
               />
             </div>
             <p className="text-xs text-slate-400">
-              {formatCurrency(card.balance)} of {formatCurrency(card.credit_limit)}
+              {formatCurrency(card.balance, currency)} of {formatCurrency(card.credit_limit, currency)}
             </p>
           </div>
 
@@ -89,7 +89,7 @@ export default function CreditCardItem({ card, isDragging }) {
           <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
             <span className="text-slate-500 text-sm">Minimum Payment</span>
             <span className="font-semibold text-slate-700">
-              {formatCurrency(minPayment)}
+              {formatCurrency(minPayment, currency)}
             </span>
           </div>
 
@@ -134,10 +134,11 @@ export default function CreditCardItem({ card, isDragging }) {
 
           // Helper function to get autopay amount display
           function getAutopayAmount(card) {
-          if (card.autopay_amount_type === 'minimum') return 'Minimum';
-          if (card.autopay_amount_type === 'full_balance') return 'Full Balance';
-          if (card.autopay_amount_type === 'custom' && card.autopay_custom_amount) {
-          return formatCurrency(card.autopay_custom_amount);
-          }
-          return 'Minimum';
+            const currency = card.currency || 'USD';
+            if (card.autopay_amount_type === 'minimum') return 'Minimum';
+            if (card.autopay_amount_type === 'full_balance') return 'Full Balance';
+            if (card.autopay_amount_type === 'custom' && card.autopay_custom_amount) {
+              return formatCurrency(card.autopay_custom_amount, currency);
+            }
+            return 'Minimum';
           }

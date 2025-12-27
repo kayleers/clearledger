@@ -5,17 +5,9 @@ export const calculateUtilization = (balance, limit) => {
   return Math.round((balance / limit) * 100);
 };
 
-export const calculateMinimumPayment = (balance, minPaymentType, minPaymentValue, minPaymentFloor = 25) => {
+export const calculateMinimumPayment = (minPayment, balance) => {
   if (balance <= 0) return 0;
-  
-  if (minPaymentType === 'flat') {
-    return Math.min(minPaymentValue || 25, balance);
-  }
-  
-  // Percentage based
-  const percentageAmount = balance * ((minPaymentValue || 2) / 100);
-  const floor = minPaymentFloor || 25;
-  return Math.min(Math.max(percentageAmount, floor), balance);
+  return Math.min(minPayment || 0, balance);
 };
 
 export const calculateMonthlyInterest = (balance, apr) => {
@@ -113,7 +105,7 @@ export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePa
   };
 };
 
-export const calculateMinimumPaymentPayoff = (balance, apr, minPaymentType, minPaymentValue, minPaymentFloor) => {
+export const calculateMinimumPaymentPayoff = (balance, apr, minPayment) => {
   if (balance <= 0) return { months: 0, totalInterest: 0, breakdown: [] };
   
   const monthlyRate = apr / 12;
@@ -128,8 +120,7 @@ export const calculateMinimumPaymentPayoff = (balance, apr, minPaymentType, minP
     totalInterest += interest;
     currentBalance += interest;
     
-    const minPayment = calculateMinimumPayment(currentBalance, minPaymentType, minPaymentValue, minPaymentFloor);
-    const actualPayment = Math.min(minPayment, currentBalance);
+    const actualPayment = Math.min(minPayment || 0, currentBalance);
     currentBalance -= actualPayment;
     months++;
     

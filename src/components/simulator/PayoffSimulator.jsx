@@ -34,12 +34,7 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
   const [variablePayments, setVariablePayments] = useState([{ month: 1, amount: '' }]);
   const [showBreakdown, setShowBreakdown] = useState(false);
 
-  const minPayment = calculateMinimumPayment(
-    card.balance,
-    card.min_payment_type,
-    card.min_payment_value,
-    card.min_payment_floor
-  );
+  const minPayment = calculateMinimumPayment(card.min_payment, card.balance);
 
   const threeYearPayment = calculatePaymentFor3YearPayoff(card.balance, card.apr);
   const monthlyInterest = card.balance * (card.apr / 12);
@@ -49,9 +44,7 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
     return calculateMinimumPaymentPayoff(
       card.balance,
       card.apr,
-      card.min_payment_type,
-      card.min_payment_value,
-      card.min_payment_floor
+      card.min_payment
     );
   }, [card]);
 

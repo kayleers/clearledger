@@ -223,7 +223,7 @@ export default function CardDetail() {
   }
 
   const utilization = calculateUtilization(card.balance, card.credit_limit);
-  const minPayment = calculateMinimumPayment(card.balance, card.min_payment_type, card.min_payment_value, card.min_payment_floor);
+  const minPayment = calculateMinimumPayment(card.min_payment, card.balance);
   const monthlyInterest = calculateMonthlyInterest(card.balance, card.apr);
   const threeYearPayment = calculatePaymentFor3YearPayoff(card.balance, card.apr);
   const gradient = cardColors[card.color] || cardColors.slate;
@@ -505,7 +505,8 @@ function EditCardForm({ card, onSave }) {
     name: card.name || '',
     balance: card.balance?.toString() || '',
     credit_limit: card.credit_limit?.toString() || '',
-    apr: ((card.apr || 0) * 100).toString()
+    apr: ((card.apr || 0) * 100).toString(),
+    min_payment: card.min_payment?.toString() || ''
   });
 
   const handleSubmit = (e) => {
@@ -514,7 +515,8 @@ function EditCardForm({ card, onSave }) {
       name: formData.name,
       balance: parseFloat(formData.balance) || 0,
       credit_limit: parseFloat(formData.credit_limit) || 0,
-      apr: parseFloat(formData.apr) / 100 || 0
+      apr: parseFloat(formData.apr) / 100 || 0,
+      min_payment: parseFloat(formData.min_payment) || 0
     });
   };
 
@@ -530,23 +532,31 @@ function EditCardForm({ card, onSave }) {
       </div>
       <div className="space-y-2">
         <Label htmlFor="editBalance">Balance</Label>
-        <Input
-          id="editBalance"
-          type="number"
-          step="0.01"
-          value={formData.balance}
-          onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
-        />
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+          <Input
+            id="editBalance"
+            type="number"
+            step="0.01"
+            value={formData.balance}
+            onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
+            className="pl-7"
+          />
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="editLimit">Credit Limit</Label>
-        <Input
-          id="editLimit"
-          type="number"
-          step="0.01"
-          value={formData.credit_limit}
-          onChange={(e) => setFormData({ ...formData, credit_limit: e.target.value })}
-        />
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+          <Input
+            id="editLimit"
+            type="number"
+            step="0.01"
+            value={formData.credit_limit}
+            onChange={(e) => setFormData({ ...formData, credit_limit: e.target.value })}
+            className="pl-7"
+          />
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="editAPR">APR (%)</Label>
@@ -557,6 +567,20 @@ function EditCardForm({ card, onSave }) {
           value={formData.apr}
           onChange={(e) => setFormData({ ...formData, apr: e.target.value })}
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="editMinPayment">Minimum Payment</Label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+          <Input
+            id="editMinPayment"
+            type="number"
+            step="0.01"
+            value={formData.min_payment}
+            onChange={(e) => setFormData({ ...formData, min_payment: e.target.value })}
+            className="pl-7"
+          />
+        </div>
       </div>
       <Button type="submit" className="w-full">Save Changes</Button>
     </form>

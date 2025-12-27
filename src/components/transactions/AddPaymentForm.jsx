@@ -8,12 +8,7 @@ import { X, Wallet } from 'lucide-react';
 import { formatCurrency, calculateMinimumPayment } from '@/components/utils/calculations';
 
 export default function AddPaymentForm({ card, onSubmit, onCancel, isLoading }) {
-  const minPayment = calculateMinimumPayment(
-    card.balance,
-    card.min_payment_type,
-    card.min_payment_value,
-    card.min_payment_floor
-  );
+  const minPayment = calculateMinimumPayment(card.min_payment, card.balance);
 
   const [formData, setFormData] = useState({
     amount: '',

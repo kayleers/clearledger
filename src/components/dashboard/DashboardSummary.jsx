@@ -22,12 +22,7 @@ export default function DashboardSummary({ cards }) {
   const totalLimit = cards.reduce((sum, card) => sum + (card.credit_limit || 0), 0);
   const totalUtilization = calculateUtilization(totalBalance, totalLimit);
   const totalMinPayment = cards.reduce((sum, card) => 
-    sum + calculateMinimumPayment(
-      card.balance, 
-      card.min_payment_type, 
-      card.min_payment_value,
-      card.min_payment_floor
-    ), 0);
+    sum + calculateMinimumPayment(card.min_payment, card.balance), 0);
 
   const getUtilizationMessage = () => {
     if (totalUtilization <= 30) {

@@ -24,9 +24,7 @@ export default function AddCardForm({ onSubmit, onCancel, isLoading }) {
     balance: '',
     credit_limit: '',
     apr: '',
-    min_payment_type: 'percentage',
-    min_payment_value: '2',
-    min_payment_floor: '25',
+    min_payment: '',
     statement_date: '',
     due_date: '',
     color: 'blue'
@@ -39,8 +37,7 @@ export default function AddCardForm({ onSubmit, onCancel, isLoading }) {
       balance: parseFloat(formData.balance) || 0,
       credit_limit: parseFloat(formData.credit_limit) || 0,
       apr: parseFloat(formData.apr) / 100 || 0,
-      min_payment_value: parseFloat(formData.min_payment_value) || 2,
-      min_payment_floor: parseFloat(formData.min_payment_floor) || 25,
+      min_payment: parseFloat(formData.min_payment) || 0,
       statement_date: parseInt(formData.statement_date) || null,
       due_date: parseInt(formData.due_date) || null,
       is_active: true
@@ -149,70 +146,34 @@ export default function AddCardForm({ onSubmit, onCancel, isLoading }) {
             </div>
           </div>
 
-          {/* Minimum Payment Settings */}
-          <div className="space-y-3 p-4 bg-slate-50 rounded-xl">
+          {/* Minimum Payment */}
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Label>Minimum Payment Rule</Label>
+              <Label htmlFor="min_payment">Minimum Payment</Label>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
                     <HelpCircle className="w-4 h-4 text-slate-400" />
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs">
-                    <p>Most cards use 1-3% of your balance with a minimum floor of $25-35.</p>
+                    <p>Find this on your credit card statement. Usually $25-35 or 1-3% of your balance.</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
-            
-            <Select
-              value={formData.min_payment_type}
-              onValueChange={(value) => updateField('min_payment_type', value)}
-            >
-              <SelectTrigger className="h-12 bg-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="percentage">Percentage of Balance</SelectItem>
-                <SelectItem value="flat">Fixed Amount</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs text-slate-500">
-                  {formData.min_payment_type === 'percentage' ? 'Percentage' : 'Amount'}
-                </Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={formData.min_payment_value}
-                    onChange={(e) => updateField('min_payment_value', e.target.value)}
-                    className="h-10 bg-white pr-7"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                    {formData.min_payment_type === 'percentage' ? '%' : '$'}
-                  </span>
-                </div>
-              </div>
-              {formData.min_payment_type === 'percentage' && (
-                <div className="space-y-1">
-                  <Label className="text-xs text-slate-500">Minimum Floor</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      value={formData.min_payment_floor}
-                      onChange={(e) => updateField('min_payment_floor', e.target.value)}
-                      className="h-10 bg-white pl-7"
-                    />
-                  </div>
-                </div>
-              )}
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+              <Input
+                id="min_payment"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="25.00"
+                value={formData.min_payment}
+                onChange={(e) => updateField('min_payment', e.target.value)}
+                required
+                className="pl-7 h-12"
+              />
             </div>
           </div>
 

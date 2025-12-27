@@ -25,12 +25,7 @@ const cardColors = {
 
 export default function CreditCardItem({ card }) {
   const utilization = calculateUtilization(card.balance, card.credit_limit);
-  const minPayment = calculateMinimumPayment(
-    card.balance, 
-    card.min_payment_type, 
-    card.min_payment_value,
-    card.min_payment_floor
-  );
+  const minPayment = calculateMinimumPayment(card.min_payment, card.balance);
   const gradient = cardColors[card.color] || cardColors.slate;
 
   return (

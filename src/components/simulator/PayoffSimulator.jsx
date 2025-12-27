@@ -265,7 +265,19 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                   const now = new Date();
                   const currentMonth = now.getMonth(); // 0-11
                   const currentYear = now.getFullYear();
-                  const isPastMonth = selectedYear < currentYear || (selectedYear === currentYear && index < currentMonth);
+                  const currentDay = now.getDate();
+                  
+                  let isPastMonth = false;
+                  if (selectedYear < currentYear) {
+                    isPastMonth = true;
+                  } else if (selectedYear === currentYear) {
+                    if (index < currentMonth) {
+                      isPastMonth = true;
+                    } else if (index === currentMonth && card.due_date) {
+                      // Current month - check if due date has passed
+                      isPastMonth = currentDay > card.due_date;
+                    }
+                  }
 
                   // Calculate actual payment for this past month
                   let actualPayment = null;

@@ -45,19 +45,6 @@ export default function AddPurchaseForm({ onSubmit, onCancel, isLoading, cardId 
       setTemplateName('');
     }
   });
-  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
-  const [templateName, setTemplateName] = useState('');
-  const [showImportOptions, setShowImportOptions] = useState(false);
-  const queryClient = useQueryClient();
-
-  const saveTemplateMutation = useMutation({
-    mutationFn: (data) => base44.entities.TransactionTemplate.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transaction-templates'] });
-      setShowSaveTemplate(false);
-      setTemplateName('');
-    }
-  });
 
   const handleSubmit = (e) => {
     e.preventDefault();

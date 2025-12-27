@@ -338,7 +338,7 @@ export default function CardDetail() {
             </div>
             <div>
               <h1 className="text-xl font-bold">{card.name}</h1>
-              <p className="text-white/70 text-sm">{(card.apr * 100).toFixed(2)}% APR</p>
+              <p className="text-white/70 text-sm">{(card.apr * 100)}% APR</p>
             </div>
           </div>
 

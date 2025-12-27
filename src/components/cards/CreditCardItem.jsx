@@ -47,7 +47,7 @@ export default function CreditCardItem({ card, isDragging }) {
               <div>
                 <h3 className="font-semibold text-lg">{card.name}</h3>
                 <p className="text-white/70 text-sm">
-                  {(card.apr * 100).toFixed(1)}% APR
+                  {(card.apr * 100)}% APR
                 </p>
               </div>
             </div>

@@ -1,0 +1,97 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { CreditCard, ChevronRight } from 'lucide-react';
+import { 
+  calculateUtilization, 
+  calculateMinimumPayment,
+  formatCurrency,
+  getUtilizationColor,
+  getUtilizationBgColor
+} from '@/components/utils/calculations';
+
+const cardColors = {
+  blue: 'from-blue-600 to-blue-800',
+  purple: 'from-purple-600 to-purple-800',
+  green: 'from-emerald-600 to-emerald-800',
+  red: 'from-rose-600 to-rose-800',
+  orange: 'from-orange-500 to-orange-700',
+  slate: 'from-slate-600 to-slate-800',
+  indigo: 'from-indigo-600 to-indigo-800',
+  pink: 'from-pink-500 to-pink-700'
+};
+
+export default function CreditCardItem({ card }) {
+  const utilization = calculateUtilization(card.balance, card.credit_limit);
+  const minPayment = calculateMinimumPayment(
+    card.balance, 
+    card.min_payment_type, 
+    card.min_payment_value,
+    card.min_payment_floor
+  );
+  const gradient = cardColors[card.color] || cardColors.slate;
+
+  return (
+    <Link to={createPageUrl(`CardDetail?id=${card.id}`)}>
+      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
+        {/* Card Header with Gradient */}
+        <div className={`bg-gradient-to-r ${gradient} p-4 text-white`}>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">{card.name}</h3>
+                <p className="text-white/70 text-sm">
+                  {(card.apr * 100).toFixed(1)}% APR
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+          </div>
+        </div>
+
+        {/* Card Body */}
+        <div className="p-4 space-y-4">
+          {/* Balance */}
+          <div className="flex justify-between items-baseline">
+            <span className="text-slate-500 text-sm">Balance</span>
+            <span className="text-2xl font-bold text-slate-900">
+              {formatCurrency(card.balance)}
+            </span>
+          </div>
+
+          {/* Utilization Bar */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500">Credit Used</span>
+              <span className={`font-medium ${getUtilizationColor(utilization)}`}>
+                {utilization}%
+              </span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ${getUtilizationBgColor(utilization)}`}
+                style={{ width: `${Math.min(utilization, 100)}%` }}
+              />
+            </div>
+            <p className="text-xs text-slate-400">
+              {formatCurrency(card.balance)} of {formatCurrency(card.credit_limit)}
+            </p>
+          </div>
+
+          {/* Min Payment */}
+          <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
+            <span className="text-slate-500 text-sm">Minimum Payment</span>
+            <span className="font-semibold text-slate-700">
+              {formatCurrency(minPayment)}
+            </span>
+          </div>
+        </div>
+      </Card>
+    </Link>
+  );
+}

@@ -348,21 +348,23 @@ export default function CardDetail() {
             </div>
 
             {/* Payment Info */}
-            {(card.due_date || card.payment_method === 'autopay') && (
-              <div className="mt-4 pt-4 border-t flex items-center justify-between text-sm">
-                {card.due_date && (
-                  <div className="text-slate-600">
-                    <span className="text-slate-400">Due:</span> {card.due_date}{getOrdinalSuffix(card.due_date)} of month
-                  </div>
-                )}
-                {card.payment_method === 'autopay' && (
-                  <div className="flex items-center gap-1 text-blue-600">
-                    <Zap className="w-3 h-3" />
-                    <span className="font-medium">Autopay</span>
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="mt-4 pt-4 border-t flex items-center justify-between text-sm">
+              {card.due_date && (
+                <div className="text-slate-600">
+                  <span className="text-slate-400">Due:</span> {card.due_date}{getOrdinalSuffix(card.due_date)} of month
+                </div>
+              )}
+              {card.payment_method === 'autopay' ? (
+                <div className="flex items-center gap-1 text-blue-600">
+                  <Zap className="w-3 h-3" />
+                  <span className="font-medium">Autopay</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-slate-500">
+                  <span className="font-medium">Manual</span>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 

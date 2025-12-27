@@ -12,6 +12,7 @@ import AddCardForm from '@/components/cards/AddCardForm';
 import UpgradePrompt from '@/components/premium/UpgradePrompt';
 import BankAccountList from '@/components/bankaccounts/BankAccountList';
 import RecurringBillList from '@/components/bills/RecurringBillList';
+import MortgageLoanList from '@/components/mortgages/MortgageLoanList';
 
 const MAX_FREE_CARDS = 2;
 
@@ -35,6 +36,11 @@ export default function Dashboard() {
   const { data: recurringBills = [] } = useQuery({
     queryKey: ['recurring-bills'],
     queryFn: () => base44.entities.RecurringBill.filter({ is_active: true })
+  });
+
+  const { data: mortgageLoans = [] } = useQuery({
+    queryKey: ['mortgage-loans'],
+    queryFn: () => base44.entities.MortgageLoan.filter({ is_active: true })
   });
 
   const createCardMutation = useMutation({
@@ -217,6 +223,11 @@ export default function Dashboard() {
             {/* Recurring Bills Section */}
             <div className="mb-6">
               <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />
+            </div>
+
+            {/* Mortgages & Loans Section */}
+            <div className="mb-6">
+              <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} />
             </div>
           </>
         )}

@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, CreditCard, Loader2 } from 'lucide-react';
+import { Plus, CreditCard, Loader2, Zap } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';
 import { AnimatePresence, motion } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
@@ -19,6 +21,8 @@ const MAX_FREE_CARDS = 2;
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
   const [sectionOrder, setSectionOrder] = useState(['banks', 'bills', 'loans']);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [quickAddCardId, setQuickAddCardId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: cards = [], isLoading } = useQuery({
@@ -117,6 +121,34 @@ export default function Dashboard() {
   }, []);
 
   const canAddCard = cards.length < MAX_FREE_CARDS;
+
+  const createPurchaseMutation = useMutation({
+    mutationFn: async (purchaseData) => {
+      await base44.entities.Purchase.create({ ...purchaseData, card_id: quickAddCardId });
+      const card = cards.find(c => c.id === quickAddCardId);
+      if (card) {
+        await base44.entities.CreditCard.update(quickAddCardId, {
+          balance: card.balance + purchaseData.amount
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+      setShowQuickAdd(false);
+    }
+  });
+
+  const handleQuickAdd = () => {
+    if (cards.length === 1) {
+      setQuickAddCardId(cards[0].id);
+      setShowQuickAdd(true);
+    } else if (cards.length > 1) {
+      // Show card selector
+      setShowQuickAdd(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
@@ -284,6 +316,54 @@ export default function Dashboard() {
                 </Droppable>
               </DragDropContext>
             </div>
+          </>
+        )}
+
+        {/* Quick Add FAB */}
+        {cards.length > 0 && (
+          <>
+            <button
+              onClick={handleQuickAdd}
+              className="fixed bottom-20 right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center z-50"
+              aria-label="Quick add purchase"
+            >
+              <Zap className="w-6 h-6" />
+            </button>
+
+            <Dialog open={showQuickAdd} onOpenChange={setShowQuickAdd}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Quick Add Purchase</DialogTitle>
+                </DialogHeader>
+                
+                {!quickAddCardId && cards.length > 1 ? (
+                  <div className="space-y-2">
+                    <p className="text-sm text-slate-600 mb-3">Select a card:</p>
+                    {cards.map(card => (
+                      <Button
+                        key={card.id}
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => setQuickAddCardId(card.id)}
+                      >
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        {card.name}
+                      </Button>
+                    ))}
+                  </div>
+                ) : (
+                  <AddPurchaseForm
+                    cardId={quickAddCardId || cards[0]?.id}
+                    onSubmit={(data) => createPurchaseMutation.mutate(data)}
+                    onCancel={() => {
+                      setShowQuickAdd(false);
+                      setQuickAddCardId(null);
+                    }}
+                    isLoading={createPurchaseMutation.isPending}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
           </>
         )}
       </div>

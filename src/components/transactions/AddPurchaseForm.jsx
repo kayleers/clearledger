@@ -18,12 +18,25 @@ const categories = [
   { value: 'other', label: '📦 Other', icon: '📦' }
 ];
 
-export default function AddPurchaseForm({ onSubmit, onCancel, isLoading }) {
+export default function AddPurchaseForm({ onSubmit, onCancel, isLoading, cardId }) {
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
     date: new Date().toISOString().split('T')[0],
     category: 'other'
+  });
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [showImportOptions, setShowImportOptions] = useState(false);
+  const queryClient = useQueryClient();
+
+  const saveTemplateMutation = useMutation({
+    mutationFn: (data) => base44.entities.TransactionTemplate.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transaction-templates'] });
+      setShowSaveTemplate(false);
+      setTemplateName('');
+    }
   });
 
   const handleSubmit = (e) => {

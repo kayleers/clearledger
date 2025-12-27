@@ -451,6 +451,7 @@ export default function CardDetail() {
               className="mb-4"
             >
               <AddPurchaseForm
+                cardId={cardId}
                 onSubmit={(data) => createPurchaseMutation.mutate(data)}
                 onCancel={() => setShowAddPurchase(false)}
                 isLoading={createPurchaseMutation.isPending}

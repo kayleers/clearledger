@@ -87,10 +87,22 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
                         <span>{formatCurrency(bill.amount, bill.currency || 'USD')}</span>
                         <span>•</span>
                         <span>{frequencyLabels[bill.frequency]}</span>
-                        {bill.due_date && (
+                        {bill.frequency === 'weekly' && bill.day_of_week !== undefined && (
+                          <>
+                            <span>•</span>
+                            <span>{getDayOfWeekLabel(bill.day_of_week)}</span>
+                          </>
+                        )}
+                        {(bill.frequency === 'monthly' || bill.frequency === 'quarterly') && bill.due_date && (
                           <>
                             <span>•</span>
                             <span>Due: {bill.due_date}{getOrdinalSuffix(bill.due_date)}</span>
+                          </>
+                        )}
+                        {bill.frequency === 'yearly' && bill.due_month && bill.due_date && (
+                          <>
+                            <span>•</span>
+                            <span>{getMonthLabel(bill.due_month)} {bill.due_date}{getOrdinalSuffix(bill.due_date)}</span>
                           </>
                         )}
                       </div>
@@ -180,6 +192,8 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
     currency: bill?.currency || 'USD',
     frequency: bill?.frequency || 'monthly',
     due_date: bill?.due_date?.toString() || '',
+    day_of_week: bill?.day_of_week?.toString() || '1',
+    due_month: bill?.due_month?.toString() || '1',
     bank_account_id: bill?.bank_account_id || '',
     category: bill?.category || 'other'
   });
@@ -201,15 +215,28 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({
+    const submitData = {
       name: formData.name,
       amount: parseFloat(formData.amount) || 0,
       currency: formData.currency,
       frequency: isRecurring ? formData.frequency : 'one_time',
-      due_date: formData.due_date ? parseInt(formData.due_date) : null,
       bank_account_id: formData.bank_account_id,
       category: formData.category
-    });
+    };
+
+    // Add date fields based on frequency
+    if (isRecurring) {
+      if (formData.frequency === 'weekly') {
+        submitData.day_of_week = parseInt(formData.day_of_week);
+      } else if (formData.frequency === 'monthly' || formData.frequency === 'quarterly') {
+        submitData.due_date = formData.due_date ? parseInt(formData.due_date) : null;
+      } else if (formData.frequency === 'yearly') {
+        submitData.due_date = formData.due_date ? parseInt(formData.due_date) : null;
+        submitData.due_month = formData.due_month ? parseInt(formData.due_month) : null;
+      }
+    }
+
+    onSubmit(submitData);
   };
 
   return (
@@ -260,33 +287,99 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
         </Label>
       </div>
       {isRecurring && (
-        <div className="space-y-2">
-          <Label htmlFor="billFrequency">Frequency</Label>
-          <select
-            id="billFrequency"
-            value={formData.frequency}
-            onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-            className="w-full h-10 px-3 rounded-md border border-slate-200"
-          >
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="quarterly">Quarterly</option>
-            <option value="yearly">Yearly</option>
-          </select>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="billFrequency">Frequency</Label>
+            <select
+              id="billFrequency"
+              value={formData.frequency}
+              onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+              className="w-full h-10 px-3 rounded-md border border-slate-200"
+            >
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+
+          {formData.frequency === 'weekly' && (
+            <div className="space-y-2">
+              <Label htmlFor="dayOfWeek">Day of Week</Label>
+              <select
+                id="dayOfWeek"
+                value={formData.day_of_week}
+                onChange={(e) => setFormData({ ...formData, day_of_week: e.target.value })}
+                className="w-full h-10 px-3 rounded-md border border-slate-200"
+              >
+                <option value="0">Sunday</option>
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+              </select>
+            </div>
+          )}
+
+          {(formData.frequency === 'monthly' || formData.frequency === 'quarterly') && (
+            <div className="space-y-2">
+              <Label htmlFor="billDueDate">
+                {formData.frequency === 'monthly' ? 'Due Date (Day of Month)' : 'Due Date (Day of Month, repeats quarterly)'}
+              </Label>
+              <Input
+                id="billDueDate"
+                type="number"
+                min="1"
+                max="31"
+                placeholder="e.g., 15"
+                value={formData.due_date}
+                onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+              />
+            </div>
+          )}
+
+          {formData.frequency === 'yearly' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="dueMonth">Month</Label>
+                <select
+                  id="dueMonth"
+                  value={formData.due_month}
+                  onChange={(e) => setFormData({ ...formData, due_month: e.target.value })}
+                  className="w-full h-10 px-3 rounded-md border border-slate-200"
+                >
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6">June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="billDueDate">Day</Label>
+                <Input
+                  id="billDueDate"
+                  type="number"
+                  min="1"
+                  max="31"
+                  placeholder="e.g., 15"
+                  value={formData.due_date}
+                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
-      <div className="space-y-2">
-        <Label htmlFor="billDueDate">Due Date (Day of Month)</Label>
-        <Input
-          id="billDueDate"
-          type="number"
-          min="1"
-          max="31"
-          placeholder="e.g., 15"
-          value={formData.due_date}
-          onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-        />
-      </div>
       <div className="space-y-2">
         <Label htmlFor="billAccount">Bank Account</Label>
         <select
@@ -335,4 +428,14 @@ function getOrdinalSuffix(day) {
     case 3: return 'rd';
     default: return 'th';
   }
+}
+
+function getDayOfWeekLabel(day) {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[day] || '';
+}
+
+function getMonthLabel(month) {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return months[month - 1] || '';
 }

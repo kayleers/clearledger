@@ -10,6 +10,8 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import CreditCardItem from '@/components/cards/CreditCardItem';
 import AddCardForm from '@/components/cards/AddCardForm';
 import UpgradePrompt from '@/components/premium/UpgradePrompt';
+import BankAccountList from '@/components/bankaccounts/BankAccountList';
+import RecurringBillList from '@/components/bills/RecurringBillList';
 
 const MAX_FREE_CARDS = 2;
 
@@ -23,6 +25,16 @@ export default function Dashboard() {
       const allCards = await base44.entities.CreditCard.list();
       return allCards.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
     }
+  });
+
+  const { data: bankAccounts = [] } = useQuery({
+    queryKey: ['bank-accounts'],
+    queryFn: () => base44.entities.BankAccount.filter({ is_active: true })
+  });
+
+  const { data: recurringBills = [] } = useQuery({
+    queryKey: ['recurring-bills'],
+    queryFn: () => base44.entities.RecurringBill.filter({ is_active: true })
   });
 
   const createCardMutation = useMutation({
@@ -196,6 +208,16 @@ export default function Dashboard() {
                 Add Another Card
               </Button>
             )}
+
+            {/* Bank Accounts Section */}
+            <div className="mb-6 mt-8">
+              <BankAccountList accounts={bankAccounts} />
+            </div>
+
+            {/* Recurring Bills Section */}
+            <div className="mb-6">
+              <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />
+            </div>
           </>
         )}
       </div>

@@ -24,7 +24,8 @@ import {
   Trash2,
   Edit2,
   AlertTriangle,
-  Zap
+  Zap,
+  PlusCircle
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -348,20 +349,31 @@ export default function CardDetail() {
             </div>
 
             {/* Payment Info */}
-            <div className="mt-4 pt-4 border-t flex items-center justify-between text-sm">
-              {card.due_date && (
-                <div className="text-slate-600">
-                  <span className="text-slate-400">Due:</span> {card.due_date}{getOrdinalSuffix(card.due_date)} of month
-                </div>
-              )}
-              {card.payment_method === 'autopay' ? (
-                <div className="flex items-center gap-1 text-blue-600">
-                  <Zap className="w-3 h-3" />
-                  <span className="font-medium">Autopay</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1 text-slate-500">
-                  <span className="font-medium">Manual</span>
+            <div className="mt-4 pt-4 border-t space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                {card.due_date && (
+                  <div className="text-slate-600">
+                    <span className="text-slate-400">Due:</span> {card.due_date}{getOrdinalSuffix(card.due_date)} of month
+                  </div>
+                )}
+                {card.payment_method === 'autopay' ? (
+                  <div className="flex items-center gap-1 text-blue-600">
+                    <Zap className="w-3 h-3" />
+                    <span className="font-medium">Autopay</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-slate-500">
+                    <span className="font-medium">Manual</span>
+                  </div>
+                )}
+              </div>
+              {card.additional_payment_enabled && (
+                <div className="flex items-center justify-between text-xs text-purple-700 bg-purple-50 px-2 py-1 rounded">
+                  <div className="flex items-center gap-1">
+                    <PlusCircle className="w-3 h-3" />
+                    <span>Additional {card.additional_payment_type === 'one_time' ? 'one-time' : 'recurring'} payment</span>
+                  </div>
+                  <span className="font-semibold">{formatCurrency(card.additional_payment_amount)}</span>
                 </div>
               )}
             </div>
@@ -544,7 +556,13 @@ function EditCardForm({ card, onSave }) {
     autopay_amount_type: card.autopay_amount_type || 'minimum',
     autopay_custom_amount: card.autopay_custom_amount?.toString() || '',
     autopay_start_date: card.autopay_start_date || '',
-    autopay_end_date: card.autopay_end_date || ''
+    autopay_end_date: card.autopay_end_date || '',
+    additional_payment_enabled: card.additional_payment_enabled || false,
+    additional_payment_type: card.additional_payment_type || 'recurring',
+    additional_payment_amount: card.additional_payment_amount?.toString() || '',
+    additional_payment_date: card.additional_payment_date?.toString() || '',
+    additional_payment_start_date: card.additional_payment_start_date || '',
+    additional_payment_end_date: card.additional_payment_end_date || ''
   });
 
   const handleSubmit = (e) => {
@@ -567,6 +585,18 @@ function EditCardForm({ card, onSave }) {
         : null;
       saveData.autopay_start_date = formData.autopay_start_date || null;
       saveData.autopay_end_date = formData.autopay_end_date || null;
+    }
+
+    // Additional payments
+    saveData.additional_payment_enabled = formData.additional_payment_enabled;
+    if (formData.additional_payment_enabled) {
+      saveData.additional_payment_type = formData.additional_payment_type;
+      saveData.additional_payment_amount = parseFloat(formData.additional_payment_amount) || 0;
+      saveData.additional_payment_date = formData.additional_payment_date ? parseInt(formData.additional_payment_date) : null;
+      saveData.additional_payment_start_date = formData.additional_payment_start_date || null;
+      saveData.additional_payment_end_date = formData.additional_payment_type === 'recurring' 
+        ? (formData.additional_payment_end_date || null)
+        : null;
     }
 
     onSave(saveData);
@@ -754,6 +784,102 @@ function EditCardForm({ card, onSave }) {
               />
               <p className="text-xs text-slate-500">Leave blank if autopay continues indefinitely</p>
             </div>
+          </div>
+        )}
+      </div>
+
+      <div className="pt-4 border-t space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <Label className="text-base font-medium">Additional Payment</Label>
+            <p className="text-xs text-slate-500">Set up extra payments beyond your {formData.payment_method === 'autopay' ? 'autopay' : 'regular'} payment</p>
+          </div>
+          <Button
+            type="button"
+            variant={formData.additional_payment_enabled ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFormData({ ...formData, additional_payment_enabled: !formData.additional_payment_enabled })}
+          >
+            {formData.additional_payment_enabled ? 'Enabled' : 'Disabled'}
+          </Button>
+        </div>
+
+        {formData.additional_payment_enabled && (
+          <div className="space-y-4 p-4 bg-purple-50 rounded-lg">
+            <div className="space-y-2">
+              <Label>Payment Frequency</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={formData.additional_payment_type === 'recurring' ? 'default' : 'outline'}
+                  onClick={() => setFormData({ ...formData, additional_payment_type: 'recurring' })}
+                  className="flex-1"
+                  size="sm"
+                >
+                  Recurring
+                </Button>
+                <Button
+                  type="button"
+                  variant={formData.additional_payment_type === 'one_time' ? 'default' : 'outline'}
+                  onClick={() => setFormData({ ...formData, additional_payment_type: 'one_time' })}
+                  className="flex-1"
+                  size="sm"
+                >
+                  One-Time
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="additionalAmount">Additional Payment Amount</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                <Input
+                  id="additionalAmount"
+                  type="number"
+                  step="0.01"
+                  value={formData.additional_payment_amount}
+                  onChange={(e) => setFormData({ ...formData, additional_payment_amount: e.target.value })}
+                  className="pl-7"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="additionalDate">Payment Date (Day of Month)</Label>
+              <Input
+                id="additionalDate"
+                type="number"
+                min="1"
+                max="31"
+                placeholder="e.g., 15"
+                value={formData.additional_payment_date}
+                onChange={(e) => setFormData({ ...formData, additional_payment_date: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="additionalStart">Start Date</Label>
+              <Input
+                id="additionalStart"
+                type="date"
+                value={formData.additional_payment_start_date}
+                onChange={(e) => setFormData({ ...formData, additional_payment_start_date: e.target.value })}
+              />
+            </div>
+
+            {formData.additional_payment_type === 'recurring' && (
+              <div className="space-y-2">
+                <Label htmlFor="additionalEnd">End Date (Optional)</Label>
+                <Input
+                  id="additionalEnd"
+                  type="date"
+                  value={formData.additional_payment_end_date}
+                  onChange={(e) => setFormData({ ...formData, additional_payment_end_date: e.target.value })}
+                />
+                <p className="text-xs text-slate-500">Leave blank for ongoing payments</p>
+              </div>
+            )}
           </div>
         )}
       </div>

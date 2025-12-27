@@ -23,7 +23,8 @@ import {
   Settings,
   Trash2,
   Edit2,
-  AlertTriangle
+  AlertTriangle,
+  Zap
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -251,7 +252,7 @@ export default function CardDetail() {
                     <Edit2 className="w-5 h-5" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-md">
                   <DialogHeader>
                     <DialogTitle>Edit Card</DialogTitle>
                   </DialogHeader>
@@ -335,7 +336,7 @@ export default function CardDetail() {
                 <p className="text-lg font-bold text-red-600">{formatCurrency(monthlyInterest)}</p>
               </div>
             </div>
-            
+
             {/* Utilization Bar */}
             <div className="mt-4">
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -345,6 +346,23 @@ export default function CardDetail() {
                 />
               </div>
             </div>
+
+            {/* Payment Info */}
+            {(card.due_date || card.payment_method === 'autopay') && (
+              <div className="mt-4 pt-4 border-t flex items-center justify-between text-sm">
+                {card.due_date && (
+                  <div className="text-slate-600">
+                    <span className="text-slate-400">Due:</span> {card.due_date}{getOrdinalSuffix(card.due_date)} of month
+                  </div>
+                )}
+                {card.payment_method === 'autopay' && (
+                  <div className="flex items-center gap-1 text-blue-600">
+                    <Zap className="w-3 h-3" />
+                    <span className="font-medium">Autopay</span>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -499,6 +517,17 @@ export default function CardDetail() {
   );
 }
 
+// Helper function for ordinal suffix
+function getOrdinalSuffix(day) {
+  if (day > 3 && day < 21) return 'th';
+  switch (day % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
+}
+
 // Edit Card Form Component
 function EditCardForm({ card, onSave }) {
   const [formData, setFormData] = useState({
@@ -506,22 +535,43 @@ function EditCardForm({ card, onSave }) {
     balance: card.balance?.toString() || '',
     credit_limit: card.credit_limit?.toString() || '',
     apr: ((card.apr || 0) * 100).toString(),
-    min_payment: card.min_payment?.toString() || ''
+    min_payment: card.min_payment?.toString() || '',
+    due_date: card.due_date?.toString() || '',
+    payment_method: card.payment_method || 'manual',
+    autopay_date: card.autopay_date?.toString() || '',
+    autopay_amount_type: card.autopay_amount_type || 'minimum',
+    autopay_custom_amount: card.autopay_custom_amount?.toString() || '',
+    autopay_start_date: card.autopay_start_date || '',
+    autopay_end_date: card.autopay_end_date || ''
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({
+    const saveData = {
       name: formData.name,
       balance: parseFloat(formData.balance) || 0,
       credit_limit: parseFloat(formData.credit_limit) || 0,
       apr: parseFloat(formData.apr) / 100 || 0,
-      min_payment: parseFloat(formData.min_payment) || 0
-    });
+      min_payment: parseFloat(formData.min_payment) || 0,
+      due_date: formData.due_date ? parseInt(formData.due_date) : null,
+      payment_method: formData.payment_method
+    };
+
+    if (formData.payment_method === 'autopay') {
+      saveData.autopay_date = formData.autopay_date ? parseInt(formData.autopay_date) : null;
+      saveData.autopay_amount_type = formData.autopay_amount_type;
+      saveData.autopay_custom_amount = formData.autopay_amount_type === 'custom' 
+        ? parseFloat(formData.autopay_custom_amount) || 0 
+        : null;
+      saveData.autopay_start_date = formData.autopay_start_date || null;
+      saveData.autopay_end_date = formData.autopay_end_date || null;
+    }
+
+    onSave(saveData);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
       <div className="space-y-2">
         <Label htmlFor="editName">Card Name</Label>
         <Input
@@ -582,6 +632,130 @@ function EditCardForm({ card, onSave }) {
           />
         </div>
       </div>
+      <div className="space-y-2">
+        <Label htmlFor="editDueDate">Payment Due Date (Day of Month)</Label>
+        <Input
+          id="editDueDate"
+          type="number"
+          min="1"
+          max="31"
+          placeholder="e.g., 15"
+          value={formData.due_date}
+          onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+        />
+      </div>
+
+      <div className="pt-4 border-t space-y-4">
+        <div className="space-y-2">
+          <Label>Payment Method</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={formData.payment_method === 'manual' ? 'default' : 'outline'}
+              onClick={() => setFormData({ ...formData, payment_method: 'manual' })}
+              className="flex-1"
+            >
+              Manual
+            </Button>
+            <Button
+              type="button"
+              variant={formData.payment_method === 'autopay' ? 'default' : 'outline'}
+              onClick={() => setFormData({ ...formData, payment_method: 'autopay' })}
+              className="flex-1"
+            >
+              Autopay
+            </Button>
+          </div>
+        </div>
+
+        {formData.payment_method === 'autopay' && (
+          <div className="space-y-4 p-4 bg-blue-50 rounded-lg">
+            <h4 className="font-medium text-blue-900">Autopay Settings</h4>
+            
+            <div className="space-y-2">
+              <Label htmlFor="autopayDate">Autopay Processing Date (Day of Month)</Label>
+              <Input
+                id="autopayDate"
+                type="number"
+                min="1"
+                max="31"
+                placeholder="e.g., 10"
+                value={formData.autopay_date}
+                onChange={(e) => setFormData({ ...formData, autopay_date: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Autopay Amount</Label>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  type="button"
+                  variant={formData.autopay_amount_type === 'minimum' ? 'default' : 'outline'}
+                  onClick={() => setFormData({ ...formData, autopay_amount_type: 'minimum' })}
+                  size="sm"
+                >
+                  Minimum
+                </Button>
+                <Button
+                  type="button"
+                  variant={formData.autopay_amount_type === 'full_balance' ? 'default' : 'outline'}
+                  onClick={() => setFormData({ ...formData, autopay_amount_type: 'full_balance' })}
+                  size="sm"
+                >
+                  Full
+                </Button>
+                <Button
+                  type="button"
+                  variant={formData.autopay_amount_type === 'custom' ? 'default' : 'outline'}
+                  onClick={() => setFormData({ ...formData, autopay_amount_type: 'custom' })}
+                  size="sm"
+                >
+                  Custom
+                </Button>
+              </div>
+            </div>
+
+            {formData.autopay_amount_type === 'custom' && (
+              <div className="space-y-2">
+                <Label htmlFor="customAmount">Custom Autopay Amount</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                  <Input
+                    id="customAmount"
+                    type="number"
+                    step="0.01"
+                    value={formData.autopay_custom_amount}
+                    onChange={(e) => setFormData({ ...formData, autopay_custom_amount: e.target.value })}
+                    className="pl-7"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="autopayStart">Autopay Start Date</Label>
+              <Input
+                id="autopayStart"
+                type="date"
+                value={formData.autopay_start_date}
+                onChange={(e) => setFormData({ ...formData, autopay_start_date: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="autopayEnd">Autopay End Date (Optional)</Label>
+              <Input
+                id="autopayEnd"
+                type="date"
+                value={formData.autopay_end_date}
+                onChange={(e) => setFormData({ ...formData, autopay_end_date: e.target.value })}
+              />
+              <p className="text-xs text-slate-500">Leave blank if autopay continues indefinitely</p>
+            </div>
+          </div>
+        )}
+      </div>
+
       <Button type="submit" className="w-full">Save Changes</Button>
     </form>
   );

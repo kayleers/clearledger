@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Building2, Plus, Edit2, Trash2, GripVertical } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 
 export default function BankAccountList({ bankAccounts = [] }) {
@@ -37,6 +38,28 @@ export default function BankAccountList({ bankAccounts = [] }) {
     }
   });
 
+  const updateAccountOrderMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.BankAccount.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
+    }
+  });
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(bankAccounts);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    items.forEach((account, index) => {
+      updateAccountOrderMutation.mutate({
+        id: account.id,
+        data: { display_order: index }
+      });
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -51,12 +74,24 @@ export default function BankAccountList({ bankAccounts = [] }) {
         </Button>
       </div>
 
-      <div className="grid gap-3">
-        {accounts.map((account) => (
-          <Card key={account.id} className="border-l-4 border-l-blue-500">
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="bank-accounts">
+          {(provided) => (
+            <div className="grid gap-3" {...provided.droppableProps} ref={provided.innerRef}>
+              {bankAccounts.map((account, index) => (
+                <Draggable key={account.id} draggableId={account.id} index={index}>
+                  {(provided) => (
+                    <Card
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      className="border-l-4 border-l-blue-500"
+                    >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
+                  <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                    <GripVertical className="w-5 h-5 text-slate-400" />
+                  </div>
                   <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
                     <Building2 className="w-5 h-5 text-blue-600" />
                   </div>
@@ -97,11 +132,17 @@ export default function BankAccountList({ bankAccounts = [] }) {
                 </div>
               </div>
             </CardContent>
-          </Card>
-        ))}
-      </div>
+                    </Card>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
-      {accounts.length === 0 && (
+      {bankAccounts.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="p-8 text-center">
             <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />

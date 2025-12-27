@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Receipt, Plus, Edit2, Trash2, Calendar } from 'lucide-react';
+import { Receipt, Plus, Edit2, Trash2, Calendar, GripVertical } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { formatCurrency } from '@/components/utils/calculations';
 import { format } from 'date-fns';
 import CurrencySelector from '@/components/currency/CurrencySelector';
@@ -92,14 +93,26 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
         </Button>
       </div>
 
-      <div className="grid gap-3">
-        {bills.map((bill) => {
-          const account = bankAccounts.find(a => a.id === bill.bank_account_id);
-          return (
-            <Card key={bill.id} className="border-l-4 border-l-purple-500">
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="recurring-bills">
+          {(provided) => (
+            <div className="grid gap-3" {...provided.droppableProps} ref={provided.innerRef}>
+              {bills.map((bill, index) => {
+                const account = bankAccounts.find(a => a.id === bill.bank_account_id);
+                return (
+                  <Draggable key={bill.id} draggableId={bill.id} index={index}>
+                    {(provided) => (
+                      <Card
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className="border-l-4 border-l-purple-500"
+                      >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
+                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                      <GripVertical className="w-5 h-5 text-slate-400" />
+                    </div>
                     <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-lg">
                       {categoryIcons[bill.category] || '📄'}
                     </div>
@@ -159,10 +172,16 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                      </Card>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {bills.length === 0 && (
         <Card className="border-dashed">

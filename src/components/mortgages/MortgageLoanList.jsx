@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -82,8 +84,9 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
           const currency = loan.currency || 'USD';
 
           return (
-            <Card key={loan.id} className="border-l-4 border-l-indigo-500">
-              <CardContent className="p-4">
+            <Link key={loan.id} to={createPageUrl('LoanDetail') + `?id=${loan.id}`}>
+              <Card className="border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -95,12 +98,15 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
                         <p className="text-xs text-slate-500">{loanTypeLabels[loan.loan_type]}</p>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => setEditingLoan(loan)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setEditingLoan(loan);
+                        }}
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
@@ -108,7 +114,8 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-red-500"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
                           if (confirm('Delete this loan?')) {
                             deleteLoanMutation.mutate(loan.id);
                           }
@@ -157,6 +164,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
                 </div>
               </CardContent>
             </Card>
+            </Link>
           );
         })}
       </div>

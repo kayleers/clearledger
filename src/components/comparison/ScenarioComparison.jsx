@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import { ArrowRight, Trophy, Clock, DollarSign } from 'lucide-react';
-import { formatCurrency } from '@/components/utils/calculations';
+import { formatCurrency, formatMonthsToYears } from '@/components/utils/calculations';
 
 export default function ScenarioComparison({ scenarios, minimumScenario }) {
   if (!scenarios || scenarios.length === 0) return null;
@@ -116,8 +116,8 @@ export default function ScenarioComparison({ scenarios, minimumScenario }) {
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-slate-400" />
                     <div>
-                      <p className="text-lg font-bold text-slate-800">{scenario.months_to_payoff}</p>
-                      <p className="text-xs text-slate-500">months</p>
+                      <p className="text-sm font-bold text-slate-800">{formatMonthsToYears(scenario.months_to_payoff)}</p>
+                      <p className="text-xs text-slate-500">to pay off</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -136,7 +136,7 @@ export default function ScenarioComparison({ scenarios, minimumScenario }) {
                     {timeSaved > 0 && (
                       <span className="text-emerald-600">
                         <ArrowRight className="w-3 h-3 inline mr-1" />
-                        {timeSaved} months faster
+                        {formatMonthsToYears(timeSaved)} faster
                       </span>
                     )}
                     {interestSaved > 0 && (

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bookmark, Trash2, Star, Calendar, DollarSign } from 'lucide-react';
-import { formatCurrency } from '@/components/utils/calculations';
+import { formatCurrency, formatMonthsToYears } from '@/components/utils/calculations';
 import { format } from 'date-fns';
 
 export default function SavedScenarios({ scenarios = [], onDelete, onToggleFavorite }) {
@@ -55,10 +55,10 @@ export default function SavedScenarios({ scenarios = [], onDelete, onToggleFavor
               )}
               <div className="p-2 bg-purple-50 rounded-lg text-center">
                 <Calendar className="w-4 h-4 text-purple-600 mx-auto" />
-                <p className="text-sm font-semibold text-purple-900">
-                  {scenario.months_to_payoff}
+                <p className="text-xs font-semibold text-purple-900">
+                  {formatMonthsToYears(scenario.months_to_payoff)}
                 </p>
-                <p className="text-xs text-purple-600">months</p>
+                <p className="text-xs text-purple-600">to pay off</p>
               </div>
               <div className="p-2 bg-rose-50 rounded-lg text-center">
                 <DollarSign className="w-4 h-4 text-rose-600 mx-auto" />

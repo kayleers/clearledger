@@ -154,6 +154,24 @@ export const formatPercent = (value) => {
   return `${(value || 0).toFixed(1)}%`;
 };
 
+export const formatMonthsToYears = (months) => {
+  if (!months || months === 0) return '0 months';
+  if (months === Infinity) return 'Never';
+  
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+  
+  if (years === 0) {
+    return `${months} ${months === 1 ? 'month' : 'months'}`;
+  }
+  
+  if (remainingMonths === 0) {
+    return `${years} ${years === 1 ? 'year' : 'years'}`;
+  }
+  
+  return `${years} ${years === 1 ? 'year' : 'years'}, ${remainingMonths} ${remainingMonths === 1 ? 'month' : 'months'}`;
+};
+
 export const getUtilizationColor = (utilization) => {
   if (utilization <= 30) return 'text-emerald-600';
   if (utilization <= 50) return 'text-yellow-600';

@@ -24,14 +24,17 @@ import {
   calculatePayoffTimeline,
   calculateVariablePayoffTimeline,
   calculateMinimumPaymentPayoff,
-  formatCurrency
+  formatCurrency,
+  formatMonthsToYears
 } from '@/components/utils/calculations';
 import PayoffChart from './PayoffChart';
 
 export default function PayoffSimulator({ card, onSaveScenario }) {
   const [paymentType, setPaymentType] = useState('fixed');
   const [fixedPayment, setFixedPayment] = useState('');
-  const [variablePayments, setVariablePayments] = useState([{ month: 1, amount: '' }]);
+  const [variablePayments, setVariablePayments] = useState(
+    Array.from({ length: 12 }, (_, i) => ({ month: i + 1, amount: '' }))
+  );
   const [showBreakdown, setShowBreakdown] = useState(false);
 
   const minPayment = calculateMinimumPayment(card.min_payment, card.balance);
@@ -72,21 +75,10 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
     setFixedPayment(value[0].toString());
   };
 
-  const addVariableMonth = () => {
-    const nextMonth = variablePayments.length + 1;
-    setVariablePayments([...variablePayments, { month: nextMonth, amount: '' }]);
-  };
-
   const updateVariablePayment = (index, amount) => {
     const updated = [...variablePayments];
     updated[index].amount = amount;
     setVariablePayments(updated);
-  };
-
-  const removeVariableMonth = (index) => {
-    if (variablePayments.length > 1) {
-      setVariablePayments(variablePayments.filter((_, i) => i !== index));
-    }
   };
 
   const handleSaveScenario = () => {
@@ -203,45 +195,29 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
           </TabsContent>
 
           <TabsContent value="variable" className="space-y-4 mt-4">
-            <div className="space-y-3">
+            <p className="text-sm text-slate-600 mb-3">
+              Enter your payment amount for each month of the year. After month 12, the last amount repeats.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
               {variablePayments.map((payment, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="w-20 text-sm text-slate-500">
+                <div key={index} className="space-y-1">
+                  <Label className="text-xs text-slate-500">
                     Month {payment.month}
-                  </div>
-                  <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
                     <Input
                       type="number"
                       step="1"
-                      placeholder="Amount"
+                      min="0"
+                      placeholder="0"
                       value={payment.amount}
                       onChange={(e) => updateVariablePayment(index, e.target.value)}
-                      className="pl-7"
+                      className="pl-7 h-10"
                     />
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeVariableMonth(index)}
-                    disabled={variablePayments.length === 1}
-                  >
-                    <Trash2 className="w-4 h-4 text-slate-400" />
-                  </Button>
                 </div>
               ))}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addVariableMonth}
-                className="w-full"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Month
-              </Button>
-              <p className="text-xs text-slate-500">
-                After the last month, that payment repeats until paid off
-              </p>
             </div>
           </TabsContent>
         </Tabs>
@@ -264,10 +240,10 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-4 bg-blue-50 rounded-xl text-center">
                     <Calendar className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                    <p className="text-2xl font-bold text-blue-900">
-                      {currentScenario.months}
+                    <p className="text-xl font-bold text-blue-900">
+                      {formatMonthsToYears(currentScenario.months)}
                     </p>
-                    <p className="text-xs text-blue-600">months to pay off</p>
+                    <p className="text-xs text-blue-600">to pay off</p>
                   </div>
                   <div className="p-4 bg-purple-50 rounded-xl text-center">
                     <DollarSign className="w-5 h-5 text-purple-600 mx-auto mb-1" />
@@ -291,8 +267,8 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
                         <p className="text-xs text-emerald-100">in interest</p>
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">{monthsSaved}</p>
-                        <p className="text-xs text-emerald-100">months faster</p>
+                        <p className="text-xl font-bold">{formatMonthsToYears(monthsSaved)}</p>
+                        <p className="text-xs text-emerald-100">faster</p>
                       </div>
                     </div>
                     <p className="text-xs text-emerald-100 mt-2">

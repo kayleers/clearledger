@@ -181,9 +181,10 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
     frequency: bill?.frequency || 'monthly',
     due_date: bill?.due_date?.toString() || '',
     bank_account_id: bill?.bank_account_id || '',
-    category: bill?.category || 'other',
-    next_due_date: bill?.next_due_date || ''
+    category: bill?.category || 'other'
   });
+
+  const [isRecurring, setIsRecurring] = useState(bill?.frequency !== 'one_time');
 
   const getCurrencySymbol = (currencyCode) => {
     try {
@@ -204,11 +205,10 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
       name: formData.name,
       amount: parseFloat(formData.amount) || 0,
       currency: formData.currency,
-      frequency: formData.frequency,
+      frequency: isRecurring ? formData.frequency : 'one_time',
       due_date: formData.due_date ? parseInt(formData.due_date) : null,
       bank_account_id: formData.bank_account_id,
-      category: formData.category,
-      next_due_date: formData.next_due_date || null
+      category: formData.category
     });
   };
 
@@ -247,21 +247,34 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
           className="w-full"
         />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="billFrequency">Frequency</Label>
-        <select
-          id="billFrequency"
-          value={formData.frequency}
-          onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-          className="w-full h-10 px-3 rounded-md border border-slate-200"
-        >
-          <option value="one_time">One-Time</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="quarterly">Quarterly</option>
-          <option value="yearly">Yearly</option>
-        </select>
+      <div className="flex items-center space-x-2 py-2">
+        <input
+          type="checkbox"
+          id="isRecurring"
+          checked={isRecurring}
+          onChange={(e) => setIsRecurring(e.target.checked)}
+          className="w-4 h-4 rounded border-slate-300"
+        />
+        <Label htmlFor="isRecurring" className="cursor-pointer">
+          Is this a recurring bill?
+        </Label>
       </div>
+      {isRecurring && (
+        <div className="space-y-2">
+          <Label htmlFor="billFrequency">Frequency</Label>
+          <select
+            id="billFrequency"
+            value={formData.frequency}
+            onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+            className="w-full h-10 px-3 rounded-md border border-slate-200"
+          >
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+      )}
       <div className="space-y-2">
         <Label htmlFor="billDueDate">Due Date (Day of Month)</Label>
         <Input
@@ -306,15 +319,6 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
           <option value="loan">Loan</option>
           <option value="other">Other</option>
         </select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="billNextDue">Next Due Date (Optional)</Label>
-        <Input
-          id="billNextDue"
-          type="date"
-          value={formData.next_due_date}
-          onChange={(e) => setFormData({ ...formData, next_due_date: e.target.value })}
-        />
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? 'Saving...' : bill ? 'Update Bill' : 'Add Bill'}

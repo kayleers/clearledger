@@ -185,6 +185,19 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
     next_due_date: bill?.next_due_date || ''
   });
 
+  const getCurrencySymbol = (currencyCode) => {
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currencyCode,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(0).replace(/\d/g, '').trim();
+    } catch {
+      return '$';
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit({
@@ -214,7 +227,7 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
       <div className="space-y-2">
         <Label htmlFor="billAmount">Amount</Label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(formData.currency)}</span>
           <Input
             id="billAmount"
             type="number"

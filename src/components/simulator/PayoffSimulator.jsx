@@ -35,6 +35,7 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
   const [variablePayments, setVariablePayments] = useState(
     Array.from({ length: 12 }, (_, i) => ({ month: i + 1, amount: '' }))
   );
+  const [defaultMonthlyPayment, setDefaultMonthlyPayment] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showBreakdown, setShowBreakdown] = useState(false);
 
@@ -66,13 +67,14 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
       }
       return calculatePayoffTimeline(card.balance, card.apr, payment);
     } else {
+      const defaultPayment = parseFloat(defaultMonthlyPayment) || 0;
       const payments = variablePayments.map(p => ({
         month: p.month,
-        amount: parseFloat(p.amount) || 0
+        amount: parseFloat(p.amount) || defaultPayment
       }));
       return calculateVariablePayoffTimeline(card.balance, card.apr, payments);
     }
-  }, [paymentType, fixedPayment, variablePayments, card]);
+  }, [paymentType, fixedPayment, variablePayments, defaultMonthlyPayment, card]);
 
   const interestSaved = minPaymentScenario.totalInterest - currentScenario.totalInterest;
   const monthsSaved = minPaymentScenario.months - currentScenario.months;
@@ -89,12 +91,13 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
 
   const handleSaveScenario = () => {
     if (onSaveScenario) {
+      const defaultPayment = parseFloat(defaultMonthlyPayment) || 0;
       onSaveScenario({
         payment_type: paymentType,
         fixed_payment: paymentType === 'fixed' ? parseFloat(fixedPayment) : null,
         variable_payments: paymentType === 'variable' ? variablePayments.map(p => ({
           month: p.month,
-          amount: parseFloat(p.amount) || 0
+          amount: parseFloat(p.amount) || defaultPayment
         })) : null,
         starting_balance: card.balance,
         total_interest: currentScenario.totalInterest,
@@ -202,9 +205,24 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
 
           <TabsContent value="variable" className="space-y-4 mt-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-slate-600">
-                Enter your payment amount for each month. After December, the last amount repeats.
-              </p>
+              <div className="flex-1">
+                <Label className="text-sm font-medium text-slate-700 mb-2 block">Default Monthly Payment</Label>
+                <div className="relative max-w-xs">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                  <Input
+                    type="number"
+                    step="1"
+                    min="0"
+                    placeholder="35"
+                    value={defaultMonthlyPayment}
+                    onChange={(e) => setDefaultMonthlyPayment(e.target.value)}
+                    className="pl-7 h-10"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  This applies to all months unless overridden
+                </p>
+              </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-slate-500">Year:</Label>
                 <Input
@@ -217,32 +235,41 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {variablePayments.map((payment, index) => (
-                <div key={index} className="space-y-1">
-                  <Label className="text-xs text-slate-500 font-medium">
-                    {monthNames[index]}
-                  </Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      placeholder="0"
-                      value={payment.amount}
-                      onChange={(e) => updateVariablePayment(index, e.target.value)}
-                      className="pl-7 h-10"
-                    />
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">Override Specific Months (Optional)</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {variablePayments.map((payment, index) => (
+                  <div key={index} className="space-y-1">
+                    <Label className="text-xs text-slate-500 font-medium">
+                      {monthNames[index]}
+                      {!payment.amount && defaultMonthlyPayment && (
+                        <span className="text-slate-400 font-normal ml-1">
+                          (${defaultMonthlyPayment})
+                        </span>
+                      )}
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                      <Input
+                        type="number"
+                        step="1"
+                        min="0"
+                        placeholder={defaultMonthlyPayment || "0"}
+                        value={payment.amount}
+                        onChange={(e) => updateVariablePayment(index, e.target.value)}
+                        className="pl-7 h-10"
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </TabsContent>
         </Tabs>
 
         {/* Results */}
-        {(parseFloat(fixedPayment) > 0 || variablePayments.some(p => parseFloat(p.amount) > 0)) && (
+        {(parseFloat(fixedPayment) > 0 || parseFloat(defaultMonthlyPayment) > 0 || variablePayments.some(p => parseFloat(p.amount) > 0)) && (
           <div className="space-y-4 pt-4 border-t">
             <h4 className="font-medium text-slate-700">Your Payoff Results</h4>
             

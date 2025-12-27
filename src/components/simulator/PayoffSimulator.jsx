@@ -35,7 +35,13 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
   const [variablePayments, setVariablePayments] = useState(
     Array.from({ length: 12 }, (_, i) => ({ month: i + 1, amount: '' }))
   );
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showBreakdown, setShowBreakdown] = useState(false);
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
   const minPayment = calculateMinimumPayment(card.min_payment, card.balance);
 
@@ -195,14 +201,27 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
           </TabsContent>
 
           <TabsContent value="variable" className="space-y-4 mt-4">
-            <p className="text-sm text-slate-600 mb-3">
-              Enter your payment amount for each month of the year. After month 12, the last amount repeats.
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm text-slate-600">
+                Enter your payment amount for each month. After December, the last amount repeats.
+              </p>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-slate-500">Year:</Label>
+                <Input
+                  type="number"
+                  min="2020"
+                  max="2099"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  className="w-20 h-8 text-sm"
+                />
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               {variablePayments.map((payment, index) => (
                 <div key={index} className="space-y-1">
-                  <Label className="text-xs text-slate-500">
-                    Month {payment.month}
+                  <Label className="text-xs text-slate-500 font-medium">
+                    {monthNames[index]}
                   </Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>

@@ -68,6 +68,7 @@ export default function CardDetail() {
   const [scenarioName, setScenarioName] = useState('');
   const [showSaveScenario, setShowSaveScenario] = useState(false);
   const [pendingScenario, setPendingScenario] = useState(null);
+  const [editingTransaction, setEditingTransaction] = useState(null);
 
   // Fetch card
   const { data: card, isLoading: cardLoading } = useQuery({
@@ -171,6 +172,38 @@ export default function CardDetail() {
       queryClient.invalidateQueries({ queryKey: ['payments', cardId] });
       queryClient.invalidateQueries({ queryKey: ['credit-card', cardId] });
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+    }
+  });
+
+  const updatePurchaseMutation = useMutation({
+    mutationFn: async ({ id, data, oldAmount }) => {
+      await base44.entities.Purchase.update(id, data);
+      const balanceChange = data.amount - oldAmount;
+      await base44.entities.CreditCard.update(cardId, {
+        balance: card.balance + balanceChange
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['purchases', cardId] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card', cardId] });
+      queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+      setEditingTransaction(null);
+    }
+  });
+
+  const updatePaymentMutation = useMutation({
+    mutationFn: async ({ id, data, oldAmount }) => {
+      await base44.entities.Payment.update(id, data);
+      const balanceChange = oldAmount - data.amount;
+      await base44.entities.CreditCard.update(cardId, {
+        balance: card.balance + balanceChange
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments', cardId] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card', cardId] });
+      queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+      setEditingTransaction(null);
     }
   });
 
@@ -459,7 +492,7 @@ export default function CardDetail() {
           <TabsContent value="history">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Transaction History</CardTitle>
+                <CardTitle className="text-lg">Transaction & Payment History</CardTitle>
               </CardHeader>
               <CardContent>
                 <TransactionList 
@@ -467,6 +500,8 @@ export default function CardDetail() {
                   payments={payments}
                   onDeletePurchase={(p) => deletePurchaseMutation.mutate(p)}
                   onDeletePayment={(p) => deletePaymentMutation.mutate(p)}
+                  onEditPurchase={(p) => setEditingTransaction({ type: 'purchase', data: p })}
+                  onEditPayment={(p) => setEditingTransaction({ type: 'payment', data: p })}
                 />
               </CardContent>
             </Card>
@@ -483,6 +518,37 @@ export default function CardDetail() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Edit Transaction Dialog */}
+        <Dialog open={!!editingTransaction} onOpenChange={() => setEditingTransaction(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit {editingTransaction?.type === 'purchase' ? 'Purchase' : 'Payment'}</DialogTitle>
+            </DialogHeader>
+            {editingTransaction?.type === 'purchase' ? (
+              <EditPurchaseForm
+                purchase={editingTransaction.data}
+                onSave={(data) => updatePurchaseMutation.mutate({
+                  id: editingTransaction.data.id,
+                  data,
+                  oldAmount: editingTransaction.data.amount
+                })}
+                isLoading={updatePurchaseMutation.isPending}
+              />
+            ) : (
+              <EditPaymentForm
+                payment={editingTransaction?.data}
+                card={card}
+                onSave={(data) => updatePaymentMutation.mutate({
+                  id: editingTransaction.data.id,
+                  data,
+                  oldAmount: editingTransaction.data.amount
+                })}
+                isLoading={updatePaymentMutation.isPending}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Save Scenario Dialog */}
         <Dialog open={showSaveScenario} onOpenChange={setShowSaveScenario}>
@@ -885,6 +951,147 @@ function EditCardForm({ card, onSave }) {
       </div>
 
       <Button type="submit" className="w-full">Save Changes</Button>
+    </form>
+  );
+}
+
+// Edit Purchase Form Component
+function EditPurchaseForm({ purchase, onSave, isLoading }) {
+  const [formData, setFormData] = useState({
+    description: purchase.description || '',
+    amount: purchase.amount?.toString() || '',
+    date: purchase.date || '',
+    category: purchase.category || 'other'
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({
+      description: formData.description,
+      amount: parseFloat(formData.amount) || 0,
+      date: formData.date,
+      category: formData.category
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="editDescription">Description</Label>
+        <Input
+          id="editDescription"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="editAmount">Amount</Label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+          <Input
+            id="editAmount"
+            type="number"
+            step="0.01"
+            value={formData.amount}
+            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+            className="pl-7"
+            required
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="editDate">Date</Label>
+        <Input
+          id="editDate"
+          type="date"
+          value={formData.date}
+          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="editCategory">Category</Label>
+        <select
+          id="editCategory"
+          value={formData.category}
+          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+          className="w-full h-10 px-3 rounded-md border border-slate-200"
+        >
+          <option value="groceries">Groceries</option>
+          <option value="dining">Dining</option>
+          <option value="shopping">Shopping</option>
+          <option value="gas">Gas</option>
+          <option value="bills">Bills</option>
+          <option value="entertainment">Entertainment</option>
+          <option value="travel">Travel</option>
+          <option value="health">Health</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? 'Saving...' : 'Save Changes'}
+      </Button>
+    </form>
+  );
+}
+
+// Edit Payment Form Component
+function EditPaymentForm({ payment, card, onSave, isLoading }) {
+  const [formData, setFormData] = useState({
+    amount: payment.amount?.toString() || '',
+    date: payment.date || '',
+    note: payment.note || ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({
+      amount: parseFloat(formData.amount) || 0,
+      date: formData.date,
+      note: formData.note
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="editPaymentAmount">Amount</Label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+          <Input
+            id="editPaymentAmount"
+            type="number"
+            step="0.01"
+            value={formData.amount}
+            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+            className="pl-7"
+            required
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="editPaymentDate">Date</Label>
+        <Input
+          id="editPaymentDate"
+          type="date"
+          value={formData.date}
+          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="editPaymentNote">Note (Optional)</Label>
+        <Input
+          id="editPaymentNote"
+          value={formData.note}
+          onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+          placeholder="e.g., Extra payment"
+        />
+      </div>
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? 'Saving...' : 'Save Changes'}
+      </Button>
     </form>
   );
 }

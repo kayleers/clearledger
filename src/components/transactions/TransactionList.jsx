@@ -1,6 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { ArrowDownCircle, ArrowUpCircle, Trash2 } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, Trash2, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/components/utils/calculations';
 
@@ -16,7 +16,7 @@ const categoryIcons = {
   other: '📦'
 };
 
-export default function TransactionList({ purchases = [], payments = [], onDeletePurchase, onDeletePayment }) {
+export default function TransactionList({ purchases = [], payments = [], onDeletePurchase, onDeletePayment, onEditPurchase, onEditPayment }) {
   // Combine and sort by date
   const transactions = [
     ...purchases.map(p => ({ ...p, type: 'purchase' })),
@@ -62,6 +62,20 @@ export default function TransactionList({ purchases = [], payments = [], onDelet
             <span className={`font-semibold ${tx.type === 'purchase' ? 'text-red-600' : 'text-emerald-600'}`}>
               {tx.type === 'purchase' ? '+' : '-'}{formatCurrency(tx.amount)}
             </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-slate-400 hover:text-blue-500"
+              onClick={() => {
+                if (tx.type === 'purchase') {
+                  onEditPurchase?.(tx);
+                } else {
+                  onEditPayment?.(tx);
+                }
+              }}
+            >
+              <Edit2 className="w-4 h-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"

@@ -38,6 +38,10 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
   const [defaultMonthlyPayment, setDefaultMonthlyPayment] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [futurePurchases, setFuturePurchases] = useState(
+    Array.from({ length: 12 }, (_, i) => ({ month: i + 1, amount: '' }))
+  );
+  const [purchaseYear, setPurchaseYear] = useState(new Date().getFullYear());
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -87,6 +91,12 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
     const updated = [...variablePayments];
     updated[index].amount = amount;
     setVariablePayments(updated);
+  };
+
+  const updateFuturePurchase = (index, amount) => {
+    const updated = [...futurePurchases];
+    updated[index].amount = amount;
+    setFuturePurchases(updated);
   };
 
   const handleSaveScenario = () => {
@@ -280,6 +290,49 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Future Purchases Section */}
+        <div className="pt-4 border-t space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium text-slate-700">Future Purchases (Optional)</Label>
+              <p className="text-xs text-slate-500">Add expected purchases per month</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-slate-500">Year:</Label>
+              <Input
+                type="number"
+                min="2020"
+                max="2099"
+                value={purchaseYear}
+                onChange={(e) => setPurchaseYear(parseInt(e.target.value))}
+                className="w-20 h-8 text-sm"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {futurePurchases.map((purchase, index) => (
+              <div key={index} className="space-y-1">
+                <Label className="text-xs text-slate-500 font-medium">
+                  {monthNames[index]}
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                  <Input
+                    type="number"
+                    step="1"
+                    min="0"
+                    placeholder="0"
+                    value={purchase.amount}
+                    onChange={(e) => updateFuturePurchase(index, e.target.value)}
+                    className="pl-7 h-10"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Results */}
         {(parseFloat(fixedPayment) > 0 || parseFloat(defaultMonthlyPayment) > 0 || variablePayments.some(p => parseFloat(p.amount) > 0)) && (

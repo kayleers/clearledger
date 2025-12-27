@@ -28,7 +28,7 @@ export const calculatePaymentFor3YearPayoff = (balance, apr) => {
   return Math.ceil(payment * 100) / 100;
 };
 
-export const calculatePayoffTimeline = (startingBalance, apr, monthlyPayment, maxMonths = 360) => {
+export const calculatePayoffTimeline = (startingBalance, apr, monthlyPayment, maxMonths = 360, futurePurchases = []) => {
   if (startingBalance <= 0) return { months: 0, totalInterest: 0, breakdown: [] };
   if (monthlyPayment <= 0) return { months: Infinity, totalInterest: Infinity, breakdown: [] };
   
@@ -39,6 +39,10 @@ export const calculatePayoffTimeline = (startingBalance, apr, monthlyPayment, ma
   const breakdown = [];
   
   while (balance > 0 && months < maxMonths) {
+    // Add future purchase if any for this month
+    const purchase = futurePurchases[months]?.amount || 0;
+    balance += purchase;
+    
     const interest = balance * monthlyRate;
     totalInterest += interest;
     balance += interest;
@@ -52,7 +56,8 @@ export const calculatePayoffTimeline = (startingBalance, apr, monthlyPayment, ma
       payment: Math.round(actualPayment * 100) / 100,
       interest: Math.round(interest * 100) / 100,
       principal: Math.round((actualPayment - interest) * 100) / 100,
-      balance: Math.round(Math.max(0, balance) * 100) / 100
+      balance: Math.round(Math.max(0, balance) * 100) / 100,
+      purchase: Math.round(purchase * 100) / 100
     });
     
     if (balance < 0.01) balance = 0;
@@ -65,7 +70,7 @@ export const calculatePayoffTimeline = (startingBalance, apr, monthlyPayment, ma
   };
 };
 
-export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePayments, maxMonths = 360) => {
+export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePayments, maxMonths = 360, futurePurchases = []) => {
   if (startingBalance <= 0) return { months: 0, totalInterest: 0, breakdown: [] };
   
   const monthlyRate = apr / 12;
@@ -78,6 +83,10 @@ export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePa
     const payment = variablePayments[months]?.amount || variablePayments[variablePayments.length - 1]?.amount || 0;
     
     if (payment <= 0) break;
+    
+    // Add future purchase if any for this month
+    const purchase = futurePurchases[months]?.amount || 0;
+    balance += purchase;
     
     const interest = balance * monthlyRate;
     totalInterest += interest;
@@ -92,7 +101,8 @@ export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePa
       payment: Math.round(actualPayment * 100) / 100,
       interest: Math.round(interest * 100) / 100,
       principal: Math.round((actualPayment - interest) * 100) / 100,
-      balance: Math.round(Math.max(0, balance) * 100) / 100
+      balance: Math.round(Math.max(0, balance) * 100) / 100,
+      purchase: Math.round(purchase * 100) / 100
     });
     
     if (balance < 0.01) balance = 0;

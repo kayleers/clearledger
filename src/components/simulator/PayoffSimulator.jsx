@@ -64,21 +64,26 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
 
   // Calculate current scenario
   const currentScenario = useMemo(() => {
+    const purchases = futurePurchases.map(p => ({
+      month: p.month,
+      amount: parseFloat(p.amount) || 0
+    }));
+
     if (paymentType === 'fixed') {
       const payment = parseFloat(fixedPayment) || 0;
       if (payment <= monthlyInterest) {
         return { months: Infinity, totalInterest: Infinity, breakdown: [] };
       }
-      return calculatePayoffTimeline(card.balance, card.apr, payment);
+      return calculatePayoffTimeline(card.balance, card.apr, payment, 360, purchases);
     } else {
       const defaultPayment = parseFloat(defaultMonthlyPayment) || 0;
       const payments = variablePayments.map(p => ({
         month: p.month,
         amount: parseFloat(p.amount) || defaultPayment
       }));
-      return calculateVariablePayoffTimeline(card.balance, card.apr, payments);
+      return calculateVariablePayoffTimeline(card.balance, card.apr, payments, 360, purchases);
     }
-  }, [paymentType, fixedPayment, variablePayments, defaultMonthlyPayment, card]);
+  }, [paymentType, fixedPayment, variablePayments, defaultMonthlyPayment, futurePurchases, card]);
 
   const interestSaved = minPaymentScenario.totalInterest - currentScenario.totalInterest;
   const monthsSaved = minPaymentScenario.months - currentScenario.months;
@@ -408,6 +413,7 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
                       <thead className="bg-slate-50 sticky top-0">
                         <tr>
                           <th className="text-left p-2">Month</th>
+                          <th className="text-right p-2">Purchase</th>
                           <th className="text-right p-2">Payment</th>
                           <th className="text-right p-2">Interest</th>
                           <th className="text-right p-2">Balance</th>
@@ -417,6 +423,7 @@ export default function PayoffSimulator({ card, onSaveScenario }) {
                         {currentScenario.breakdown.slice(0, 60).map((row) => (
                           <tr key={row.month} className="border-b">
                             <td className="p-2">{row.month}</td>
+                            <td className="text-right p-2 text-orange-600">{row.purchase > 0 ? `+${formatCurrency(row.purchase)}` : '-'}</td>
                             <td className="text-right p-2">{formatCurrency(row.payment)}</td>
                             <td className="text-right p-2 text-red-600">{formatCurrency(row.interest)}</td>
                             <td className="text-right p-2 font-medium">{formatCurrency(row.balance)}</td>

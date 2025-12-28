@@ -1,15 +1,15 @@
-import CardDetail from './pages/CardDetail';
-import Dashboard from './pages/Dashboard';
-import LoanDetail from './pages/LoanDetail';
 import BankAccountDetail from './pages/BankAccountDetail';
+import CardDetail from './pages/CardDetail';
+import LoanDetail from './pages/LoanDetail';
+import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "CardDetail": CardDetail,
-    "Dashboard": Dashboard,
-    "LoanDetail": LoanDetail,
     "BankAccountDetail": BankAccountDetail,
+    "CardDetail": CardDetail,
+    "LoanDetail": LoanDetail,
+    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {

@@ -16,6 +16,7 @@ import BankAccountList from '@/components/bankaccounts/BankAccountList';
 import RecurringBillList from '@/components/bills/RecurringBillList';
 import MortgageLoanList from '@/components/mortgages/MortgageLoanList';
 import PaymentCalendar from '@/components/calendar/PaymentCalendar';
+import QuickAddMenu from '@/components/quickadd/QuickAddMenu';
 
 const MAX_FREE_CARDS = 2;
 
@@ -124,11 +125,11 @@ export default function Dashboard() {
   const canAddCard = cards.length < MAX_FREE_CARDS;
 
   const createPurchaseMutation = useMutation({
-    mutationFn: async (purchaseData) => {
-      await base44.entities.Purchase.create({ ...purchaseData, card_id: quickAddCardId });
-      const card = cards.find(c => c.id === quickAddCardId);
+    mutationFn: async ({ purchaseData, cardId }) => {
+      await base44.entities.Purchase.create({ ...purchaseData, card_id: cardId });
+      const card = cards.find(c => c.id === cardId);
       if (card) {
-        await base44.entities.CreditCard.update(quickAddCardId, {
+        await base44.entities.CreditCard.update(cardId, {
           balance: card.balance + purchaseData.amount
         });
       }
@@ -137,6 +138,86 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['purchases'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card'] });
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+      setShowQuickAdd(false);
+      setQuickAddCardId(null);
+    }
+  });
+
+  const createBankPaymentMutation = useMutation({
+    mutationFn: async ({ amount, date, description, targetId }) => {
+      await base44.entities.Deposit.create({
+        bank_account_id: targetId,
+        amount: -amount,
+        date,
+        description,
+        category: 'other'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
+      setShowQuickAdd(false);
+    }
+  });
+
+  const createCardPaymentMutation = useMutation({
+    mutationFn: async ({ amount, date, targetId }) => {
+      await base44.entities.Payment.create({
+        card_id: targetId,
+        amount,
+        date
+      });
+      const card = cards.find(c => c.id === targetId);
+      if (card) {
+        await base44.entities.CreditCard.update(targetId, {
+          balance: Math.max(0, card.balance - amount)
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+      setShowQuickAdd(false);
+    }
+  });
+
+  const createBillPaymentMutation = useMutation({
+    mutationFn: async ({ amount, date, targetId }) => {
+      const bill = recurringBills.find(b => b.id === targetId);
+      if (bill?.bank_account_id) {
+        await base44.entities.Deposit.create({
+          bank_account_id: bill.bank_account_id,
+          amount: -amount,
+          date,
+          description: `${bill.name} payment`,
+          category: 'other'
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deposits'] });
+      setShowQuickAdd(false);
+    }
+  });
+
+  const createLoanPaymentMutation = useMutation({
+    mutationFn: async ({ amount, date, targetId }) => {
+      await base44.entities.LoanPayment.create({
+        loan_id: targetId,
+        amount,
+        date
+      });
+      const loan = mortgageLoans.find(l => l.id === targetId);
+      if (loan) {
+        await base44.entities.MortgageLoan.update(targetId, {
+          current_balance: Math.max(0, loan.current_balance - amount)
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['loan-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['mortgage-loans'] });
       setShowQuickAdd(false);
     }
   });
@@ -331,48 +412,39 @@ export default function Dashboard() {
         )}
 
         {/* Quick Add FAB */}
-        {cards.length > 0 && (
+        {(cards.length > 0 || bankAccounts.length > 0 || recurringBills.length > 0 || mortgageLoans.length > 0) && (
           <>
             <button
-              onClick={handleQuickAdd}
+              onClick={() => setShowQuickAdd(true)}
               className="fixed bottom-20 right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center z-50"
-              aria-label="Quick add purchase"
+              aria-label="Quick add transaction"
             >
               <Zap className="w-6 h-6" />
             </button>
 
-            <Dialog open={showQuickAdd} onOpenChange={setShowQuickAdd}>
+            <Dialog open={showQuickAdd} onOpenChange={(open) => {
+              setShowQuickAdd(open);
+              if (!open) setQuickAddCardId(null);
+            }}>
               <DialogContent className="max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Quick Add Purchase</DialogTitle>
+                  <DialogTitle>Quick Add</DialogTitle>
                 </DialogHeader>
                 
-                {!quickAddCardId && cards.length > 1 ? (
-                  <div className="space-y-2">
-                    <p className="text-sm text-slate-600 mb-3">Select a card:</p>
-                    {cards.map(card => (
-                      <Button
-                        key={card.id}
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => setQuickAddCardId(card.id)}
-                      >
-                        <CreditCard className="w-4 h-4 mr-2" />
-                        {card.name}
-                      </Button>
-                    ))}
-                  </div>
-                ) : (
-                  <AddPurchaseForm
-                    cardId={quickAddCardId || cards[0]?.id}
-                    onSubmit={(data) => createPurchaseMutation.mutate(data)}
-                    onCancel={() => {
-                      setShowQuickAdd(false);
-                      setQuickAddCardId(null);
-                    }}
-                    isLoading={createPurchaseMutation.isPending}
-                  />
-                )}
+                <QuickAddMenu
+                  cards={cards}
+                  bankAccounts={bankAccounts}
+                  bills={recurringBills}
+                  loans={mortgageLoans}
+                  onCardPurchase={(data) => createPurchaseMutation.mutate({ purchaseData: data, cardId: data.card_id || quickAddCardId })}
+                  onBankPayment={(data) => createBankPaymentMutation.mutate(data)}
+                  onCardPayment={(data) => createCardPaymentMutation.mutate(data)}
+                  onBillPayment={(data) => createBillPaymentMutation.mutate(data)}
+                  onLoanPayment={(data) => createLoanPaymentMutation.mutate(data)}
+                  isLoading={createPurchaseMutation.isPending || createBankPaymentMutation.isPending || 
+                             createCardPaymentMutation.isPending || createBillPaymentMutation.isPending || 
+                             createLoanPaymentMutation.isPending}
+                />
               </DialogContent>
             </Dialog>
           </>

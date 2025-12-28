@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, CreditCard, Loader2, Zap } from 'lucide-react';
+import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';
 import { AnimatePresence, motion } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -26,6 +27,8 @@ export default function Dashboard() {
   const [sectionOrder, setSectionOrder] = useState(['cards', 'banks', 'bills', 'loans']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
+  const [calendarExpanded, setCalendarExpanded] = useState(true);
+  const [simulatorExpanded, setSimulatorExpanded] = useState(true);
   const queryClient = useQueryClient();
 
   const { data: cards = [], isLoading } = useQuery({
@@ -372,8 +375,41 @@ export default function Dashboard() {
             {/* Fixed Sections - Calendar and Simulator */}
             {cards.length > 0 && (
               <div className="mt-8 space-y-6">
-                <PaymentCalendar />
-                <MultiPaymentSimulator cards={cards} loans={mortgageLoans} />
+                <Collapsible open={calendarExpanded} onOpenChange={setCalendarExpanded}>
+                  <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                      <h3 className="font-semibold text-slate-800">Payment Schedule</h3>
+                      {calendarExpanded ? (
+                        <ChevronUp className="w-5 h-5 text-slate-500" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-slate-500" />
+                      )}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="p-4 pt-0">
+                        <PaymentCalendar />
+                      </div>
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
+
+                <Collapsible open={simulatorExpanded} onOpenChange={setSimulatorExpanded}>
+                  <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                      <h3 className="font-semibold text-slate-800">Payment Simulator</h3>
+                      {simulatorExpanded ? (
+                        <ChevronUp className="w-5 h-5 text-slate-500" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-slate-500" />
+                      )}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="p-4 pt-0">
+                        <MultiPaymentSimulator cards={cards} loans={mortgageLoans} />
+                      </div>
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
               </div>
             )}
 

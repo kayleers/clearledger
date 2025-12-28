@@ -89,23 +89,25 @@ export default function Dashboard() {
   const handleDragEnd = (result) => {
     if (!result.destination) return;
     
-    const items = Array.from(cards);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    // Handle card reordering
+    if (result.type === 'card') {
+      const items = Array.from(cards);
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, reorderedItem);
+      
+      queryClient.setQueryData(['credit-cards'], items);
+      reorderCardsMutation.mutate(items);
+    }
     
-    queryClient.setQueryData(['credit-cards'], items);
-    reorderCardsMutation.mutate(items);
-  };
+    // Handle section reordering
+    if (result.type === 'section') {
+      const items = Array.from(sectionOrder);
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, reorderedItem);
 
-  const handleSectionDragEnd = (result) => {
-    if (!result.destination) return;
-
-    const items = Array.from(sectionOrder);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    setSectionOrder(items);
-    reorderSectionsMutation.mutate(items);
+      setSectionOrder(items);
+      reorderSectionsMutation.mutate(items);
+    }
   };
 
   React.useEffect(() => {
@@ -279,8 +281,9 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-      <div className="max-w-lg mx-auto px-4 py-6 pb-24">
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+        <div className="max-w-lg mx-auto px-4 py-6 pb-24">
         {/* Header */}
         <header className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900">Debt Freedom</h1>
@@ -370,42 +373,40 @@ export default function Dashboard() {
                   </Button>
                 </motion.div>
               ) : (
-                <DragDropContext onDragEnd={handleDragEnd}>
-                  <Droppable droppableId="cards">
-                    {(provided) => (
-                      <div 
-                        {...provided.droppableProps} 
-                        ref={provided.innerRef}
-                        className="space-y-4"
-                      >
-                        {cards.map((card, index) => (
-                          <Draggable key={card.id} draggableId={card.id} index={index}>
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                style={{
-                                  ...provided.draggableProps.style,
-                                  opacity: snapshot.isDragging ? 0.9 : 1,
-                                }}
+                <Droppable droppableId="cards" type="card">
+                  {(provided) => (
+                    <div 
+                      {...provided.droppableProps} 
+                      ref={provided.innerRef}
+                      className="space-y-4"
+                    >
+                      {cards.map((card, index) => (
+                        <Draggable key={card.id} draggableId={card.id} index={index} type="card">
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              style={{
+                                ...provided.draggableProps.style,
+                                opacity: snapshot.isDragging ? 0.9 : 1,
+                              }}
+                            >
+                              <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
                               >
-                                <motion.div
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: index * 0.1 }}
-                                >
-                                  <CreditCardItem card={card} isDragging={snapshot.isDragging} />
-                                </motion.div>
-                              </div>
-                            )}
-                          </Draggable>
-                        ))}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </DragDropContext>
+                                <CreditCardItem card={card} isDragging={snapshot.isDragging} />
+                              </motion.div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
               )}
             </div>
 
@@ -423,36 +424,34 @@ export default function Dashboard() {
 
             {/* Draggable Sections */}
             <div className="mt-8">
-              <DragDropContext onDragEnd={handleSectionDragEnd}>
-                <Droppable droppableId="sections" type="section">
-                  {(provided) => (
-                    <div {...provided.droppableProps} ref={provided.innerRef}>
-                      {sectionOrder.map((section, index) => (
-                        <Draggable key={section} draggableId={section} index={index} type="section">
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className="mb-6"
-                              style={{
-                                ...provided.draggableProps.style,
-                                opacity: snapshot.isDragging ? 0.8 : 1,
-                              }}
-                            >
-                              {section === 'calendar' && <PaymentCalendar />}
-                              {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}
-                              {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />}
-                              {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} />}
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
+              <Droppable droppableId="sections" type="section">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef}>
+                    {sectionOrder.map((section, index) => (
+                      <Draggable key={section} draggableId={section} index={index} type="section">
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="mb-6"
+                            style={{
+                              ...provided.draggableProps.style,
+                              opacity: snapshot.isDragging ? 0.8 : 1,
+                            }}
+                          >
+                            {section === 'calendar' && <PaymentCalendar />}
+                            {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}
+                            {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />}
+                            {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} />}
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
             </div>
           </>
         )}
@@ -496,7 +495,8 @@ export default function Dashboard() {
             </Dialog>
           </>
         )}
+        </div>
       </div>
-    </div>
+    </DragDropContext>
   );
 }

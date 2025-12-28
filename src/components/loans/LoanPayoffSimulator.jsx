@@ -265,6 +265,9 @@ export default function LoanPayoffSimulator({ loan, onSaveScenario, payments = [
 
                   const pastMonthPlaceholder = actualPayment !== null ? formatCurrency(actualPayment, currency) : 'N/A';
                   const displayDefault = isPaidOff ? "0" : (defaultMonthlyPayment || "0");
+                  
+                  // Get predicted balance for this month from breakdown
+                  const predictedBalance = currentScenario.breakdown?.[index]?.balance;
 
                   return (
                     <div key={index} className="space-y-1">
@@ -283,6 +286,11 @@ export default function LoanPayoffSimulator({ loan, onSaveScenario, payments = [
                         {isPastMonth && (
                           <span className="text-slate-400 font-normal ml-1">
                             (Past)
+                          </span>
+                        )}
+                        {!isPaidOff && !isPastMonth && predictedBalance !== undefined && (
+                          <span className="text-blue-600 font-normal ml-1 block text-[10px]">
+                            Bal: {formatCurrency(predictedBalance, currency)}
                           </span>
                         )}
                       </Label>

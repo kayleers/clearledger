@@ -838,6 +838,9 @@ function LoanVariableInput({ loan, variablePayments, defaultPayment, onVariableP
               isPaidOff = index >= scenario.months;
             }
             const displayDefault = isPaidOff ? "0" : (defaultPayment || "0");
+            
+            // Get predicted balance for this month from breakdown
+            const predictedBalance = scenario?.breakdown?.[index]?.balance;
 
             return (
               <div key={index} className="space-y-1">
@@ -851,6 +854,11 @@ function LoanVariableInput({ loan, variablePayments, defaultPayment, onVariableP
                   {isPaidOff && (
                     <span className="text-emerald-600 font-normal ml-1">
                       ✓ Paid Off
+                    </span>
+                  )}
+                  {!isPaidOff && predictedBalance !== undefined && (
+                    <span className="text-blue-600 font-normal ml-1 block text-[10px]">
+                      Bal: {formatCurrency(predictedBalance, loan.currency)}
                     </span>
                   )}
                 </Label>

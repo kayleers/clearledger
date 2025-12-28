@@ -15,6 +15,7 @@ import UpgradePrompt from '@/components/premium/UpgradePrompt';
 import BankAccountList from '@/components/bankaccounts/BankAccountList';
 import RecurringBillList from '@/components/bills/RecurringBillList';
 import MortgageLoanList from '@/components/mortgages/MortgageLoanList';
+import PaymentCalendar from '@/components/calendar/PaymentCalendar';
 
 const MAX_FREE_CARDS = 2;
 
@@ -292,6 +293,11 @@ export default function Dashboard() {
                 Add Another Card
               </Button>
             )}
+
+            {/* Payment Calendar */}
+            <div className="mb-6">
+              <PaymentCalendar />
+            </div>
 
             {/* Draggable Sections */}
             <div className="mt-8">

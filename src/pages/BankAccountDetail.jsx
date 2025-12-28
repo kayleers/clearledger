@@ -1,0 +1,449 @@
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Plus, Trash2, TrendingUp, TrendingDown, Calendar, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { formatCurrency } from '@/components/utils/calculations';
+
+const DEPOSIT_CATEGORIES = [
+  { value: 'salary', label: '💰 Salary', icon: '💰' },
+  { value: 'freelance', label: '💼 Freelance', icon: '💼' },
+  { value: 'business', label: '🏢 Business', icon: '🏢' },
+  { value: 'refund', label: '💸 Refund', icon: '💸' },
+  { value: 'transfer', label: '🔄 Transfer', icon: '🔄' },
+  { value: 'other', label: '📥 Other', icon: '📥' }
+];
+
+const FREQUENCY_OPTIONS = [
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'bi_weekly', label: 'Bi-Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
+  { value: 'yearly', label: 'Yearly' }
+];
+
+export default function BankAccountDetail() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const accountId = urlParams.get('id');
+
+  const [showAddDeposit, setShowAddDeposit] = useState(false);
+  const [showAddRecurring, setShowAddRecurring] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: account, isLoading } = useQuery({
+    queryKey: ['bank-account', accountId],
+    queryFn: async () => {
+      const accounts = await base44.entities.BankAccount.list();
+      return accounts.find(a => a.id === accountId);
+    }
+  });
+
+  const { data: deposits = [] } = useQuery({
+    queryKey: ['deposits', accountId],
+    queryFn: () => base44.entities.Deposit.filter({ bank_account_id: accountId })
+  });
+
+  const { data: recurringDeposits = [] } = useQuery({
+    queryKey: ['recurring-deposits', accountId],
+    queryFn: () => base44.entities.RecurringDeposit.filter({ bank_account_id: accountId, is_active: true })
+  });
+
+  const createDepositMutation = useMutation({
+    mutationFn: (data) => base44.entities.Deposit.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deposits'] });
+      setShowAddDeposit(false);
+    }
+  });
+
+  const createRecurringMutation = useMutation({
+    mutationFn: (data) => base44.entities.RecurringDeposit.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-deposits'] });
+      setShowAddRecurring(false);
+    }
+  });
+
+  const deleteDepositMutation = useMutation({
+    mutationFn: (id) => base44.entities.Deposit.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deposits'] });
+    }
+  });
+
+  const deleteRecurringMutation = useMutation({
+    mutationFn: (id) => base44.entities.RecurringDeposit.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-deposits'] });
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (!account) {
+    return (
+      <div className="max-w-lg mx-auto p-6">
+        <p>Account not found</p>
+      </div>
+    );
+  }
+
+  const sortedDeposits = [...deposits].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  return (
+    <div className="min-h-screen bg-slate-50 pb-20">
+      <div className="max-w-lg mx-auto p-6">
+        <Link to={createPageUrl('Dashboard')} className="inline-flex items-center gap-2 text-slate-600 mb-6 hover:text-slate-900">
+          <ArrowLeft className="w-4 h-4" />
+          Back to Dashboard
+        </Link>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-2xl">{account.name}</CardTitle>
+            {account.account_number && (
+              <p className="text-slate-500">••••{account.account_number.slice(-4)}</p>
+            )}
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">{account.currency}</Badge>
+              {!account.is_active && <Badge variant="secondary">Inactive</Badge>}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Tabs defaultValue="deposits" className="space-y-4">
+          <TabsList className="grid grid-cols-2 w-full">
+            <TabsTrigger value="deposits">Deposits</TabsTrigger>
+            <TabsTrigger value="recurring">Recurring</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="deposits" className="space-y-4">
+            <Button onClick={() => setShowAddDeposit(true)} className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Deposit
+            </Button>
+
+            <div className="space-y-3">
+              {sortedDeposits.length === 0 ? (
+                <Card>
+                  <CardContent className="p-6 text-center text-slate-500">
+                    No deposits yet
+                  </CardContent>
+                </Card>
+              ) : (
+                sortedDeposits.map(deposit => {
+                  const category = DEPOSIT_CATEGORIES.find(c => c.value === deposit.category);
+                  return (
+                    <Card key={deposit.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3 flex-1">
+                            <span className="text-2xl">{category?.icon}</span>
+                            <div className="flex-1">
+                              <p className="font-medium">{deposit.description || 'Deposit'}</p>
+                              <p className="text-sm text-slate-500">
+                                {new Date(deposit.date).toLocaleDateString()}
+                              </p>
+                              <Badge variant="outline" className="mt-1 text-xs">
+                                {category?.label.split(' ')[1]}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="text-right flex items-start gap-2">
+                            <div>
+                              <p className="text-lg font-semibold text-green-600">
+                                +{formatCurrency(deposit.amount, account.currency)}
+                              </p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteDepositMutation.mutate(deposit.id)}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="recurring" className="space-y-4">
+            <Button onClick={() => setShowAddRecurring(true)} className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Recurring Deposit
+            </Button>
+
+            <div className="space-y-3">
+              {recurringDeposits.length === 0 ? (
+                <Card>
+                  <CardContent className="p-6 text-center text-slate-500">
+                    No recurring deposits yet
+                  </CardContent>
+                </Card>
+              ) : (
+                recurringDeposits.map(deposit => {
+                  const category = DEPOSIT_CATEGORIES.find(c => c.value === deposit.category);
+                  const frequency = FREQUENCY_OPTIONS.find(f => f.value === deposit.frequency);
+                  return (
+                    <Card key={deposit.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3 flex-1">
+                            <span className="text-2xl">{category?.icon}</span>
+                            <div className="flex-1">
+                              <p className="font-medium">{deposit.name}</p>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">
+                                  {frequency?.label}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {category?.label.split(' ')[1]}
+                                </Badge>
+                              </div>
+                              {deposit.deposit_date && (
+                                <p className="text-xs text-slate-500 mt-1">
+                                  Day {deposit.deposit_date} of month
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right flex items-start gap-2">
+                            <div>
+                              <p className="text-lg font-semibold text-green-600">
+                                +{formatCurrency(deposit.amount, account.currency)}
+                              </p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteRecurringMutation.mutate(deposit.id)}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <Dialog open={showAddDeposit} onOpenChange={setShowAddDeposit}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Deposit</DialogTitle>
+            </DialogHeader>
+            <DepositForm
+              accountId={accountId}
+              onSubmit={(data) => createDepositMutation.mutate(data)}
+              onCancel={() => setShowAddDeposit(false)}
+              isLoading={createDepositMutation.isPending}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showAddRecurring} onOpenChange={setShowAddRecurring}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Recurring Deposit</DialogTitle>
+            </DialogHeader>
+            <RecurringDepositForm
+              accountId={accountId}
+              onSubmit={(data) => createRecurringMutation.mutate(data)}
+              onCancel={() => setShowAddRecurring(false)}
+              isLoading={createRecurringMutation.isPending}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  );
+}
+
+function DepositForm({ accountId, onSubmit, onCancel, isLoading }) {
+  const [formData, setFormData] = useState({
+    bank_account_id: accountId,
+    amount: '',
+    date: new Date().toISOString().split('T')[0],
+    description: '',
+    category: 'other'
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      amount: parseFloat(formData.amount)
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label>Description</Label>
+        <Input
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="e.g., Salary payment"
+        />
+      </div>
+      <div>
+        <Label>Amount</Label>
+        <Input
+          type="number"
+          step="0.01"
+          value={formData.amount}
+          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label>Date</Label>
+        <Input
+          type="date"
+          value={formData.date}
+          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label>Category</Label>
+        <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {DEPOSIT_CATEGORIES.map(cat => (
+              <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading} className="flex-1">
+          {isLoading ? 'Adding...' : 'Add Deposit'}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function RecurringDepositForm({ accountId, onSubmit, onCancel, isLoading }) {
+  const [formData, setFormData] = useState({
+    bank_account_id: accountId,
+    name: '',
+    amount: '',
+    frequency: 'monthly',
+    deposit_date: '',
+    category: 'salary'
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      amount: parseFloat(formData.amount),
+      deposit_date: formData.deposit_date ? parseInt(formData.deposit_date) : null
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label>Name</Label>
+        <Input
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          placeholder="e.g., Monthly Salary"
+          required
+        />
+      </div>
+      <div>
+        <Label>Amount</Label>
+        <Input
+          type="number"
+          step="0.01"
+          value={formData.amount}
+          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label>Frequency</Label>
+        <Select value={formData.frequency} onValueChange={(value) => setFormData({ ...formData, frequency: value })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {FREQUENCY_OPTIONS.map(freq => (
+              <SelectItem key={freq.value} value={freq.value}>{freq.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {(formData.frequency === 'monthly' || formData.frequency === 'quarterly' || formData.frequency === 'yearly') && (
+        <div>
+          <Label>Day of Month</Label>
+          <Input
+            type="number"
+            min="1"
+            max="31"
+            value={formData.deposit_date}
+            onChange={(e) => setFormData({ ...formData, deposit_date: e.target.value })}
+            placeholder="1-31"
+          />
+        </div>
+      )}
+      <div>
+        <Label>Category</Label>
+        <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {DEPOSIT_CATEGORIES.map(cat => (
+              <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading} className="flex-1">
+          {isLoading ? 'Adding...' : 'Add Recurring'}
+        </Button>
+      </div>
+    </form>
+  );
+}

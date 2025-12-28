@@ -443,6 +443,15 @@ function CardPaymentInput({ card, paymentType, fixedPayment, variablePayments, o
     return `${monthNames[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
   };
 
+  const getDefaultPayment = (month) => {
+    return variablePayments?.[month]?.amount ?? fixedPayment;
+  };
+
+  const isMonthPaidOff = (month) => {
+    if (!scenario?.breakdown) return false;
+    return scenario.breakdown.length <= month;
+  };
+
   const handleVariablePaymentChange = (month, value) => {
     const newPayments = [...(variablePayments || [])];
     newPayments[month] = { month: month + 1, amount: parseFloat(value) || 0 };
@@ -489,18 +498,25 @@ function CardPaymentInput({ card, paymentType, fixedPayment, variablePayments, o
               />
             </div>
             <div className="max-h-40 overflow-y-auto space-y-1">
-              {Array.from({ length: numMonths }).map((_, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <span className="text-xs text-slate-500 min-w-[120px]">{getMonthLabel(i)}:</span>
-                  <Input
-                    type="number"
-                    placeholder="Amount"
-                    value={variablePayments?.[i]?.amount || ''}
-                    onChange={(e) => handleVariablePaymentChange(i, e.target.value)}
-                    className="h-7 text-xs"
-                  />
-                </div>
-              ))}
+              {Array.from({ length: numMonths }).map((_, i) => {
+                const isPaidOff = isMonthPaidOff(i);
+                return (
+                  <div key={i} className="flex gap-2 items-center">
+                    <span className={`text-xs min-w-[120px] ${isPaidOff ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {getMonthLabel(i)}:
+                    </span>
+                    <Input
+                      type="number"
+                      placeholder="Amount"
+                      value={variablePayments?.[i]?.amount ?? (i === 0 ? fixedPayment : '')}
+                      onChange={(e) => handleVariablePaymentChange(i, e.target.value)}
+                      disabled={isPaidOff}
+                      className={`h-7 text-xs ${isPaidOff ? 'bg-slate-100 text-slate-400' : ''}`}
+                    />
+                    {isPaidOff && <span className="text-xs text-green-600">Paid off</span>}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -530,6 +546,15 @@ function LoanPaymentInput({ loan, paymentType, fixedPayment, variablePayments, o
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
                         'July', 'August', 'September', 'October', 'November', 'December'];
     return `${monthNames[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
+  };
+
+  const getDefaultPayment = (month) => {
+    return variablePayments?.[month]?.amount ?? fixedPayment;
+  };
+
+  const isMonthPaidOff = (month) => {
+    if (!scenario?.breakdown) return false;
+    return scenario.breakdown.length <= month;
   };
 
   const handleVariablePaymentChange = (month, value) => {
@@ -578,18 +603,25 @@ function LoanPaymentInput({ loan, paymentType, fixedPayment, variablePayments, o
               />
             </div>
             <div className="max-h-40 overflow-y-auto space-y-1">
-              {Array.from({ length: numMonths }).map((_, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <span className="text-xs text-slate-500 min-w-[120px]">{getMonthLabel(i)}:</span>
-                  <Input
-                    type="number"
-                    placeholder="Amount"
-                    value={variablePayments?.[i]?.amount || ''}
-                    onChange={(e) => handleVariablePaymentChange(i, e.target.value)}
-                    className="h-7 text-xs"
-                  />
-                </div>
-              ))}
+              {Array.from({ length: numMonths }).map((_, i) => {
+                const isPaidOff = isMonthPaidOff(i);
+                return (
+                  <div key={i} className="flex gap-2 items-center">
+                    <span className={`text-xs min-w-[120px] ${isPaidOff ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {getMonthLabel(i)}:
+                    </span>
+                    <Input
+                      type="number"
+                      placeholder="Amount"
+                      value={variablePayments?.[i]?.amount ?? (i === 0 ? fixedPayment : '')}
+                      onChange={(e) => handleVariablePaymentChange(i, e.target.value)}
+                      disabled={isPaidOff}
+                      className={`h-7 text-xs ${isPaidOff ? 'bg-slate-100 text-slate-400' : ''}`}
+                    />
+                    {isPaidOff && <span className="text-xs text-green-600">Paid off</span>}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

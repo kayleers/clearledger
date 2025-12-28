@@ -726,7 +726,16 @@ function CardVariableInput({ card, variablePayments, defaultPayment, onVariableP
         <Label className="text-sm font-medium text-slate-700">Override Specific Months (Optional)</Label>
         <div className="grid grid-cols-2 gap-3">
           {variablePayments.map((payment, index) => {
-            const isPaidOff = scenario && index >= scenario.months;
+            // Calculate if this month is after payoff
+            let isPaidOff = false;
+            if (scenario && scenario.months !== Infinity) {
+              const now = new Date();
+              const payoffDate = new Date();
+              payoffDate.setMonth(payoffDate.getMonth() + scenario.months);
+              
+              const inputMonthDate = new Date(selectedYear, index, 1);
+              isPaidOff = inputMonthDate >= payoffDate;
+            }
             const displayDefault = isPaidOff ? "0" : (defaultPayment || "0");
 
             return (
@@ -828,7 +837,16 @@ function LoanVariableInput({ loan, variablePayments, defaultPayment, onVariableP
         <Label className="text-sm font-medium text-slate-700">Override Specific Months (Optional)</Label>
         <div className="grid grid-cols-2 gap-3">
           {variablePayments.map((payment, index) => {
-            const isPaidOff = scenario && index >= scenario.months;
+            // Calculate if this month is after payoff
+            let isPaidOff = false;
+            if (scenario && scenario.months !== Infinity) {
+              const now = new Date();
+              const payoffDate = new Date();
+              payoffDate.setMonth(payoffDate.getMonth() + scenario.months);
+              
+              const inputMonthDate = new Date(selectedYear, index, 1);
+              isPaidOff = inputMonthDate >= payoffDate;
+            }
             const displayDefault = isPaidOff ? "0" : (defaultPayment || "0");
 
             return (

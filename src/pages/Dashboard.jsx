@@ -434,12 +434,20 @@ export default function Dashboard() {
               </Button>
             )}
 
+            {/* Fixed Sections - Calendar and Simulator */}
+            {cards.length > 0 && (
+              <div className="mt-8 space-y-6">
+                <PaymentCalendar />
+                <MultiPaymentSimulator cards={cards} loans={mortgageLoans} />
+              </div>
+            )}
+
             {/* Draggable Sections */}
             <div className="mt-8">
               <Droppable droppableId="sections" type="section">
                 {(provided) => (
                   <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {sectionOrder.map((section, index) => (
+                    {sectionOrder.filter(s => s !== 'simulator' && s !== 'calendar').map((section, index) => (
                       <Draggable key={section} draggableId={section} index={index} type="section">
                         {(provided, snapshot) => (
                           <div
@@ -452,8 +460,6 @@ export default function Dashboard() {
                               opacity: snapshot.isDragging ? 0.8 : 1,
                             }}
                           >
-                            {section === 'simulator' && <MultiPaymentSimulator cards={cards} loans={mortgageLoans} />}
-                            {section === 'calendar' && <PaymentCalendar />}
                             {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}
                             {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />}
                             {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} />}

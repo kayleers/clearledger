@@ -17,12 +17,13 @@ import RecurringBillList from '@/components/bills/RecurringBillList';
 import MortgageLoanList from '@/components/mortgages/MortgageLoanList';
 import PaymentCalendar from '@/components/calendar/PaymentCalendar';
 import QuickAddMenu from '@/components/quickadd/QuickAddMenu';
+import MultiPaymentSimulator from '@/components/simulator/MultiPaymentSimulator';
 
 const MAX_FREE_CARDS = 2;
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['calendar', 'banks', 'bills', 'loans']);
+  const [sectionOrder, setSectionOrder] = useState(['simulator', 'calendar', 'banks', 'bills', 'loans']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const queryClient = useQueryClient();
@@ -115,9 +116,20 @@ export default function Dashboard() {
       try {
         const user = await base44.auth.me();
         if (user.section_order) {
-          // Ensure calendar is included in the order
-          if (!user.section_order.includes('calendar')) {
-            const newOrder = ['calendar', ...user.section_order];
+          // Ensure simulator and calendar are included in the order
+          let newOrder = [...user.section_order];
+          let updated = false;
+          
+          if (!newOrder.includes('simulator')) {
+            newOrder = ['simulator', ...newOrder];
+            updated = true;
+          }
+          if (!newOrder.includes('calendar')) {
+            newOrder = ['calendar', ...newOrder];
+            updated = true;
+          }
+          
+          if (updated) {
             setSectionOrder(newOrder);
             await base44.auth.updateMe({ section_order: newOrder });
           } else {
@@ -440,6 +452,7 @@ export default function Dashboard() {
                               opacity: snapshot.isDragging ? 0.8 : 1,
                             }}
                           >
+                            {section === 'simulator' && <MultiPaymentSimulator cards={cards} loans={mortgageLoans} />}
                             {section === 'calendar' && <PaymentCalendar />}
                             {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}
                             {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />}

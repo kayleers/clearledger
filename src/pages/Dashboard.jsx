@@ -22,7 +22,7 @@ const MAX_FREE_CARDS = 2;
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['banks', 'bills', 'loans']);
+  const [sectionOrder, setSectionOrder] = useState(['calendar', 'banks', 'bills', 'loans']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const queryClient = useQueryClient();
@@ -414,11 +414,6 @@ export default function Dashboard() {
               </Button>
             )}
 
-            {/* Payment Calendar */}
-            <div className="mb-6">
-              <PaymentCalendar />
-            </div>
-
             {/* Draggable Sections */}
             <div className="mt-8">
               <DragDropContext onDragEnd={handleSectionDragEnd}>
@@ -434,6 +429,7 @@ export default function Dashboard() {
                               {...provided.dragHandleProps}
                               className="mb-6"
                             >
+                              {section === 'calendar' && <PaymentCalendar />}
                               {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}
                               {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />}
                               {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} />}

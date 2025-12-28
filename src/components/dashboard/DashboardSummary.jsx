@@ -292,22 +292,7 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
         </Collapsible>
       )}
 
-      {/* Utilization Message */}
-      {cards.length > 0 && (
-        <Card className={`border-l-4 ${
-          totalUtilization <= 30 ? 'border-l-emerald-500 bg-emerald-50' :
-          totalUtilization <= 50 ? 'border-l-yellow-500 bg-yellow-50' :
-          totalUtilization <= 75 ? 'border-l-orange-500 bg-orange-50' :
-          'border-l-red-500 bg-red-50'
-        }`}>
-          <CardContent className="p-4 flex items-center gap-3">
-            <Icon className={`w-5 h-5 ${utilizationMessage.color}`} />
-            <p className={`text-sm font-medium ${utilizationMessage.color}`}>
-              {utilizationMessage.text}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+
     </div>
   );
 }

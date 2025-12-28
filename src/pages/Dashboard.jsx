@@ -23,7 +23,7 @@ const MAX_FREE_CARDS = 2;
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['simulator', 'calendar', 'banks', 'bills', 'loans']);
+  const [sectionOrder, setSectionOrder] = useState(['cards', 'banks', 'bills', 'loans']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const queryClient = useQueryClient();
@@ -116,24 +116,20 @@ export default function Dashboard() {
       try {
         const user = await base44.auth.me();
         if (user.section_order) {
-          // Ensure simulator and calendar are included in the order
-          let newOrder = [...user.section_order];
+          // Filter out simulator and calendar, ensure cards is included
+          let newOrder = user.section_order.filter(s => s !== 'simulator' && s !== 'calendar');
           let updated = false;
-          
-          if (!newOrder.includes('simulator')) {
-            newOrder = ['simulator', ...newOrder];
+
+          if (!newOrder.includes('cards')) {
+            newOrder = ['cards', ...newOrder];
             updated = true;
           }
-          if (!newOrder.includes('calendar')) {
-            newOrder = ['calendar', ...newOrder];
-            updated = true;
-          }
-          
+
           if (updated) {
             setSectionOrder(newOrder);
             await base44.auth.updateMe({ section_order: newOrder });
           } else {
-            setSectionOrder(user.section_order);
+            setSectionOrder(newOrder);
           }
         }
       } catch (error) {
@@ -350,23 +346,9 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Cards Section */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-slate-800">Your Cards</h2>
-                {!showAddCard && canAddCard && (
-                  <Button
-                    size="sm"
-                    onClick={() => setShowAddCard(true)}
-                    className="rounded-full"
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Add Card
-                  </Button>
-                )}
-              </div>
-
-              {cards.length === 0 ? (
+            {/* Empty State for Cards */}
+            {cards.length === 0 && (
+              <div className="mb-6">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -384,54 +366,7 @@ export default function Dashboard() {
                     Add Credit Card
                   </Button>
                 </motion.div>
-              ) : (
-                <Droppable droppableId="cards" type="card">
-                  {(provided) => (
-                    <div 
-                      {...provided.droppableProps} 
-                      ref={provided.innerRef}
-                      className="space-y-4"
-                    >
-                      {cards.map((card, index) => (
-                        <Draggable key={card.id} draggableId={card.id} index={index} type="card">
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              style={{
-                                ...provided.draggableProps.style,
-                                opacity: snapshot.isDragging ? 0.9 : 1,
-                              }}
-                            >
-                              <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                              >
-                                <CreditCardItem card={card} isDragging={snapshot.isDragging} />
-                              </motion.div>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              )}
-            </div>
-
-            {/* Add More Button (when cards exist but form hidden) */}
-            {cards.length > 0 && !showAddCard && canAddCard && (
-              <Button
-                variant="outline"
-                className="w-full h-14 border-dashed border-2 text-slate-500"
-                onClick={() => setShowAddCard(true)}
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Add Another Card
-              </Button>
+              </div>
             )}
 
             {/* Fixed Sections - Calendar and Simulator */}
@@ -447,7 +382,7 @@ export default function Dashboard() {
               <Droppable droppableId="sections" type="section">
                 {(provided) => (
                   <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {sectionOrder.filter(s => s !== 'simulator' && s !== 'calendar').map((section, index) => (
+                    {sectionOrder.map((section, index) => (
                       <Draggable key={section} draggableId={section} index={index} type="section">
                         {(provided, snapshot) => (
                           <div
@@ -460,6 +395,67 @@ export default function Dashboard() {
                               opacity: snapshot.isDragging ? 0.8 : 1,
                             }}
                           >
+                            {section === 'cards' && cards.length > 0 && (
+                              <div>
+                                <div className="flex items-center justify-between mb-4">
+                                  <h2 className="text-lg font-semibold text-slate-800">Your Cards</h2>
+                                  {!showAddCard && canAddCard && (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => setShowAddCard(true)}
+                                      className="rounded-full"
+                                    >
+                                      <Plus className="w-4 h-4 mr-1" />
+                                      Add Card
+                                    </Button>
+                                  )}
+                                </div>
+                                <Droppable droppableId="cards" type="card">
+                                  {(provided) => (
+                                    <div 
+                                      {...provided.droppableProps} 
+                                      ref={provided.innerRef}
+                                      className="space-y-4"
+                                    >
+                                      {cards.map((card, cardIndex) => (
+                                        <Draggable key={card.id} draggableId={card.id} index={cardIndex} type="card">
+                                          {(provided, snapshot) => (
+                                            <div
+                                              ref={provided.innerRef}
+                                              {...provided.draggableProps}
+                                              {...provided.dragHandleProps}
+                                              style={{
+                                                ...provided.draggableProps.style,
+                                                opacity: snapshot.isDragging ? 0.9 : 1,
+                                              }}
+                                            >
+                                              <motion.div
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: cardIndex * 0.1 }}
+                                              >
+                                                <CreditCardItem card={card} isDragging={snapshot.isDragging} />
+                                              </motion.div>
+                                            </div>
+                                          )}
+                                        </Draggable>
+                                      ))}
+                                      {provided.placeholder}
+                                    </div>
+                                  )}
+                                </Droppable>
+                                {!showAddCard && canAddCard && (
+                                  <Button
+                                    variant="outline"
+                                    className="w-full h-14 border-dashed border-2 text-slate-500 mt-4"
+                                    onClick={() => setShowAddCard(true)}
+                                  >
+                                    <Plus className="w-5 h-5 mr-2" />
+                                    Add Another Card
+                                  </Button>
+                                )}
+                              </div>
+                            )}
                             {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}
                             {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />}
                             {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} />}

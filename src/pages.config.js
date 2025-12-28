@@ -1,12 +1,12 @@
-import Dashboard from './pages/Dashboard';
 import CardDetail from './pages/CardDetail';
+import Dashboard from './pages/Dashboard';
 import LoanDetail from './pages/LoanDetail';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
     "CardDetail": CardDetail,
+    "Dashboard": Dashboard,
     "LoanDetail": LoanDetail,
 }
 

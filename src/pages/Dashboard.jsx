@@ -169,7 +169,12 @@ export default function Dashboard() {
             {/* Summary */}
             {cards.length > 0 && (
               <div className="mb-6">
-                <DashboardSummary cards={cards} />
+                <DashboardSummary 
+                  cards={cards} 
+                  bankAccounts={bankAccounts}
+                  recurringBills={recurringBills}
+                  mortgageLoans={mortgageLoans}
+                />
               </div>
             )}
 

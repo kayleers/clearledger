@@ -144,28 +144,83 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
     return scenarios;
   }, [cards, loans, paymentType, cardPayments, loanPayments, cardVariablePayments, loanVariablePayments, cardDefaultPayments, loanDefaultPayments]);
 
-  // Calculate totals
-  const totalBalance = allScenarios.reduce((sum, s) => sum + s.balance, 0);
-  const totalInterest = allScenarios.reduce((sum, s) => sum + s.totalInterest, 0);
-  const longestMonths = Math.max(...allScenarios.map(s => s.months), 0);
-  const totalMinPayment = [...cards, ...loans].reduce((sum, item) => 
-    sum + (item.min_payment || item.monthly_payment || 0), 0);
-
-  // Calculate minimum payment scenario
-  const minScenarios = useMemo(() => {
-    const scenarios = [];
+  // Calculate totals by currency
+  const totalsByCurrency = useMemo(() => {
+    const totals = {};
+    
+    allScenarios.forEach(s => {
+      const currency = s.currency || 'USD';
+      if (!totals[currency]) {
+        totals[currency] = {
+          balance: 0,
+          interest: 0,
+          minPayment: 0,
+          minInterest: 0
+        };
+      }
+      totals[currency].balance += s.balance;
+      totals[currency].interest += s.totalInterest;
+    });
+    
+    // Add min payment and min interest calculations
     cards.forEach(card => {
-      const scenario = calculatePayoffTimeline(card.balance, card.apr, card.min_payment);
-      scenarios.push(scenario);
+      const currency = card.currency || 'USD';
+      if (totals[currency]) {
+        totals[currency].minPayment += card.min_payment || 0;
+      }
     });
+    
     loans.forEach(loan => {
-      const scenario = calculatePayoffTimeline(loan.current_balance, loan.interest_rate, loan.monthly_payment);
-      scenarios.push(scenario);
+      const currency = loan.currency || 'USD';
+      if (totals[currency]) {
+        totals[currency].minPayment += loan.monthly_payment || 0;
+      }
     });
-    return scenarios;
+    
+    return totals;
+  }, [allScenarios, cards, loans]);
+
+  // Calculate minimum payment scenarios by currency
+  const minScenariosByCurrency = useMemo(() => {
+    const scenariosByCurrency = {};
+    
+    cards.forEach(card => {
+      const currency = card.currency || 'USD';
+      const scenario = calculatePayoffTimeline(card.balance, card.apr, card.min_payment);
+      if (!scenariosByCurrency[currency]) {
+        scenariosByCurrency[currency] = [];
+      }
+      scenariosByCurrency[currency].push(scenario);
+    });
+    
+    loans.forEach(loan => {
+      const currency = loan.currency || 'USD';
+      const scenario = calculatePayoffTimeline(loan.current_balance, loan.interest_rate, loan.monthly_payment);
+      if (!scenariosByCurrency[currency]) {
+        scenariosByCurrency[currency] = [];
+      }
+      scenariosByCurrency[currency].push(scenario);
+    });
+    
+    // Calculate totals per currency
+    const totals = {};
+    Object.entries(scenariosByCurrency).forEach(([currency, scenarios]) => {
+      totals[currency] = scenarios.reduce((sum, s) => sum + s.totalInterest, 0);
+    });
+    
+    return totals;
   }, [cards, loans]);
 
-  const minTotalInterest = minScenarios.reduce((sum, s) => sum + s.totalInterest, 0);
+  const currencies = Object.keys(totalsByCurrency);
+  const hasMixedCurrencies = currencies.length > 1;
+
+  // Legacy totals for single currency or backwards compatibility
+  const totalBalance = Object.values(totalsByCurrency).reduce((sum, t) => sum + t.balance, 0);
+  const totalInterest = Object.values(totalsByCurrency).reduce((sum, t) => sum + t.interest, 0);
+  const longestMonths = Math.max(...allScenarios.map(s => s.months), 0);
+  const totalMinPayment = Object.values(totalsByCurrency).reduce((sum, t) => sum + t.minPayment, 0);
+  
+  const minTotalInterest = Object.values(minScenariosByCurrency).reduce((sum, interest) => sum + interest, 0);
   const interestSaved = minTotalInterest - totalInterest;
 
   const handleSaveScenario = () => {
@@ -390,9 +445,21 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
                   </div>
                   <div className="p-4 bg-purple-50 rounded-xl text-center">
                     <DollarSign className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                    <p className="text-2xl font-bold text-purple-900">
-                      {formatCurrency(totalInterest)}
-                    </p>
+                    {hasMixedCurrencies ? (
+                      <div className="space-y-1">
+                        {currencies.map(currency => (
+                          <div key={currency}>
+                            <p className="text-lg font-bold text-purple-900">
+                              {formatCurrency(totalsByCurrency[currency].interest, currency)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-2xl font-bold text-purple-900">
+                        {formatCurrency(totalInterest, currencies[0])}
+                      </p>
+                    )}
                     <p className="text-xs text-purple-600">total interest</p>
                   </div>
                 </div>
@@ -404,12 +471,26 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
                       <Sparkles className="w-5 h-5" />
                       <span className="font-medium">You Save</span>
                     </div>
-                    <div className="grid grid-cols-1 gap-2">
-                      <div>
-                        <p className="text-2xl font-bold">{formatCurrency(interestSaved)}</p>
-                        <p className="text-xs text-emerald-100">in interest</p>
+                    {hasMixedCurrencies ? (
+                      <div className="space-y-2">
+                        {currencies.map(currency => {
+                          const saved = minScenariosByCurrency[currency] - totalsByCurrency[currency].interest;
+                          return saved > 0 ? (
+                            <div key={currency}>
+                              <p className="text-xl font-bold">{formatCurrency(saved, currency)}</p>
+                              <p className="text-xs text-emerald-100">in interest ({currency})</p>
+                            </div>
+                          ) : null;
+                        })}
                       </div>
-                    </div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-2">
+                        <div>
+                          <p className="text-2xl font-bold">{formatCurrency(interestSaved, currencies[0])}</p>
+                          <p className="text-xs text-emerald-100">in interest</p>
+                        </div>
+                      </div>
+                    )}
                     <p className="text-xs text-emerald-100 mt-2">
                       vs. paying only minimum payments
                     </p>

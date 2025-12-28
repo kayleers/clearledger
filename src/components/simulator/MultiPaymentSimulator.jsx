@@ -866,7 +866,7 @@ function LoanVariableInput({ loan, variablePayments, defaultPayment, onVariableP
                   )}
                   {!isPaidOff && predictedBalance !== undefined && (
                     <span className="text-blue-600 font-normal ml-1 block text-[10px]">
-                      Bal: {formatCurrency(predictedBalance, loan.currency)}
+                      Before: {formatCurrency(scenario?.breakdown?.[index]?.balance_before_payment, loan.currency)} | After: {formatCurrency(predictedBalance, loan.currency)}
                     </span>
                   )}
                 </Label>

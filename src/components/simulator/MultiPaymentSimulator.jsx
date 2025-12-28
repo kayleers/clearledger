@@ -729,12 +729,7 @@ function CardVariableInput({ card, variablePayments, defaultPayment, onVariableP
             // Calculate if this month is after payoff
             let isPaidOff = false;
             if (scenario && scenario.months !== Infinity) {
-              const now = new Date();
-              const payoffDate = new Date();
-              payoffDate.setMonth(payoffDate.getMonth() + scenario.months);
-              
-              const inputMonthDate = new Date(selectedYear, index, 1);
-              isPaidOff = inputMonthDate >= payoffDate;
+              isPaidOff = index >= scenario.months;
             }
             const displayDefault = isPaidOff ? "0" : (defaultPayment || "0");
 
@@ -840,12 +835,7 @@ function LoanVariableInput({ loan, variablePayments, defaultPayment, onVariableP
             // Calculate if this month is after payoff
             let isPaidOff = false;
             if (scenario && scenario.months !== Infinity) {
-              const now = new Date();
-              const payoffDate = new Date();
-              payoffDate.setMonth(payoffDate.getMonth() + scenario.months);
-              
-              const inputMonthDate = new Date(selectedYear, index, 1);
-              isPaidOff = inputMonthDate >= payoffDate;
+              isPaidOff = index >= scenario.months;
             }
             const displayDefault = isPaidOff ? "0" : (defaultPayment || "0");
 

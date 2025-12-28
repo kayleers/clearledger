@@ -76,7 +76,7 @@ export const calculatePayoffTimeline = (startingBalance, apr, monthlyPayment, ma
   };
 };
 
-export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePayments, maxMonths = 360, futurePurchases = []) => {
+export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePayments, maxMonths = 600, futurePurchases = []) => {
   if (startingBalance <= 0) return { months: 0, totalInterest: 0, breakdown: [] };
   if (!variablePayments || variablePayments.length === 0) return { months: Infinity, totalInterest: Infinity, breakdown: [] };
   
@@ -85,7 +85,7 @@ export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePa
   let totalInterest = 0;
   const breakdown = [];
   
-  // Find the last non-zero payment to use as default for remaining months
+  // Find the default payment (last non-zero payment in array)
   let defaultPayment = 0;
   for (let i = variablePayments.length - 1; i >= 0; i--) {
     const amt = typeof variablePayments[i] === 'object' ? variablePayments[i].amount : variablePayments[i];
@@ -95,45 +95,49 @@ export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePa
     }
   }
   
-  // Iterate month by month
-  let monthIndex = 0;
-  while (balance > 0 && monthIndex < maxMonths) {
-    // Step 1: Determine payment for this month
-    let payment = 0;
-    if (monthIndex < variablePayments.length) {
-      const paymentData = variablePayments[monthIndex];
-      payment = parseFloat(typeof paymentData === 'object' ? paymentData.amount : paymentData) || 0;
+  let month = 0;
+  
+  while (balance > 0 && month < maxMonths) {
+    month += 1;
+    
+    const startingBalanceForMonth = balance;
+    
+    // Determine payment for this month (custom or default)
+    let payment = defaultPayment;
+    if (month - 1 < variablePayments.length) {
+      const paymentData = variablePayments[month - 1];
+      const customAmount = parseFloat(typeof paymentData === 'object' ? paymentData.amount : paymentData);
+      if (customAmount && customAmount > 0) {
+        payment = customAmount;
+      }
     }
     
-    // Use default payment if no specific payment provided
-    if (payment === 0 && defaultPayment > 0) {
-      payment = defaultPayment;
-    }
-    
-    // If no payment, cannot proceed
     if (payment <= 0) break;
     
-    // Step 2: Add any purchases for this month
-    const purchase = futurePurchases[monthIndex]?.amount || 0;
+    // Add any purchases for this month
+    const purchase = futurePurchases[month - 1]?.amount || 0;
     balance += purchase;
     
-    // Step 3: Apply interest to current balance
+    // Calculate interest FIRST
     const interest = balance * monthlyRate;
+    
+    // Apply interest
     balance += interest;
     totalInterest += interest;
     
-    // Stop if payment doesn't cover interest
-    if (payment <= interest) break;
+    // Apply payment
+    let actualPayment = payment;
+    if (payment > balance) {
+      actualPayment = balance; // prevent negative balance
+    }
     
-    // Step 4: Apply payment (capped at remaining balance)
-    const actualPayment = Math.min(payment, balance);
-    const principal = actualPayment - interest;
     balance -= actualPayment;
     
-    // Step 5: Record this month's breakdown
-    monthIndex++;
+    const principal = actualPayment - interest;
+    
+    // Record breakdown
     breakdown.push({
-      month: monthIndex,
+      month: month,
       payment: Math.round(actualPayment * 100) / 100,
       interest: Math.round(interest * 100) / 100,
       principal: Math.round(principal * 100) / 100,
@@ -146,7 +150,7 @@ export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePa
   }
   
   return {
-    months: monthIndex,
+    months: month,
     totalInterest: Math.round(totalInterest * 100) / 100,
     breakdown
   };

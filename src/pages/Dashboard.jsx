@@ -189,12 +189,23 @@ export default function Dashboard() {
         await base44.entities.CreditCard.update(targetId, {
           balance: Math.max(0, card.balance - amount)
         });
+        // Create withdrawal from bank account
+        if (card.bank_account_id) {
+          await base44.entities.Deposit.create({
+            bank_account_id: card.bank_account_id,
+            amount: -amount,
+            date,
+            description: `Payment to ${card.name}`,
+            category: 'other'
+          });
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card'] });
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+      queryClient.invalidateQueries({ queryKey: ['deposits'] });
       setShowQuickAdd(false);
     }
   });
@@ -230,11 +241,22 @@ export default function Dashboard() {
         await base44.entities.MortgageLoan.update(targetId, {
           current_balance: Math.max(0, loan.current_balance - amount)
         });
+        // Create withdrawal from bank account
+        if (loan.bank_account_id) {
+          await base44.entities.Deposit.create({
+            bank_account_id: loan.bank_account_id,
+            amount: -amount,
+            date,
+            description: `Payment to ${loan.name}`,
+            category: 'other'
+          });
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loan-payments'] });
       queryClient.invalidateQueries({ queryKey: ['mortgage-loans'] });
+      queryClient.invalidateQueries({ queryKey: ['deposits'] });
       setShowQuickAdd(false);
     }
   });

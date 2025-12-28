@@ -38,6 +38,8 @@ export default function BankAccountDetail() {
 
   const [showAddDeposit, setShowAddDeposit] = useState(false);
   const [showAddRecurring, setShowAddRecurring] = useState(false);
+  const [showAddWithdrawal, setShowAddWithdrawal] = useState(false);
+  const [showAddRecurringWithdrawal, setShowAddRecurringWithdrawal] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: account, isLoading } = useQuery({
@@ -56,6 +58,11 @@ export default function BankAccountDetail() {
   const { data: recurringDeposits = [] } = useQuery({
     queryKey: ['recurring-deposits', accountId],
     queryFn: () => base44.entities.RecurringDeposit.filter({ bank_account_id: accountId, is_active: true })
+  });
+
+  const { data: recurringWithdrawals = [] } = useQuery({
+    queryKey: ['recurring-withdrawals', accountId],
+    queryFn: () => base44.entities.RecurringWithdrawal.filter({ bank_account_id: accountId, is_active: true })
   });
 
   const createDepositMutation = useMutation({
@@ -88,6 +95,29 @@ export default function BankAccountDetail() {
     }
   });
 
+  const createWithdrawalMutation = useMutation({
+    mutationFn: (data) => base44.entities.Deposit.create({ ...data, amount: -Math.abs(data.amount) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deposits'] });
+      setShowAddWithdrawal(false);
+    }
+  });
+
+  const createRecurringWithdrawalMutation = useMutation({
+    mutationFn: (data) => base44.entities.RecurringWithdrawal.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-withdrawals'] });
+      setShowAddRecurringWithdrawal(false);
+    }
+  });
+
+  const deleteRecurringWithdrawalMutation = useMutation({
+    mutationFn: (id) => base44.entities.RecurringWithdrawal.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-withdrawals'] });
+    }
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -104,7 +134,8 @@ export default function BankAccountDetail() {
     );
   }
 
-  const sortedDeposits = [...deposits].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const sortedDeposits = [...deposits].filter(d => d.amount > 0).sort((a, b) => new Date(b.date) - new Date(a.date));
+  const sortedWithdrawals = [...deposits].filter(d => d.amount < 0).sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -130,9 +161,11 @@ export default function BankAccountDetail() {
         </Card>
 
         <Tabs defaultValue="deposits" className="space-y-4">
-          <TabsList className="grid grid-cols-2 w-full">
+          <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="deposits">Deposits</TabsTrigger>
-            <TabsTrigger value="recurring">Recurring</TabsTrigger>
+            <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
+            <TabsTrigger value="recurring">Recurring +</TabsTrigger>
+            <TabsTrigger value="recurring-withdrawals">Recurring -</TabsTrigger>
           </TabsList>
 
           <TabsContent value="deposits" className="space-y-4">
@@ -177,6 +210,61 @@ export default function BankAccountDetail() {
                               variant="ghost"
                               size="icon"
                               onClick={() => deleteDepositMutation.mutate(deposit.id)}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="withdrawals" className="space-y-4">
+            <Button onClick={() => setShowAddWithdrawal(true)} className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Withdrawal
+            </Button>
+
+            <div className="space-y-3">
+              {sortedWithdrawals.length === 0 ? (
+                <Card>
+                  <CardContent className="p-6 text-center text-slate-500">
+                    No withdrawals yet
+                  </CardContent>
+                </Card>
+              ) : (
+                sortedWithdrawals.map(withdrawal => {
+                  const category = DEPOSIT_CATEGORIES.find(c => c.value === withdrawal.category);
+                  return (
+                    <Card key={withdrawal.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3 flex-1">
+                            <span className="text-2xl">💸</span>
+                            <div className="flex-1">
+                              <p className="font-medium">{withdrawal.description || 'Withdrawal'}</p>
+                              <p className="text-sm text-slate-500">
+                                {new Date(withdrawal.date).toLocaleDateString()}
+                              </p>
+                              <Badge variant="outline" className="mt-1 text-xs">
+                                {category?.label.split(' ')[1] || 'Other'}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="text-right flex items-start gap-2">
+                            <div>
+                              <p className="text-lg font-semibold text-red-600">
+                                -{formatCurrency(Math.abs(withdrawal.amount), account.currency)}
+                              </p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteDepositMutation.mutate(withdrawal.id)}
                             >
                               <Trash2 className="w-4 h-4 text-red-500" />
                             </Button>
@@ -252,6 +340,68 @@ export default function BankAccountDetail() {
               )}
             </div>
           </TabsContent>
+
+          <TabsContent value="recurring-withdrawals" className="space-y-4">
+            <Button onClick={() => setShowAddRecurringWithdrawal(true)} className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Recurring Withdrawal
+            </Button>
+
+            <div className="space-y-3">
+              {recurringWithdrawals.length === 0 ? (
+                <Card>
+                  <CardContent className="p-6 text-center text-slate-500">
+                    No recurring withdrawals yet
+                  </CardContent>
+                </Card>
+              ) : (
+                recurringWithdrawals.map(withdrawal => {
+                  const frequency = FREQUENCY_OPTIONS.find(f => f.value === withdrawal.frequency);
+                  return (
+                    <Card key={withdrawal.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3 flex-1">
+                            <span className="text-2xl">💸</span>
+                            <div className="flex-1">
+                              <p className="font-medium">{withdrawal.name}</p>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">
+                                  {frequency?.label}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs capitalize">
+                                  {withdrawal.category}
+                                </Badge>
+                              </div>
+                              {withdrawal.withdrawal_date && (
+                                <p className="text-xs text-slate-500 mt-1">
+                                  Day {withdrawal.withdrawal_date} of month
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right flex items-start gap-2">
+                            <div>
+                              <p className="text-lg font-semibold text-red-600">
+                                -{formatCurrency(withdrawal.amount, account.currency)}
+                              </p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteRecurringWithdrawalMutation.mutate(withdrawal.id)}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
 
         <Dialog open={showAddDeposit} onOpenChange={setShowAddDeposit}>
@@ -278,6 +428,34 @@ export default function BankAccountDetail() {
               onSubmit={(data) => createRecurringMutation.mutate(data)}
               onCancel={() => setShowAddRecurring(false)}
               isLoading={createRecurringMutation.isPending}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showAddWithdrawal} onOpenChange={setShowAddWithdrawal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Withdrawal</DialogTitle>
+            </DialogHeader>
+            <WithdrawalForm
+              accountId={accountId}
+              onSubmit={(data) => createWithdrawalMutation.mutate(data)}
+              onCancel={() => setShowAddWithdrawal(false)}
+              isLoading={createWithdrawalMutation.isPending}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showAddRecurringWithdrawal} onOpenChange={setShowAddRecurringWithdrawal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Recurring Withdrawal</DialogTitle>
+            </DialogHeader>
+            <RecurringWithdrawalForm
+              accountId={accountId}
+              onSubmit={(data) => createRecurringWithdrawalMutation.mutate(data)}
+              onCancel={() => setShowAddRecurringWithdrawal(false)}
+              isLoading={createRecurringWithdrawalMutation.isPending}
             />
           </DialogContent>
         </Dialog>
@@ -351,6 +529,77 @@ function DepositForm({ accountId, onSubmit, onCancel, isLoading }) {
         </Button>
         <Button type="submit" disabled={isLoading} className="flex-1">
           {isLoading ? 'Adding...' : 'Add Deposit'}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function WithdrawalForm({ accountId, onSubmit, onCancel, isLoading }) {
+  const [formData, setFormData] = useState({
+    bank_account_id: accountId,
+    amount: '',
+    date: new Date().toISOString().split('T')[0],
+    description: '',
+    category: 'other'
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      amount: parseFloat(formData.amount)
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label>Description</Label>
+        <Input
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="e.g., Rent payment, Utility bill"
+        />
+      </div>
+      <div>
+        <Label>Amount</Label>
+        <Input
+          type="number"
+          step="0.01"
+          value={formData.amount}
+          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label>Date</Label>
+        <Input
+          type="date"
+          value={formData.date}
+          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label>Category</Label>
+        <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {DEPOSIT_CATEGORIES.map(cat => (
+              <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading} className="flex-1">
+          {isLoading ? 'Adding...' : 'Add Withdrawal'}
         </Button>
       </div>
     </form>

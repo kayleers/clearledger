@@ -12,7 +12,7 @@ import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';
 const TRANSACTION_TYPES = [
   { id: 'card_purchase', label: 'Credit Card Purchase', icon: ShoppingBag, color: 'purple' },
   { id: 'bank_deposit', label: 'Bank Account Deposit', icon: DollarSign, color: 'green' },
-  { id: 'bank_payment', label: 'Bank Account Payment', icon: Building2, color: 'emerald' },
+  { id: 'bank_payment', label: 'Bank Account Withdraw/Purchase', icon: Building2, color: 'emerald' },
   { id: 'card_payment', label: 'Credit Card Payment', icon: CreditCard, color: 'blue' },
   { id: 'bill_payment', label: 'Bill Payment', icon: Receipt, color: 'amber' },
   { id: 'loan_payment', label: 'Loan Payment', icon: Landmark, color: 'orange' }

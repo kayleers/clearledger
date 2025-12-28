@@ -113,7 +113,14 @@ export default function Dashboard() {
       try {
         const user = await base44.auth.me();
         if (user.section_order) {
-          setSectionOrder(user.section_order);
+          // Ensure calendar is included in the order
+          if (!user.section_order.includes('calendar')) {
+            const newOrder = ['calendar', ...user.section_order];
+            setSectionOrder(newOrder);
+            await base44.auth.updateMe({ section_order: newOrder });
+          } else {
+            setSectionOrder(user.section_order);
+          }
         }
       } catch (error) {
         console.error('Error fetching section order:', error);

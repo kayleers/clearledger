@@ -726,7 +726,7 @@ function CardVariableInput({ card, variablePayments, defaultPayment, onVariableP
         <Label className="text-sm font-medium text-slate-700">Override Specific Months (Optional)</Label>
         <div className="grid grid-cols-2 gap-3">
           {variablePayments.map((payment, index) => {
-            const isPaidOff = scenario && scenario.months <= index;
+            const isPaidOff = scenario && index >= scenario.months;
             const displayDefault = isPaidOff ? "0" : (defaultPayment || "0");
 
             return (
@@ -760,6 +760,19 @@ function CardVariableInput({ card, variablePayments, defaultPayment, onVariableP
           })}
         </div>
       </div>
+
+      {scenario && (
+        <div className="mt-3 pt-3 border-t text-xs space-y-1 text-slate-600">
+          <div className="flex justify-between">
+            <span>Payoff:</span>
+            <span className="font-medium">{formatMonthsToYears(scenario.months)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Total Interest:</span>
+            <span className="font-medium text-red-600">{formatCurrency(scenario.totalInterest, card.currency)}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -815,7 +828,7 @@ function LoanVariableInput({ loan, variablePayments, defaultPayment, onVariableP
         <Label className="text-sm font-medium text-slate-700">Override Specific Months (Optional)</Label>
         <div className="grid grid-cols-2 gap-3">
           {variablePayments.map((payment, index) => {
-            const isPaidOff = scenario && scenario.months <= index;
+            const isPaidOff = scenario && index >= scenario.months;
             const displayDefault = isPaidOff ? "0" : (defaultPayment || "0");
 
             return (
@@ -849,6 +862,19 @@ function LoanVariableInput({ loan, variablePayments, defaultPayment, onVariableP
           })}
         </div>
       </div>
+
+      {scenario && (
+        <div className="mt-3 pt-3 border-t text-xs space-y-1 text-slate-600">
+          <div className="flex justify-between">
+            <span>Payoff:</span>
+            <span className="font-medium">{formatMonthsToYears(scenario.months)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Total Interest:</span>
+            <span className="font-medium text-red-600">{formatCurrency(scenario.totalInterest, loan.currency)}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -99,32 +99,190 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
         </CardContent>
       </Card>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <CreditCard className="w-4 h-4 text-blue-600" />
+      {/* Expandable Cards Details */}
+      <Collapsible open={expandedCards} onOpenChange={setExpandedCards}>
+        <Card className="border-blue-200">
+          <CollapsibleTrigger className="w-full">
+            <CardContent className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <CreditCard className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold text-slate-900">{cards.length} Credit Cards</p>
+                  <p className="text-sm text-slate-500">Min Due: {formatCurrency(totalMinPayment)}</p>
+                </div>
               </div>
-              <span className="text-xs text-slate-500">Cards</span>
+              {expandedCards ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+            </CardContent>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="px-4 pb-4 space-y-2">
+              {cards.map(card => {
+                const utilization = calculateUtilization(card.balance, card.credit_limit);
+                const minPayment = calculateMinimumPayment(card.min_payment, card.balance);
+                return (
+                  <div key={card.id} className="p-3 bg-slate-50 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-medium text-slate-900">{card.name}</p>
+                        <p className="text-xs text-slate-500">{card.apr * 100}% APR</p>
+                      </div>
+                      <p className="text-sm font-semibold text-slate-900">{formatCurrency(card.balance, card.currency)}</p>
+                    </div>
+                    <div className="space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Min Payment:</span>
+                        <span className="font-medium">{formatCurrency(minPayment, card.currency)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Utilization:</span>
+                        <span className={getUtilizationColor(utilization)}>{utilization}%</span>
+                      </div>
+                      {card.due_date && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Due Date:</span>
+                          <span className="font-medium">{card.due_date}{card.due_date === 1 ? 'st' : card.due_date === 2 ? 'nd' : card.due_date === 3 ? 'rd' : 'th'} of month</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <p className="text-2xl font-bold text-slate-900">{cards.length}</p>
-          </CardContent>
+          </CollapsibleContent>
         </Card>
+      </Collapsible>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <DollarSign className="w-4 h-4 text-amber-600" />
+      {/* Bank Accounts Section */}
+      {bankAccounts.length > 0 && (
+        <Collapsible open={expandedBanks} onOpenChange={setExpandedBanks}>
+          <Card className="border-emerald-200">
+            <CollapsibleTrigger className="w-full">
+              <CardContent className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-emerald-100 rounded-lg">
+                    <Building2 className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-slate-900">{bankAccounts.length} Bank Accounts</p>
+                    <p className="text-sm text-slate-500">Payment sources</p>
+                  </div>
+                </div>
+                {expandedBanks ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+              </CardContent>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-4 pb-4 space-y-2">
+                {bankAccounts.map(account => (
+                  <div key={account.id} className="p-3 bg-slate-50 rounded-lg flex justify-between items-center">
+                    <div>
+                      <p className="font-medium text-slate-900">{account.name}</p>
+                      {account.account_number && (
+                        <p className="text-xs text-slate-500">••••{account.account_number.slice(-4)}</p>
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-slate-600">{account.currency}</span>
+                  </div>
+                ))}
               </div>
-              <span className="text-xs text-slate-500">Min Due</span>
-            </div>
-            <p className="text-2xl font-bold text-slate-900">{formatCurrency(totalMinPayment)}</p>
-          </CardContent>
-        </Card>
-      </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
+
+      {/* Recurring Bills Section */}
+      {recurringBills.length > 0 && (
+        <Collapsible open={expandedBills} onOpenChange={setExpandedBills}>
+          <Card className="border-purple-200">
+            <CollapsibleTrigger className="w-full">
+              <CardContent className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Receipt className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-slate-900">{recurringBills.length} Recurring Bills</p>
+                    <p className="text-sm text-slate-500">Monthly: {formatCurrency(recurringBills.filter(b => b.frequency === 'monthly').reduce((sum, b) => sum + b.amount, 0))}</p>
+                  </div>
+                </div>
+                {expandedBills ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+              </CardContent>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-4 pb-4 space-y-2">
+                {recurringBills.map(bill => (
+                  <div key={bill.id} className="p-3 bg-slate-50 rounded-lg">
+                    <div className="flex justify-between items-start mb-1">
+                      <div className="flex items-center gap-2">
+                        <span>{BILL_CATEGORY_ICONS[bill.category]}</span>
+                        <p className="font-medium text-slate-900">{bill.name}</p>
+                      </div>
+                      <p className="text-sm font-semibold text-slate-900">{formatCurrency(bill.amount, bill.currency)}</p>
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-500">
+                      <span className="capitalize">{bill.frequency.replace('_', ' ')}</span>
+                      {bill.due_date && <span>Due: {bill.due_date}{bill.due_date === 1 ? 'st' : bill.due_date === 2 ? 'nd' : bill.due_date === 3 ? 'rd' : 'th'}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
+
+      {/* Loans/Mortgages Section */}
+      {mortgageLoans.length > 0 && (
+        <Collapsible open={expandedLoans} onOpenChange={setExpandedLoans}>
+          <Card className="border-orange-200">
+            <CollapsibleTrigger className="w-full">
+              <CardContent className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Landmark className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-slate-900">{mortgageLoans.length} Loans</p>
+                    <p className="text-sm text-slate-500">Total: {formatCurrency(mortgageLoans.reduce((sum, l) => sum + l.current_balance, 0))}</p>
+                  </div>
+                </div>
+                {expandedLoans ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+              </CardContent>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-4 pb-4 space-y-2">
+                {mortgageLoans.map(loan => {
+                  const progress = ((loan.loan_amount - loan.current_balance) / loan.loan_amount) * 100;
+                  return (
+                    <div key={loan.id} className="p-3 bg-slate-50 rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <span>{LOAN_TYPE_ICONS[loan.loan_type]}</span>
+                          <div>
+                            <p className="font-medium text-slate-900">{loan.name}</p>
+                            <p className="text-xs text-slate-500">{(loan.interest_rate * 100).toFixed(2)}% APR</p>
+                          </div>
+                        </div>
+                        <p className="text-sm font-semibold text-slate-900">{formatCurrency(loan.current_balance, loan.currency)}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-orange-500 rounded-full" style={{ width: `${progress}%` }} />
+                        </div>
+                        <div className="flex justify-between text-xs text-slate-500">
+                          <span>Payment: {formatCurrency(loan.monthly_payment, loan.currency)}/mo</span>
+                          <span>{progress.toFixed(0)}% paid</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
 
       {/* Utilization Message */}
       {cards.length > 0 && (

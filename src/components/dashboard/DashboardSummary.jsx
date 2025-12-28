@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   CreditCard, 
   TrendingDown, 
   DollarSign, 
   Percent,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  Building2,
+  Receipt,
+  Landmark
 } from 'lucide-react';
 import { 
   formatCurrency, 
@@ -17,7 +23,29 @@ import {
   getUtilizationBgColor
 } from '@/components/utils/calculations';
 
-export default function DashboardSummary({ cards }) {
+const LOAN_TYPE_ICONS = {
+  mortgage: '🏠',
+  auto: '🚗',
+  personal: '💰',
+  student: '🎓',
+  business: '💼',
+  other: '📋'
+};
+
+const BILL_CATEGORY_ICONS = {
+  utilities: '⚡',
+  subscription: '📺',
+  insurance: '🛡️',
+  rent: '🏠',
+  loan: '🏦',
+  other: '📄'
+};
+
+export default function DashboardSummary({ cards, bankAccounts = [], recurringBills = [], mortgageLoans = [] }) {
+  const [expandedCards, setExpandedCards] = useState(false);
+  const [expandedBills, setExpandedBills] = useState(false);
+  const [expandedLoans, setExpandedLoans] = useState(false);
+  const [expandedBanks, setExpandedBanks] = useState(false);
   const totalBalance = cards.reduce((sum, card) => sum + (card.balance || 0), 0);
   const totalLimit = cards.reduce((sum, card) => sum + (card.credit_limit || 0), 0);
   const totalUtilization = calculateUtilization(totalBalance, totalLimit);

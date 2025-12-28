@@ -491,7 +491,7 @@ function CardPaymentInput({ card, paymentType, fixedPayment, variablePayments, o
             <div className="max-h-40 overflow-y-auto space-y-1">
               {Array.from({ length: numMonths }).map((_, i) => (
                 <div key={i} className="flex gap-2 items-center">
-                  <span className="text-xs text-slate-500 w-12">Mo {i + 1}:</span>
+                  <span className="text-xs text-slate-500 min-w-[120px]">{getMonthLabel(i)}:</span>
                   <Input
                     type="number"
                     placeholder="Amount"
@@ -580,7 +580,7 @@ function LoanPaymentInput({ loan, paymentType, fixedPayment, variablePayments, o
             <div className="max-h-40 overflow-y-auto space-y-1">
               {Array.from({ length: numMonths }).map((_, i) => (
                 <div key={i} className="flex gap-2 items-center">
-                  <span className="text-xs text-slate-500 w-12">Mo {i + 1}:</span>
+                  <span className="text-xs text-slate-500 min-w-[120px]">{getMonthLabel(i)}:</span>
                   <Input
                     type="number"
                     placeholder="Amount"

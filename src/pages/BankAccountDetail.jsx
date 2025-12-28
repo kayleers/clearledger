@@ -696,3 +696,97 @@ function RecurringDepositForm({ accountId, onSubmit, onCancel, isLoading }) {
     </form>
   );
 }
+
+function RecurringWithdrawalForm({ accountId, onSubmit, onCancel, isLoading }) {
+  const [formData, setFormData] = useState({
+    bank_account_id: accountId,
+    name: '',
+    amount: '',
+    frequency: 'monthly',
+    withdrawal_date: '',
+    category: 'other'
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      amount: parseFloat(formData.amount),
+      withdrawal_date: formData.withdrawal_date ? parseInt(formData.withdrawal_date) : null
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label>Name</Label>
+        <Input
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          placeholder="e.g., Monthly Rent"
+          required
+        />
+      </div>
+      <div>
+        <Label>Amount</Label>
+        <Input
+          type="number"
+          step="0.01"
+          value={formData.amount}
+          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label>Frequency</Label>
+        <Select value={formData.frequency} onValueChange={(value) => setFormData({ ...formData, frequency: value })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {FREQUENCY_OPTIONS.map(freq => (
+              <SelectItem key={freq.value} value={freq.value}>{freq.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {(formData.frequency === 'monthly' || formData.frequency === 'quarterly' || formData.frequency === 'yearly') && (
+        <div>
+          <Label>Day of Month</Label>
+          <Input
+            type="number"
+            min="1"
+            max="31"
+            value={formData.withdrawal_date}
+            onChange={(e) => setFormData({ ...formData, withdrawal_date: e.target.value })}
+            placeholder="1-31"
+          />
+        </div>
+      )}
+      <div>
+        <Label>Category</Label>
+        <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="rent">Rent</SelectItem>
+            <SelectItem value="utilities">Utilities</SelectItem>
+            <SelectItem value="subscription">Subscription</SelectItem>
+            <SelectItem value="loan">Loan</SelectItem>
+            <SelectItem value="credit_card">Credit Card</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading} className="flex-1">
+          {isLoading ? 'Adding...' : 'Add Recurring'}
+        </Button>
+      </div>
+    </form>
+  );
+}

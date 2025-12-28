@@ -435,6 +435,14 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
 function CardPaymentInput({ card, paymentType, fixedPayment, variablePayments, onFixedChange, onVariableChange, scenario }) {
   const [numMonths, setNumMonths] = useState(12);
 
+  const getMonthLabel = (index) => {
+    const now = new Date();
+    const targetDate = new Date(now.getFullYear(), now.getMonth() + index, 1);
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    return `${monthNames[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
+  };
+
   const handleVariablePaymentChange = (month, value) => {
     const newPayments = [...(variablePayments || [])];
     newPayments[month] = { month: month + 1, amount: parseFloat(value) || 0 };
@@ -515,6 +523,14 @@ function CardPaymentInput({ card, paymentType, fixedPayment, variablePayments, o
 
 function LoanPaymentInput({ loan, paymentType, fixedPayment, variablePayments, onFixedChange, onVariableChange, scenario }) {
   const [numMonths, setNumMonths] = useState(12);
+
+  const getMonthLabel = (index) => {
+    const now = new Date();
+    const targetDate = new Date(now.getFullYear(), now.getMonth() + index, 1);
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    return `${monthNames[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
+  };
 
   const handleVariablePaymentChange = (month, value) => {
     const newPayments = [...(variablePayments || [])];

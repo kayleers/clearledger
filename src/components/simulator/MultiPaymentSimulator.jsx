@@ -448,8 +448,8 @@ function CardPaymentInput({ card, paymentType, fixedPayment, variablePayments, o
   };
 
   const isMonthPaidOff = (month) => {
-    if (!scenario?.breakdown) return false;
-    return scenario.breakdown.length <= month;
+    if (!scenario?.breakdown || scenario.breakdown.length === 0) return false;
+    return month >= scenario.breakdown.length;
   };
 
   const handleVariablePaymentChange = (month, value) => {
@@ -553,8 +553,8 @@ function LoanPaymentInput({ loan, paymentType, fixedPayment, variablePayments, o
   };
 
   const isMonthPaidOff = (month) => {
-    if (!scenario?.breakdown) return false;
-    return scenario.breakdown.length <= month;
+    if (!scenario?.breakdown || scenario.breakdown.length === 0) return false;
+    return month >= scenario.breakdown.length;
   };
 
   const handleVariablePaymentChange = (month, value) => {

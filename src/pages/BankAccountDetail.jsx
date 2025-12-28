@@ -65,6 +65,27 @@ export default function BankAccountDetail() {
     queryFn: () => base44.entities.RecurringWithdrawal.filter({ bank_account_id: accountId, is_active: true })
   });
 
+  const { data: recurringBills = [] } = useQuery({
+    queryKey: ['recurring-bills', accountId],
+    queryFn: () => base44.entities.RecurringBill.filter({ bank_account_id: accountId, is_active: true })
+  });
+
+  const { data: creditCards = [] } = useQuery({
+    queryKey: ['credit-cards', accountId],
+    queryFn: async () => {
+      const allCards = await base44.entities.CreditCard.list();
+      return allCards.filter(c => c.bank_account_id === accountId && c.payment_method === 'autopay');
+    }
+  });
+
+  const { data: loans = [] } = useQuery({
+    queryKey: ['loans', accountId],
+    queryFn: async () => {
+      const allLoans = await base44.entities.MortgageLoan.list();
+      return allLoans.filter(l => l.bank_account_id === accountId && l.is_active);
+    }
+  });
+
   const createDepositMutation = useMutation({
     mutationFn: (data) => base44.entities.Deposit.create(data),
     onSuccess: () => {
@@ -348,57 +369,173 @@ export default function BankAccountDetail() {
             </Button>
 
             <div className="space-y-3">
-              {recurringWithdrawals.length === 0 ? (
+              {recurringWithdrawals.length === 0 && recurringBills.length === 0 && creditCards.length === 0 && loans.length === 0 ? (
                 <Card>
                   <CardContent className="p-6 text-center text-slate-500">
                     No recurring withdrawals yet
                   </CardContent>
                 </Card>
               ) : (
-                recurringWithdrawals.map(withdrawal => {
-                  const frequency = FREQUENCY_OPTIONS.find(f => f.value === withdrawal.frequency);
-                  return (
-                    <Card key={withdrawal.id}>
+                <>
+                  {recurringWithdrawals.map(withdrawal => {
+                    const frequency = FREQUENCY_OPTIONS.find(f => f.value === withdrawal.frequency);
+                    return (
+                      <Card key={`withdrawal-${withdrawal.id}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3 flex-1">
+                              <span className="text-2xl">💸</span>
+                              <div className="flex-1">
+                                <p className="font-medium">{withdrawal.name}</p>
+                                <div className="flex gap-2 mt-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {frequency?.label}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs capitalize">
+                                    {withdrawal.category}
+                                  </Badge>
+                                </div>
+                                {withdrawal.withdrawal_date && (
+                                  <p className="text-xs text-slate-500 mt-1">
+                                    Day {withdrawal.withdrawal_date} of month
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right flex items-start gap-2">
+                              <div>
+                                <p className="text-lg font-semibold text-red-600">
+                                  -{formatCurrency(withdrawal.amount, account.currency)}
+                                </p>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => deleteRecurringWithdrawalMutation.mutate(withdrawal.id)}
+                              >
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+
+                  {recurringBills.map(bill => {
+                    const frequencyLabel = bill.frequency === 'one_time' ? 'One Time' : 
+                                          bill.frequency === 'weekly' ? 'Weekly' :
+                                          bill.frequency === 'monthly' ? 'Monthly' :
+                                          bill.frequency === 'quarterly' ? 'Quarterly' : 'Yearly';
+                    return (
+                      <Card key={`bill-${bill.id}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3 flex-1">
+                              <span className="text-2xl">📄</span>
+                              <div className="flex-1">
+                                <p className="font-medium">{bill.name}</p>
+                                <div className="flex gap-2 mt-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {frequencyLabel}
+                                  </Badge>
+                                  <Badge className="text-xs bg-purple-100 text-purple-700">
+                                    Bill
+                                  </Badge>
+                                </div>
+                                {bill.due_date && (
+                                  <p className="text-xs text-slate-500 mt-1">
+                                    Due day {bill.due_date} of month
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-semibold text-red-600">
+                                -{formatCurrency(bill.amount, account.currency)}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+
+                  {creditCards.map(card => {
+                    const amount = card.autopay_amount_type === 'minimum' ? card.min_payment :
+                                  card.autopay_amount_type === 'full_balance' ? card.balance :
+                                  card.autopay_custom_amount || 0;
+                    return (
+                      <Card key={`card-${card.id}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3 flex-1">
+                              <span className="text-2xl">💳</span>
+                              <div className="flex-1">
+                                <p className="font-medium">{card.name} (Autopay)</p>
+                                <div className="flex gap-2 mt-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    Monthly
+                                  </Badge>
+                                  <Badge className="text-xs bg-blue-100 text-blue-700">
+                                    Credit Card
+                                  </Badge>
+                                </div>
+                                {card.autopay_date && (
+                                  <p className="text-xs text-slate-500 mt-1">
+                                    Autopay day {card.autopay_date} of month
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-semibold text-red-600">
+                                -{formatCurrency(amount, account.currency)}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {card.autopay_amount_type === 'minimum' ? 'Min Payment' :
+                                 card.autopay_amount_type === 'full_balance' ? 'Full Balance' : 'Custom'}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+
+                  {loans.map(loan => (
+                    <Card key={`loan-${loan.id}`}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3 flex-1">
-                            <span className="text-2xl">💸</span>
+                            <span className="text-2xl">🏠</span>
                             <div className="flex-1">
-                              <p className="font-medium">{withdrawal.name}</p>
+                              <p className="font-medium">{loan.name}</p>
                               <div className="flex gap-2 mt-1">
                                 <Badge variant="outline" className="text-xs">
-                                  {frequency?.label}
+                                  Monthly
                                 </Badge>
-                                <Badge variant="outline" className="text-xs capitalize">
-                                  {withdrawal.category}
+                                <Badge className="text-xs bg-orange-100 text-orange-700">
+                                  Loan
                                 </Badge>
                               </div>
-                              {withdrawal.withdrawal_date && (
+                              {loan.payment_due_date && (
                                 <p className="text-xs text-slate-500 mt-1">
-                                  Day {withdrawal.withdrawal_date} of month
+                                  Due day {loan.payment_due_date} of month
                                 </p>
                               )}
                             </div>
                           </div>
-                          <div className="text-right flex items-start gap-2">
-                            <div>
-                              <p className="text-lg font-semibold text-red-600">
-                                -{formatCurrency(withdrawal.amount, account.currency)}
-                              </p>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => deleteRecurringWithdrawalMutation.mutate(withdrawal.id)}
-                            >
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </Button>
+                          <div className="text-right">
+                            <p className="text-lg font-semibold text-red-600">
+                              -{formatCurrency(loan.monthly_payment, account.currency)}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
                     </Card>
-                  );
-                })
+                  ))}
+                </>
               )}
             </div>
           </TabsContent>

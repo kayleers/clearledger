@@ -35,36 +35,42 @@ export const calculatePayoffTimeline = (startingBalance, apr, monthlyPayment, ma
   const monthlyRate = apr / 12;
   let balance = startingBalance;
   let totalInterest = 0;
-  let months = 0;
   const breakdown = [];
   
-  while (balance > 0 && months < maxMonths) {
-    // Add future purchase if any for this month
-    const purchase = futurePurchases[months]?.amount || 0;
+  // Iterate month by month
+  let monthIndex = 0;
+  while (balance > 0 && monthIndex < maxMonths) {
+    // Step 1: Add any purchases for this month
+    const purchase = futurePurchases[monthIndex]?.amount || 0;
     balance += purchase;
     
+    // Step 2: Apply interest to current balance
     const interest = balance * monthlyRate;
-    totalInterest += interest;
     balance += interest;
+    totalInterest += interest;
     
+    // Step 3: Apply payment (capped at remaining balance)
     const actualPayment = Math.min(monthlyPayment, balance);
+    const principal = actualPayment - interest;
     balance -= actualPayment;
-    months++;
     
+    // Step 4: Record this month's breakdown
+    monthIndex++;
     breakdown.push({
-      month: months,
+      month: monthIndex,
       payment: Math.round(actualPayment * 100) / 100,
       interest: Math.round(interest * 100) / 100,
-      principal: Math.round((actualPayment - interest) * 100) / 100,
+      principal: Math.round(principal * 100) / 100,
       balance: Math.round(Math.max(0, balance) * 100) / 100,
       purchase: Math.round(purchase * 100) / 100
     });
     
+    // Stop if balance is effectively zero
     if (balance < 0.01) balance = 0;
   }
   
   return {
-    months,
+    months: monthIndex,
     totalInterest: Math.round(totalInterest * 100) / 100,
     breakdown
   };
@@ -77,63 +83,70 @@ export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePa
   const monthlyRate = apr / 12;
   let balance = startingBalance;
   let totalInterest = 0;
-  let months = 0;
   const breakdown = [];
   
   // Find the last non-zero payment to use as default for remaining months
-  let lastPayment = 0;
+  let defaultPayment = 0;
   for (let i = variablePayments.length - 1; i >= 0; i--) {
     const amt = typeof variablePayments[i] === 'object' ? variablePayments[i].amount : variablePayments[i];
     if (amt && parseFloat(amt) > 0) {
-      lastPayment = parseFloat(amt);
+      defaultPayment = parseFloat(amt);
       break;
     }
   }
   
-  while (balance > 0 && months < maxMonths) {
-    // Get payment for this month
+  // Iterate month by month
+  let monthIndex = 0;
+  while (balance > 0 && monthIndex < maxMonths) {
+    // Step 1: Determine payment for this month
     let payment = 0;
-    if (months < variablePayments.length) {
-      const paymentData = variablePayments[months];
+    if (monthIndex < variablePayments.length) {
+      const paymentData = variablePayments[monthIndex];
       payment = parseFloat(typeof paymentData === 'object' ? paymentData.amount : paymentData) || 0;
     }
     
-    // If no payment specified, use last known payment
-    if (payment === 0 && lastPayment > 0) {
-      payment = lastPayment;
+    // Use default payment if no specific payment provided
+    if (payment === 0 && defaultPayment > 0) {
+      payment = defaultPayment;
     }
     
-    // Calculate interest first
-    const interest = balance * monthlyRate;
+    // If no payment, cannot proceed
+    if (payment <= 0) break;
     
-    // If payment is 0 or too low to cover interest, stop
-    if (payment <= 0 || payment <= interest) break;
-    
-    // Add future purchase if any for this month
-    const purchase = futurePurchases[months]?.amount || 0;
+    // Step 2: Add any purchases for this month
+    const purchase = futurePurchases[monthIndex]?.amount || 0;
     balance += purchase;
     
-    totalInterest += interest;
+    // Step 3: Apply interest to current balance
+    const interest = balance * monthlyRate;
     balance += interest;
+    totalInterest += interest;
     
+    // Stop if payment doesn't cover interest
+    if (payment <= interest) break;
+    
+    // Step 4: Apply payment (capped at remaining balance)
     const actualPayment = Math.min(payment, balance);
+    const principal = actualPayment - interest;
     balance -= actualPayment;
-    months++;
     
+    // Step 5: Record this month's breakdown
+    monthIndex++;
     breakdown.push({
-      month: months,
+      month: monthIndex,
       payment: Math.round(actualPayment * 100) / 100,
       interest: Math.round(interest * 100) / 100,
-      principal: Math.round((actualPayment - interest) * 100) / 100,
+      principal: Math.round(principal * 100) / 100,
       balance: Math.round(Math.max(0, balance) * 100) / 100,
       purchase: Math.round(purchase * 100) / 100
     });
     
+    // Stop if balance is effectively zero
     if (balance < 0.01) balance = 0;
   }
   
   return {
-    months,
+    months: monthIndex,
     totalInterest: Math.round(totalInterest * 100) / 100,
     breakdown
   };

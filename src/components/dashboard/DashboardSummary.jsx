@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { createPageUrl } from '@/utils';
 import { 
   CreditCard, 
   TrendingDown, 
@@ -122,31 +124,33 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                 const utilization = calculateUtilization(card.balance, card.credit_limit);
                 const minPayment = calculateMinimumPayment(card.min_payment, card.balance);
                 return (
-                  <div key={card.id} className="p-3 bg-slate-50 rounded-lg">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-medium text-slate-900">{card.name}</p>
-                        <p className="text-xs text-slate-500">{card.apr * 100}% APR</p>
-                      </div>
-                      <p className="text-sm font-semibold text-slate-900">{formatCurrency(card.balance, card.currency)}</p>
-                    </div>
-                    <div className="space-y-1 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Min Payment:</span>
-                        <span className="font-medium">{formatCurrency(minPayment, card.currency)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Utilization:</span>
-                        <span className={getUtilizationColor(utilization)}>{utilization}%</span>
-                      </div>
-                      {card.due_date && (
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">Due Date:</span>
-                          <span className="font-medium">{card.due_date}{card.due_date === 1 ? 'st' : card.due_date === 2 ? 'nd' : card.due_date === 3 ? 'rd' : 'th'} of month</span>
+                  <Link key={card.id} to={createPageUrl(`CardDetail?id=${card.id}`)} className="block">
+                    <div className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-medium text-slate-900">{card.name}</p>
+                          <p className="text-xs text-slate-500">{card.apr * 100}% APR</p>
                         </div>
-                      )}
+                        <p className="text-sm font-semibold text-slate-900">{formatCurrency(card.balance, card.currency)}</p>
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Min Payment:</span>
+                          <span className="font-medium">{formatCurrency(minPayment, card.currency)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Utilization:</span>
+                          <span className={getUtilizationColor(utilization)}>{utilization}%</span>
+                        </div>
+                        {card.due_date && (
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Due Date:</span>
+                            <span className="font-medium">{card.due_date}{card.due_date === 1 ? 'st' : card.due_date === 2 ? 'nd' : card.due_date === 3 ? 'rd' : 'th'} of month</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
@@ -175,15 +179,17 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
             <CollapsibleContent>
               <div className="px-4 pb-4 space-y-2">
                 {bankAccounts.map(account => (
-                  <div key={account.id} className="p-3 bg-slate-50 rounded-lg flex justify-between items-center">
-                    <div>
-                      <p className="font-medium text-slate-900">{account.name}</p>
-                      {account.account_number && (
-                        <p className="text-xs text-slate-500">••••{account.account_number.slice(-4)}</p>
-                      )}
+                  <Link key={account.id} to={createPageUrl(`BankAccountDetail?id=${account.id}`)} className="block">
+                    <div className="p-3 bg-slate-50 rounded-lg flex justify-between items-center hover:bg-slate-100 transition-colors cursor-pointer">
+                      <div>
+                        <p className="font-medium text-slate-900">{account.name}</p>
+                        {account.account_number && (
+                          <p className="text-xs text-slate-500">••••{account.account_number.slice(-4)}</p>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium text-slate-600">{account.currency}</span>
                     </div>
-                    <span className="text-sm font-medium text-slate-600">{account.currency}</span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </CollapsibleContent>
@@ -255,27 +261,29 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                 {mortgageLoans.map(loan => {
                   const progress = ((loan.loan_amount - loan.current_balance) / loan.loan_amount) * 100;
                   return (
-                    <div key={loan.id} className="p-3 bg-slate-50 rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                          <span>{LOAN_TYPE_ICONS[loan.loan_type]}</span>
-                          <div>
-                            <p className="font-medium text-slate-900">{loan.name}</p>
-                            <p className="text-xs text-slate-500">{(loan.interest_rate * 100).toFixed(2)}% APR</p>
+                    <Link key={loan.id} to={createPageUrl(`LoanDetail?id=${loan.id}`)} className="block">
+                      <div className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center gap-2">
+                            <span>{LOAN_TYPE_ICONS[loan.loan_type]}</span>
+                            <div>
+                              <p className="font-medium text-slate-900">{loan.name}</p>
+                              <p className="text-xs text-slate-500">{(loan.interest_rate * 100).toFixed(2)}% APR</p>
+                            </div>
+                          </div>
+                          <p className="text-sm font-semibold text-slate-900">{formatCurrency(loan.current_balance, loan.currency)}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                            <div className="h-full bg-orange-500 rounded-full" style={{ width: `${progress}%` }} />
+                          </div>
+                          <div className="flex justify-between text-xs text-slate-500">
+                            <span>Payment: {formatCurrency(loan.monthly_payment, loan.currency)}/mo</span>
+                            <span>{progress.toFixed(0)}% paid</span>
                           </div>
                         </div>
-                        <p className="text-sm font-semibold text-slate-900">{formatCurrency(loan.current_balance, loan.currency)}</p>
                       </div>
-                      <div className="space-y-1">
-                        <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-orange-500 rounded-full" style={{ width: `${progress}%` }} />
-                        </div>
-                        <div className="flex justify-between text-xs text-slate-500">
-                          <span>Payment: {formatCurrency(loan.monthly_payment, loan.currency)}/mo</span>
-                          <span>{progress.toFixed(0)}% paid</span>
-                        </div>
-                      </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>

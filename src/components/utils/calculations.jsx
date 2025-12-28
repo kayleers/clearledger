@@ -80,19 +80,34 @@ export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePa
   let months = 0;
   const breakdown = [];
   
+  // Find the last non-zero payment to use as default for remaining months
+  let lastPayment = 0;
+  for (let i = variablePayments.length - 1; i >= 0; i--) {
+    const amt = typeof variablePayments[i] === 'object' ? variablePayments[i].amount : variablePayments[i];
+    if (amt && parseFloat(amt) > 0) {
+      lastPayment = parseFloat(amt);
+      break;
+    }
+  }
+  
   while (balance > 0 && months < maxMonths) {
-    // Get payment for this month - continue with last known payment if we run out
+    // Get payment for this month
     let payment = 0;
     if (months < variablePayments.length) {
-      payment = variablePayments[months]?.amount || 0;
-    } else if (variablePayments.length > 0) {
-      // Use the last payment in the array
-      payment = variablePayments[variablePayments.length - 1]?.amount || 0;
+      const paymentData = variablePayments[months];
+      payment = parseFloat(typeof paymentData === 'object' ? paymentData.amount : paymentData) || 0;
     }
     
-    // If payment is 0 or too low to cover interest, stop
+    // If no payment specified, use last known payment
+    if (payment === 0 && lastPayment > 0) {
+      payment = lastPayment;
+    }
+    
+    // Calculate interest first
     const interest = balance * monthlyRate;
-    if (payment <= interest) break;
+    
+    // If payment is 0 or too low to cover interest, stop
+    if (payment <= 0 || payment <= interest) break;
     
     // Add future purchase if any for this month
     const purchase = futurePurchases[months]?.amount || 0;

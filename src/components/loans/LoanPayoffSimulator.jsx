@@ -226,10 +226,16 @@ export default function LoanPayoffSimulator({ loan, onSaveScenario, payments = [
                 {variablePayments.map((payment, index) => {
                   const defaultPayment = parseFloat(defaultMonthlyPayment) || 0;
                   const effectivePayment = parseFloat(payment.amount) || defaultPayment;
-                  const isPaidOff = index > 0 && currentScenario.months <= index;
+                  
+                  // Calculate if this month is after payoff
+                  const now = new Date();
+                  const payoffDate = new Date();
+                  payoffDate.setMonth(payoffDate.getMonth() + currentScenario.months);
+                  
+                  const inputMonthDate = new Date(selectedYear, index, 1);
+                  const isPaidOff = currentScenario.months !== Infinity && inputMonthDate >= payoffDate;
 
                   // Check if month is in the past
-                  const now = new Date();
                   const currentMonth = now.getMonth();
                   const currentYear = now.getFullYear();
                   const currentDay = now.getDate();

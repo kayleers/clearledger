@@ -259,11 +259,17 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                 {variablePayments.map((payment, index) => {
                   const defaultPayment = parseFloat(defaultMonthlyPayment) || 0;
                   const effectivePayment = parseFloat(payment.amount) || defaultPayment;
-                  const isPaidOff = index > 0 && currentScenario.months <= index;
+                  
+                  // Calculate if this month is after payoff
+                  const now = new Date();
+                  const payoffDate = new Date();
+                  payoffDate.setMonth(payoffDate.getMonth() + currentScenario.months);
+                  
+                  const inputMonthDate = new Date(selectedYear, index, 1);
+                  const isPaidOff = currentScenario.months !== Infinity && inputMonthDate >= payoffDate;
                   const displayDefault = isPaidOff ? "0" : (defaultMonthlyPayment || "0");
 
                   // Check if month is in the past
-                  const now = new Date();
                   const currentMonth = now.getMonth(); // 0-11
                   const currentYear = now.getFullYear();
                   const currentDay = now.getDate();

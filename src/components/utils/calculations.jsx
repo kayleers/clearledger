@@ -50,10 +50,11 @@ export const calculatePayoffTimeline = (startingBalance, apr, monthlyPayment, ma
     totalInterest += interest;
     
     // Step 3: Apply payment (capped at remaining balance)
+    const balanceBeforePayment = balance;
     const actualPayment = Math.min(monthlyPayment, balance);
     const principal = actualPayment - interest;
     balance -= actualPayment;
-    
+
     // Step 4: Record this month's breakdown
     monthIndex++;
     breakdown.push({
@@ -61,6 +62,7 @@ export const calculatePayoffTimeline = (startingBalance, apr, monthlyPayment, ma
       payment: Math.round(actualPayment * 100) / 100,
       interest: Math.round(interest * 100) / 100,
       principal: Math.round(principal * 100) / 100,
+      balance_before_payment: Math.round(balanceBeforePayment * 100) / 100,
       balance: Math.round(Math.max(0, balance) * 100) / 100,
       purchase: Math.round(purchase * 100) / 100
     });
@@ -126,21 +128,23 @@ export const calculateVariablePayoffTimeline = (startingBalance, apr, variablePa
     totalInterest += interest;
     
     // Apply payment
+    const balanceBeforePayment = balance;
     let actualPayment = payment;
     if (payment > balance) {
       actualPayment = balance; // prevent negative balance
     }
-    
+
     balance -= actualPayment;
-    
+
     const principal = actualPayment - interest;
-    
+
     // Record breakdown
     breakdown.push({
       month: month,
       payment: Math.round(actualPayment * 100) / 100,
       interest: Math.round(interest * 100) / 100,
       principal: Math.round(principal * 100) / 100,
+      balance_before_payment: Math.round(balanceBeforePayment * 100) / 100,
       balance: Math.round(Math.max(0, balance) * 100) / 100,
       purchase: Math.round(purchase * 100) / 100
     });

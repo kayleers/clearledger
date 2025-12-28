@@ -752,7 +752,7 @@ function CardVariableInput({ card, variablePayments, defaultPayment, onVariableP
                   )}
                   {!isPaidOff && predictedBalance !== undefined && (
                     <span className="text-blue-600 font-normal ml-1 block text-[10px]">
-                      Bal: {formatCurrency(predictedBalance, card.currency)}
+                      Before: {formatCurrency(scenario?.breakdown?.[index]?.balance_before_payment, card.currency)} | After: {formatCurrency(predictedBalance, card.currency)}
                     </span>
                   )}
                 </Label>

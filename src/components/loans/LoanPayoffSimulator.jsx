@@ -290,7 +290,7 @@ export default function LoanPayoffSimulator({ loan, onSaveScenario, payments = [
                         )}
                         {!isPaidOff && !isPastMonth && predictedBalance !== undefined && (
                           <span className="text-blue-600 font-normal ml-1 block text-[10px]">
-                            Bal: {formatCurrency(predictedBalance, currency)}
+                            Before: {formatCurrency(scenario?.breakdown?.[index]?.balance_before_payment, currency)} | After: {formatCurrency(predictedBalance, currency)}
                           </span>
                         )}
                       </Label>

@@ -30,6 +30,7 @@ const DEPOSIT_CATEGORY_ICONS = {
 export default function PaymentCalendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [view, setView] = useState('calendar'); // 'calendar' or 'list'
+  const [listPeriod, setListPeriod] = useState('month'); // 'month' or 'year'
   const [expandedItems, setExpandedItems] = useState({});
 
   const { data: cards = [] } = useQuery({
@@ -149,11 +150,43 @@ export default function PaymentCalendar() {
     for (let day = 1; day <= daysInMonth; day++) {
       const dayItems = getItemsForDay(day);
       if (dayItems.length > 0) {
-        items.push({ day, items: dayItems });
+        items.push({ 
+          day, 
+          month: currentMonth.getMonth(),
+          year: currentMonth.getFullYear(),
+          items: dayItems 
+        });
       }
     }
 
     return items.sort((a, b) => a.day - b.day);
+  };
+
+  const getAllItemsForYear = () => {
+    const items = [];
+    const currentYear = currentMonth.getFullYear();
+
+    for (let month = 0; month < 12; month++) {
+      const monthDate = new Date(currentYear, month, 1);
+      const daysInMonth = getDaysInMonth(monthDate);
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayItems = getItemsForDay(day);
+        if (dayItems.length > 0) {
+          items.push({
+            day,
+            month,
+            year: currentYear,
+            items: dayItems
+          });
+        }
+      }
+    }
+
+    return items.sort((a, b) => {
+      if (a.month !== b.month) return a.month - b.month;
+      return a.day - b.day;
+    });
   };
 
   const toggleExpanded = (key) => {
@@ -218,28 +251,30 @@ export default function PaymentCalendar() {
   };
 
   const renderListView = () => {
-    const allItems = getAllItems();
+    const allItems = listPeriod === 'year' ? getAllItemsForYear() : getAllItems();
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
 
     if (allItems.length === 0) {
       return (
         <div className="text-center py-8 text-slate-500">
-          No payments or deposits scheduled this month
+          No payments or deposits scheduled this {listPeriod}
         </div>
       );
     }
 
     return (
       <div className="space-y-3">
-        {allItems.map(({ day, items }) => (
-          <Card key={day}>
+        {allItems.map(({ day, month, year, items }, index) => (
+          <Card key={`${year}-${month}-${day}`}>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">
-                {currentMonth.toLocaleString('default', { month: 'long' })} {day}
+                {monthNames[month]} {day}{listPeriod === 'year' && `, ${year}`}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {items.map((item, idx) => {
-                const key = `${day}-${item.type}-${item.id}`;
+                const key = `${year}-${month}-${day}-${item.type}-${item.id}`;
                 const isExpanded = expandedItems[key];
 
                 return (
@@ -322,6 +357,26 @@ export default function PaymentCalendar() {
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
+        {view === 'list' && (
+          <div className="flex gap-2 mt-4">
+            <Button 
+              variant={listPeriod === 'month' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setListPeriod('month')}
+              className="flex-1"
+            >
+              Month
+            </Button>
+            <Button 
+              variant={listPeriod === 'year' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setListPeriod('year')}
+              className="flex-1"
+            >
+              Year
+            </Button>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         {view === 'calendar' ? renderCalendarView() : renderListView()}

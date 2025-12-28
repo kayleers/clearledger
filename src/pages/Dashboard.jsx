@@ -143,6 +143,23 @@ export default function Dashboard() {
     }
   });
 
+  const createBankDepositMutation = useMutation({
+    mutationFn: async ({ amount, date, description, targetId }) => {
+      await base44.entities.Deposit.create({
+        bank_account_id: targetId,
+        amount,
+        date,
+        description,
+        category: 'other'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
+      setShowQuickAdd(false);
+    }
+  });
+
   const createBankPaymentMutation = useMutation({
     mutationFn: async ({ amount, date, description, targetId }) => {
       await base44.entities.Deposit.create({
@@ -437,13 +454,14 @@ export default function Dashboard() {
                   bills={recurringBills}
                   loans={mortgageLoans}
                   onCardPurchase={(data) => createPurchaseMutation.mutate({ purchaseData: data, cardId: data.card_id || quickAddCardId })}
+                  onBankDeposit={(data) => createBankDepositMutation.mutate(data)}
                   onBankPayment={(data) => createBankPaymentMutation.mutate(data)}
                   onCardPayment={(data) => createCardPaymentMutation.mutate(data)}
                   onBillPayment={(data) => createBillPaymentMutation.mutate(data)}
                   onLoanPayment={(data) => createLoanPaymentMutation.mutate(data)}
-                  isLoading={createPurchaseMutation.isPending || createBankPaymentMutation.isPending || 
-                             createCardPaymentMutation.isPending || createBillPaymentMutation.isPending || 
-                             createLoanPaymentMutation.isPending}
+                  isLoading={createPurchaseMutation.isPending || createBankDepositMutation.isPending ||
+                             createBankPaymentMutation.isPending || createCardPaymentMutation.isPending || 
+                             createBillPaymentMutation.isPending || createLoanPaymentMutation.isPending}
                 />
               </DialogContent>
             </Dialog>

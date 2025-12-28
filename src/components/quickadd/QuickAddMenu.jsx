@@ -11,6 +11,7 @@ import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';
 
 const TRANSACTION_TYPES = [
   { id: 'card_purchase', label: 'Credit Card Purchase', icon: ShoppingBag, color: 'purple' },
+  { id: 'bank_deposit', label: 'Bank Account Deposit', icon: DollarSign, color: 'green' },
   { id: 'bank_payment', label: 'Bank Account Payment', icon: Building2, color: 'emerald' },
   { id: 'card_payment', label: 'Credit Card Payment', icon: CreditCard, color: 'blue' },
   { id: 'bill_payment', label: 'Bill Payment', icon: Receipt, color: 'amber' },
@@ -23,6 +24,7 @@ export default function QuickAddMenu({
   bills, 
   loans,
   onCardPurchase,
+  onBankDeposit,
   onBankPayment,
   onCardPayment,
   onBillPayment,
@@ -88,7 +90,10 @@ export default function QuickAddMenu({
       );
     }
 
-    if (selectedType === 'bank_payment') {
+    if (selectedType === 'bank_deposit') {
+      targets = bankAccounts;
+      title = 'Select bank account:';
+    } else if (selectedType === 'bank_payment') {
       targets = bankAccounts;
       title = 'Select bank account:';
     } else if (selectedType === 'card_payment') {
@@ -113,6 +118,7 @@ export default function QuickAddMenu({
             className="w-full justify-start mb-2"
             onClick={() => setSelectedTargetId(target.id)}
           >
+            {selectedType === 'bank_deposit' && <DollarSign className="w-4 h-4 mr-2" />}
             {selectedType === 'bank_payment' && <Building2 className="w-4 h-4 mr-2" />}
             {selectedType === 'card_payment' && <CreditCard className="w-4 h-4 mr-2" />}
             {selectedType === 'bill_payment' && <Receipt className="w-4 h-4 mr-2" />}
@@ -148,13 +154,15 @@ export default function QuickAddMenu({
           type={selectedType}
           targetId={selectedTargetId}
           target={
+            selectedType === 'bank_deposit' ? bankAccounts.find(b => b.id === selectedTargetId) :
             selectedType === 'bank_payment' ? bankAccounts.find(b => b.id === selectedTargetId) :
             selectedType === 'card_payment' ? cards.find(c => c.id === selectedTargetId) :
             selectedType === 'bill_payment' ? bills.find(b => b.id === selectedTargetId) :
             loans.find(l => l.id === selectedTargetId)
           }
           onSubmit={(data) => {
-            if (selectedType === 'bank_payment') onBankPayment(data);
+            if (selectedType === 'bank_deposit') onBankDeposit(data);
+            else if (selectedType === 'bank_payment') onBankPayment(data);
             else if (selectedType === 'card_payment') onCardPayment(data);
             else if (selectedType === 'bill_payment') onBillPayment(data);
             else if (selectedType === 'loan_payment') onLoanPayment(data);
@@ -192,6 +200,7 @@ function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading }) {
   };
 
   const getTitle = () => {
+    if (type === 'bank_deposit') return 'Bank Deposit';
     if (type === 'bank_payment') return 'Bank Payment';
     if (type === 'card_payment') return 'Card Payment';
     if (type === 'bill_payment') return 'Bill Payment';
@@ -264,13 +273,13 @@ function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading }) {
             />
           </div>
 
-          {type === 'bank_payment' && (
+          {(type === 'bank_deposit' || type === 'bank_payment') && (
             <div>
               <Label>Description</Label>
               <Input
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="e.g., Rent payment"
+                placeholder={type === 'bank_deposit' ? 'e.g., Salary payment' : 'e.g., Rent payment'}
                 required
               />
             </div>

@@ -424,17 +424,21 @@ export default function Dashboard() {
             {/* Draggable Sections */}
             <div className="mt-8">
               <DragDropContext onDragEnd={handleSectionDragEnd}>
-                <Droppable droppableId="sections">
+                <Droppable droppableId="sections" type="section">
                   {(provided) => (
                     <div {...provided.droppableProps} ref={provided.innerRef}>
                       {sectionOrder.map((section, index) => (
-                        <Draggable key={section} draggableId={section} index={index}>
-                          {(provided) => (
+                        <Draggable key={section} draggableId={section} index={index} type="section">
+                          {(provided, snapshot) => (
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
                               className="mb-6"
+                              style={{
+                                ...provided.draggableProps.style,
+                                opacity: snapshot.isDragging ? 0.8 : 1,
+                              }}
                             >
                               {section === 'calendar' && <PaymentCalendar />}
                               {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}

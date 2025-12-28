@@ -378,7 +378,7 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
             {/* Results */}
             {allScenarios.length > 0 && (
               <div className="space-y-4 pt-4 border-t">
-                <h4 className="font-medium text-slate-700">Your Payoff Results</h4>
+                <h4 className="font-medium text-slate-700">Combined Payoff Results</h4>
                 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-4 bg-blue-50 rounded-xl text-center">

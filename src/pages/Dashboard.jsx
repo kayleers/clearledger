@@ -301,11 +301,11 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold text-slate-900">ClearLedger</h1>
             <p className="text-slate-500">Track & pay off your credit cards</p>
           </div>
-          <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-purple-600">CL</span>
-            </div>
-          </div>
+          <img 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/7335a5ce2_WhatsAppImage2026-01-08at73945PM.jpeg" 
+            alt="ClearLedger Logo" 
+            className="w-16 h-16 rounded-xl shadow-lg"
+          />
         </header>
 
         {/* Loading State */}

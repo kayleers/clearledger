@@ -149,28 +149,40 @@ export default function PaymentCalendar() {
 
   const getAllItems = () => {
     const items = [];
-    const daysInMonth = getDaysInMonth(currentMonth);
+    const startMonth = currentMonth.getMonth();
+    const startYear = currentMonth.getFullYear();
+    const endMonth = hasFullAccess ? startMonth : Math.min(startMonth + monthsLimit - 1, 11);
     
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dayItems = getItemsForDay(day);
-      if (dayItems.length > 0) {
-        items.push({ 
-          day, 
-          month: currentMonth.getMonth(),
-          year: currentMonth.getFullYear(),
-          items: dayItems 
-        });
+    for (let m = startMonth; m <= endMonth; m++) {
+      const monthDate = new Date(startYear, m, 1);
+      const daysInMonth = getDaysInMonth(monthDate);
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayItems = getItemsForDay(day);
+        if (dayItems.length > 0) {
+          items.push({ 
+            day, 
+            month: m,
+            year: startYear,
+            items: dayItems 
+          });
+        }
       }
     }
 
-    return items.sort((a, b) => a.day - b.day);
+    return items.sort((a, b) => {
+      if (a.month !== b.month) return a.month - b.month;
+      return a.day - b.day;
+    });
   };
 
   const getAllItemsForYear = () => {
     const items = [];
     const currentYear = currentMonth.getFullYear();
+    const startMonth = currentMonth.getMonth();
+    const maxMonths = hasFullAccess ? 12 : Math.min(startMonth + monthsLimit, 12);
 
-    for (let month = 0; month < 12; month++) {
+    for (let month = startMonth; month < maxMonths; month++) {
       const monthDate = new Date(currentYear, month, 1);
       const daysInMonth = getDaysInMonth(monthDate);
 
@@ -324,6 +336,7 @@ export default function PaymentCalendar() {
   };
 
   const navigateMonth = (direction) => {
+    if (!hasFullAccess) return; // Free users can't navigate
     setCurrentMonth(prev => {
       const newDate = new Date(prev);
       newDate.setMonth(newDate.getMonth() + direction);
@@ -331,7 +344,7 @@ export default function PaymentCalendar() {
     });
   };
 
-  const hasAccess = accessControl.hasFeature('payment_schedule');
+  const canNavigate = hasFullAccess;
 
   return (
     <Card>
@@ -353,13 +366,14 @@ export default function PaymentCalendar() {
           </Tabs>
         </div>
         <div className="flex items-center justify-between mt-4">
-          <Button variant="outline" size="sm" onClick={() => navigateMonth(-1)} disabled={!hasAccess}>
+          <Button variant="outline" size="sm" onClick={() => navigateMonth(-1)} disabled={!canNavigate}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <h3 className="font-semibold">
             {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+            {!hasFullAccess && <span className="text-xs text-slate-500 ml-2">(Limited to {monthsLimit} months)</span>}
           </h3>
-          <Button variant="outline" size="sm" onClick={() => navigateMonth(1)} disabled={!hasAccess}>
+          <Button variant="outline" size="sm" onClick={() => navigateMonth(1)} disabled={!canNavigate}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
@@ -371,33 +385,32 @@ export default function PaymentCalendar() {
               onClick={() => setListPeriod('month')}
               className="flex-1"
             >
-              Month
+              {hasFullAccess ? 'Month' : `${monthsLimit} Months`}
             </Button>
-            <Button 
-              variant={listPeriod === 'year' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setListPeriod('year')}
-              className="flex-1"
-            >
-              Year
-            </Button>
+            {hasFullAccess && (
+              <Button 
+                variant={listPeriod === 'year' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setListPeriod('year')}
+                className="flex-1"
+              >
+                Year
+              </Button>
+            )}
           </div>
         )}
       </CardHeader>
       <CardContent>
-        {!hasAccess ? (
-          <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8 text-center border-2 border-dashed border-blue-200">
-            <Lock className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-            <h4 className="text-lg font-semibold text-slate-800 mb-2">Unlock Payment Schedule</h4>
-            <p className="text-sm text-slate-600 mb-4">
-              Upgrade to see your complete payment timeline and stay on top of all your bills and payments.
+        {view === 'calendar' ? renderCalendarView() : renderListView()}
+        {!hasFullAccess && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-slate-700 mb-2">
+              🔒 Free tier limited to {monthsLimit} months. Upgrade for unlimited access!
             </p>
-            <Button onClick={() => setShowUpgradeDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Button size="sm" onClick={() => setShowUpgradeDialog(true)} className="bg-blue-600 hover:bg-blue-700">
               Upgrade Now
             </Button>
           </div>
-        ) : (
-          view === 'calendar' ? renderCalendarView() : renderListView()
         )}
       </CardContent>
 

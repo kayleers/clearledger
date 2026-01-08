@@ -24,7 +24,7 @@ export const TIER_DETAILS = {
       charts: true,
       manualEntry: true,
       multiCurrency: true,
-      fullCalendar: false,
+      payment_schedule: true,
       unlimitedScenarios: false
     }
   },
@@ -46,7 +46,7 @@ export const TIER_DETAILS = {
       charts: true,
       manualEntry: true,
       multiCurrency: true,
-      fullCalendar: true,
+      payment_schedule: true,
       unlimitedScenarios: true
     }
   },
@@ -69,7 +69,7 @@ export const TIER_DETAILS = {
       charts: true,
       manualEntry: true,
       multiCurrency: true,
-      fullCalendar: true,
+      payment_schedule: true,
       unlimitedScenarios: true,
       priorityFeatures: true
     }

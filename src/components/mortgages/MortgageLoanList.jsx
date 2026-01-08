@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Home, Plus, Edit2, Trash2, TrendingDown, GripVertical } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import CurrencySelector from '@/components/currency/CurrencySelector';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 const loanTypeIcons = {
   mortgage: '🏠',

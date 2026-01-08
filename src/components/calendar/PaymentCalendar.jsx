@@ -147,6 +147,14 @@ export default function PaymentCalendar() {
     return items;
   };
 
+  const getMonthsLimit = () => {
+    const limit = accessControl.getCalendarMonthsLimit();
+    return limit === Infinity ? Infinity : limit;
+  };
+
+  const monthsLimit = getMonthsLimit();
+  const hasFullAccess = monthsLimit === Infinity;
+
   const getAllItems = () => {
     const items = [];
     const startMonth = currentMonth.getMonth();

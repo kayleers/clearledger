@@ -35,6 +35,8 @@ import AddPaymentForm from '@/components/transactions/AddPaymentForm';
 import TransactionList from '@/components/transactions/TransactionList';
 import SavedScenarios from '@/components/scenarios/SavedScenarios';
 import CurrencySelector from '@/components/currency/CurrencySelector';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 import { 
   formatCurrency, 
   calculateUtilization, 
@@ -70,6 +72,8 @@ export default function CardDetail() {
   const [showSaveScenario, setShowSaveScenario] = useState(false);
   const [pendingScenario, setPendingScenario] = useState(null);
   const [editingTransaction, setEditingTransaction] = useState(null);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const accessControl = useAccessControl();
 
   // Fetch card
   const { data: card, isLoading: cardLoading } = useQuery({
@@ -272,6 +276,10 @@ export default function CardDetail() {
   const currency = card.currency || 'USD';
 
   const handleSaveScenario = (scenarioData) => {
+    if (!accessControl.canAddScenario(scenarios.length)) {
+      setShowUpgradeDialog(true);
+      return;
+    }
     setPendingScenario(scenarioData);
     setShowSaveScenario(true);
   };
@@ -609,6 +617,12 @@ export default function CardDetail() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <UpgradeDialog
+          open={showUpgradeDialog}
+          onOpenChange={setShowUpgradeDialog}
+          context="savedScenarios"
+        />
       </div>
     </div>
   );

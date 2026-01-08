@@ -25,6 +25,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import LoanPayoffSimulator from '@/components/loans/LoanPayoffSimulator';
 import SavedScenarios from '@/components/scenarios/SavedScenarios';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 import { formatCurrency } from '@/components/utils/calculations';
 
 const loanTypeIcons = {
@@ -47,6 +49,8 @@ export default function LoanDetail() {
   const [showSaveScenario, setShowSaveScenario] = useState(false);
   const [pendingScenario, setPendingScenario] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const accessControl = useAccessControl();
 
   // Fetch loan
   const { data: loan, isLoading: loanLoading } = useQuery({
@@ -162,6 +166,10 @@ export default function LoanDetail() {
   const progress = Math.round(((loan.loan_amount - loan.current_balance) / loan.loan_amount) * 100);
 
   const handleSaveScenario = (scenarioData) => {
+    if (!accessControl.canAddScenario(scenarios.length)) {
+      setShowUpgradeDialog(true);
+      return;
+    }
     setPendingScenario(scenarioData);
     setShowSaveScenario(true);
   };
@@ -386,6 +394,12 @@ export default function LoanDetail() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <UpgradeDialog
+          open={showUpgradeDialog}
+          onOpenChange={setShowUpgradeDialog}
+          context="savedScenarios"
+        />
       </div>
     </div>
   );

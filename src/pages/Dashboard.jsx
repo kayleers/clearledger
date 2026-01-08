@@ -299,7 +299,7 @@ export default function Dashboard() {
         <header className="mb-6 flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">ClearLedger</h1>
-            <p className="text-slate-500">Track & pay off your credit cards</p>
+            <p className="text-slate-500">Private bill & balance tracking. Smarter payment planning.</p>
           </div>
           <img 
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/7335a5ce2_WhatsAppImage2026-01-08at73945PM.jpeg" 

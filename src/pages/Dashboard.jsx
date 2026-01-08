@@ -297,7 +297,7 @@ export default function Dashboard() {
         <div className="max-w-lg mx-auto px-4 py-6 pb-24">
         {/* Header */}
         <header className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">Debt Freedom</h1>
+          <h1 className="text-2xl font-bold text-slate-900">ClearLedger</h1>
           <p className="text-slate-500">Track & pay off your credit cards</p>
         </header>
 

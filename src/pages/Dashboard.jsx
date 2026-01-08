@@ -296,9 +296,16 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
         <div className="max-w-lg mx-auto px-4 py-6 pb-24">
         {/* Header */}
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">ClearLedger</h1>
-          <p className="text-slate-500">Track & pay off your credit cards</p>
+        <header className="mb-6 flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">ClearLedger</h1>
+            <p className="text-slate-500">Track & pay off your credit cards</p>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg">
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+              <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-purple-600">CL</span>
+            </div>
+          </div>
         </header>
 
         {/* Loading State */}

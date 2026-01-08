@@ -32,7 +32,9 @@ const frequencyLabels = {
 export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
   const [showAddBill, setShowAddBill] = useState(false);
   const [editingBill, setEditingBill] = useState(null);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const queryClient = useQueryClient();
+  const accessControl = useAccessControl();
 
   const createBillMutation = useMutation({
     mutationFn: (data) => base44.entities.RecurringBill.create(data),
@@ -79,13 +81,23 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
     });
   };
 
+  const canAddBill = accessControl.canAddRecurringBill(bills.length);
+
+  const handleAddBillClick = () => {
+    if (canAddBill) {
+      setShowAddBill(true);
+    } else {
+      setShowUpgradeDialog(true);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Recurring Bills</h2>
         <Button
           size="sm"
-          onClick={() => setShowAddBill(true)}
+          onClick={handleAddBillClick}
           className="bg-purple-600 hover:bg-purple-700"
         >
           <Plus className="w-4 h-4 mr-1" />
@@ -188,7 +200,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
           <CardContent className="p-8 text-center">
             <Receipt className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500 mb-4">No recurring bills yet</p>
-            <Button onClick={() => setShowAddBill(true)}>
+            <Button onClick={handleAddBillClick}>
               <Plus className="w-4 h-4 mr-2" />
               Add Your First Bill
             </Button>

@@ -34,7 +34,9 @@ const loanTypeLabels = {
 export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
   const [showAddLoan, setShowAddLoan] = useState(false);
   const [editingLoan, setEditingLoan] = useState(null);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const queryClient = useQueryClient();
+  const accessControl = useAccessControl();
 
   const createLoanMutation = useMutation({
     mutationFn: (data) => base44.entities.MortgageLoan.create(data),
@@ -79,6 +81,16 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
         data: { display_order: index }
       });
     });
+  };
+
+  const canAddLoan = accessControl.canAddLoan(loans.length);
+
+  const handleAddLoanClick = () => {
+    if (canAddLoan) {
+      setShowAddLoan(true);
+    } else {
+      setShowUpgradeDialog(true);
+    }
   };
 
   const calculateProgress = (current, original) => {

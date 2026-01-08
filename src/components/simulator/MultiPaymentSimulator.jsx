@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatMonthsToYears, calculatePayoffTimeline, calculateVariablePayoffTimeline } from '@/components/utils/calculations';
 import PayoffChart from './PayoffChart';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
   const [paymentType, setPaymentType] = useState('fixed');
@@ -35,7 +37,9 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [scenarioName, setScenarioName] = useState('');
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const queryClient = useQueryClient();
+  const accessControl = useAccessControl();
 
   const { data: savedScenarios = [] } = useQuery({
     queryKey: ['multi-payment-scenarios'],
@@ -168,8 +172,16 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
   const minTotalInterest = minScenarios.reduce((sum, s) => sum + s.totalInterest, 0);
   const interestSaved = minTotalInterest - totalInterest;
 
+  const canSaveScenario = accessControl.canAddScenario(savedScenarios.length);
+
   const handleSaveScenario = () => {
     if (!scenarioName.trim()) return;
+
+    if (!canSaveScenario) {
+      setShowUpgradeDialog(true);
+      setShowSaveDialog(false);
+      return;
+    }
 
     const paymentData = {
       type: paymentType,
@@ -509,7 +521,16 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
                 {/* Save Scenario Button */}
                 <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
                   <DialogTrigger asChild>
-                    <Button className="w-full" variant="outline">
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={(e) => {
+                        if (!canSaveScenario) {
+                          e.preventDefault();
+                          setShowUpgradeDialog(true);
+                        }
+                      }}
+                    >
                       <Save className="w-4 h-4 mr-2" />
                       Save This Scenario
                     </Button>
@@ -597,11 +618,17 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
               </div>
             )}
           </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
-  );
-}
+          </Tabs>
+
+          <UpgradeDialog
+          open={showUpgradeDialog}
+          onOpenChange={setShowUpgradeDialog}
+          context="savedScenarios"
+          />
+          </CardContent>
+          </Card>
+          );
+          }
 
 function CardFixedInput({ card, payment, onPaymentChange }) {
   return (

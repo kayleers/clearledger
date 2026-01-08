@@ -9,11 +9,15 @@ import { Label } from '@/components/ui/label';
 import { Building2, Plus, Edit2, Trash2, GripVertical } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import CurrencySelector from '@/components/currency/CurrencySelector';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 export default function BankAccountList({ bankAccounts = [] }) {
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const queryClient = useQueryClient();
+  const accessControl = useAccessControl();
 
   const createAccountMutation = useMutation({
     mutationFn: (data) => base44.entities.BankAccount.create(data),
@@ -60,13 +64,23 @@ export default function BankAccountList({ bankAccounts = [] }) {
     });
   };
 
+  const canAddAccount = accessControl.canAddBankAccount(bankAccounts.length);
+
+  const handleAddAccountClick = () => {
+    if (canAddAccount) {
+      setShowAddAccount(true);
+    } else {
+      setShowUpgradeDialog(true);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Bank Accounts</h2>
         <Button
           size="sm"
-          onClick={() => setShowAddAccount(true)}
+          onClick={handleAddAccountClick}
           className="bg-blue-600 hover:bg-blue-700"
         >
           <Plus className="w-4 h-4 mr-1" />
@@ -147,7 +161,7 @@ export default function BankAccountList({ bankAccounts = [] }) {
           <CardContent className="p-8 text-center">
             <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500 mb-4">No bank accounts yet</p>
-            <Button onClick={() => setShowAddAccount(true)}>
+            <Button onClick={handleAddAccountClick}>
               <Plus className="w-4 h-4 mr-2" />
               Add Your First Account
             </Button>
@@ -179,6 +193,12 @@ export default function BankAccountList({ bankAccounts = [] }) {
           />
         </DialogContent>
       </Dialog>
+
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        context="bankAccounts"
+      />
     </div>
   );
 }

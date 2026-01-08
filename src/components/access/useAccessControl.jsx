@@ -25,8 +25,8 @@ export function useAccessControl() {
       canAddCreditCard: (currentCount) => canAdd(currentCount, userTier, 'creditCards'),
       canAddLoan: (currentCount) => canAdd(currentCount, userTier, 'loans'),
       canAddBankAccount: (currentCount) => canAdd(currentCount, userTier, 'bankAccounts'),
-      canAddBill: (currentCount) => canAdd(currentCount, userTier, 'recurringBills'),
-      canSaveScenario: (currentCount) => canAdd(currentCount, userTier, 'savedScenarios'),
+      canAddRecurringBill: (currentCount) => canAdd(currentCount, userTier, 'recurringBills'),
+      canAddScenario: (currentCount) => canAdd(currentCount, userTier, 'savedScenarios'),
       
       // Calendar months
       getCalendarMonthsLimit: () => getLimit(userTier, 'calendarMonths')

@@ -104,7 +104,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
         <h2 className="text-xl font-bold text-slate-800">Mortgages & Loans</h2>
         <Button
           size="sm"
-          onClick={() => setShowAddLoan(true)}
+          onClick={handleAddLoanClick}
           className="bg-indigo-600 hover:bg-indigo-700"
         >
           <Plus className="w-4 h-4 mr-1" />
@@ -228,7 +228,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
           <CardContent className="p-8 text-center">
             <Home className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500 mb-4">No loans yet</p>
-            <Button onClick={() => setShowAddLoan(true)}>
+            <Button onClick={handleAddLoanClick}>
               <Plus className="w-4 h-4 mr-2" />
               Add Your First Loan
             </Button>
@@ -262,6 +262,12 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
           />
         </DialogContent>
       </Dialog>
+
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        context="loans"
+      />
     </div>
   );
 }

@@ -6,8 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List, Lock } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 const BILL_CATEGORY_ICONS = {
   utilities: '⚡',
@@ -32,6 +34,8 @@ export default function PaymentCalendar() {
   const [view, setView] = useState('calendar'); // 'calendar' or 'list'
   const [listPeriod, setListPeriod] = useState('month'); // 'month' or 'year'
   const [expandedItems, setExpandedItems] = useState({});
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const accessControl = useAccessControl();
 
   const { data: cards = [] } = useQuery({
     queryKey: ['credit-cards'],
@@ -327,6 +331,8 @@ export default function PaymentCalendar() {
     });
   };
 
+  const hasAccess = accessControl.hasFeature('payment_schedule');
+
   return (
     <Card>
       <CardHeader>
@@ -347,13 +353,13 @@ export default function PaymentCalendar() {
           </Tabs>
         </div>
         <div className="flex items-center justify-between mt-4">
-          <Button variant="outline" size="sm" onClick={() => navigateMonth(-1)}>
+          <Button variant="outline" size="sm" onClick={() => navigateMonth(-1)} disabled={!hasAccess}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <h3 className="font-semibold">
             {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
           </h3>
-          <Button variant="outline" size="sm" onClick={() => navigateMonth(1)}>
+          <Button variant="outline" size="sm" onClick={() => navigateMonth(1)} disabled={!hasAccess}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
@@ -379,8 +385,27 @@ export default function PaymentCalendar() {
         )}
       </CardHeader>
       <CardContent>
-        {view === 'calendar' ? renderCalendarView() : renderListView()}
+        {!hasAccess ? (
+          <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8 text-center border-2 border-dashed border-blue-200">
+            <Lock className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+            <h4 className="text-lg font-semibold text-slate-800 mb-2">Unlock Payment Schedule</h4>
+            <p className="text-sm text-slate-600 mb-4">
+              Upgrade to see your complete payment timeline and stay on top of all your bills and payments.
+            </p>
+            <Button onClick={() => setShowUpgradeDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+              Upgrade Now
+            </Button>
+          </div>
+        ) : (
+          view === 'calendar' ? renderCalendarView() : renderListView()
+        )}
       </CardContent>
+
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        context="paymentSchedule"
+      />
     </Card>
   );
 }

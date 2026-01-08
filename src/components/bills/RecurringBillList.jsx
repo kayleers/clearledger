@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tantml:react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,6 +11,8 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { formatCurrency } from '@/components/utils/calculations';
 import { format } from 'date-fns';
 import CurrencySelector from '@/components/currency/CurrencySelector';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 const categoryIcons = {
   utilities: '⚡',
@@ -234,6 +236,12 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
           />
         </DialogContent>
       </Dialog>
+
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        context="recurringBills"
+      />
     </div>
   );
 }

@@ -12,15 +12,14 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import CreditCardItem from '@/components/cards/CreditCardItem';
 import AddCardForm from '@/components/cards/AddCardForm';
-import UpgradePrompt from '@/components/premium/UpgradePrompt';
 import BankAccountList from '@/components/bankaccounts/BankAccountList';
 import RecurringBillList from '@/components/bills/RecurringBillList';
 import MortgageLoanList from '@/components/mortgages/MortgageLoanList';
 import PaymentCalendar from '@/components/calendar/PaymentCalendar';
 import QuickAddMenu from '@/components/quickadd/QuickAddMenu';
 import MultiPaymentSimulator from '@/components/simulator/MultiPaymentSimulator';
-
-const MAX_FREE_CARDS = 2;
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
@@ -29,7 +28,10 @@ export default function Dashboard() {
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(true);
   const [simulatorExpanded, setSimulatorExpanded] = useState(true);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [upgradeContext, setUpgradeContext] = useState('general');
   const queryClient = useQueryClient();
+  const accessControl = useAccessControl();
 
   const { data: cards = [], isLoading } = useQuery({
     queryKey: ['credit-cards'],
@@ -142,7 +144,16 @@ export default function Dashboard() {
     fetchSectionOrder();
   }, []);
 
-  const canAddCard = cards.length < MAX_FREE_CARDS;
+  const canAddCard = accessControl.canAddCreditCard(cards.length);
+
+  const handleAddCardClick = () => {
+    if (canAddCard) {
+      setShowAddCard(true);
+    } else {
+      setUpgradeContext('creditCards');
+      setShowUpgradeDialog(true);
+    }
+  };
 
   const createPurchaseMutation = useMutation({
     mutationFn: async ({ purchaseData, cardId }) => {
@@ -343,20 +354,9 @@ export default function Dashboard() {
                   />
                 </motion.div>
               )}
-            </AnimatePresence>
+              </AnimatePresence>
 
-            {/* Upgrade Prompt */}
-            {!canAddCard && (
-              <div className="mb-6">
-                <UpgradePrompt
-                  currentCardCount={cards.length}
-                  maxFreeCards={MAX_FREE_CARDS}
-                  onUpgrade={() => alert('Premium upgrade coming soon!')}
-                />
-              </div>
-            )}
-
-            {/* Empty State for Cards */}
+              {/* Empty State for Cards */}
             {cards.length === 0 && (
               <div className="mb-6">
                 <motion.div
@@ -371,7 +371,7 @@ export default function Dashboard() {
                   <p className="text-slate-500 text-sm mb-4 max-w-xs mx-auto">
                     Start tracking your credit card debt and create a plan to pay it off
                   </p>
-                  <Button onClick={() => setShowAddCard(true)}>
+                  <Button onClick={handleAddCardClick}>
                     <Plus className="w-4 h-4 mr-2" />
                     Add Credit Card
                   </Button>
@@ -442,10 +442,10 @@ export default function Dashboard() {
                               <div>
                                 <div className="flex items-center justify-between mb-4">
                                   <h2 className="text-lg font-semibold text-slate-800">Your Cards</h2>
-                                  {!showAddCard && canAddCard && (
+                                  {!showAddCard && (
                                     <Button
                                       size="sm"
-                                      onClick={() => setShowAddCard(true)}
+                                      onClick={handleAddCardClick}
                                       className="rounded-full"
                                     >
                                       <Plus className="w-4 h-4 mr-1" />
@@ -485,18 +485,18 @@ export default function Dashboard() {
                                       ))}
                                       {provided.placeholder}
                                     </div>
-                                  )}
-                                </Droppable>
-                                {!showAddCard && canAddCard && (
-                                  <Button
+                                    )}
+                                    </Droppable>
+                                    {!showAddCard && (
+                                    <Button
                                     variant="outline"
                                     className="w-full h-14 border-dashed border-2 text-slate-500 mt-4"
-                                    onClick={() => setShowAddCard(true)}
-                                  >
+                                    onClick={handleAddCardClick}
+                                    >
                                     <Plus className="w-5 h-5 mr-2" />
                                     Add Another Card
-                                  </Button>
-                                )}
+                                    </Button>
+                                    )}
                               </div>
                             )}
                             {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}

@@ -76,6 +76,15 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
     return acc;
   }, {});
 
+  const totalBankBalanceByCurrency = bankAccounts.reduce((acc, account) => {
+    if (account.balance && account.balance !== 0) {
+      const curr = account.currency || 'USD';
+      if (!acc[curr]) acc[curr] = 0;
+      acc[curr] += account.balance;
+    }
+    return acc;
+  }, {});
+
   const getUtilizationMessage = () => {
     if (totalUtilization <= 30) {
       return { text: 'Great! Your credit usage is healthy', icon: CheckCircle, color: 'text-emerald-600' };
@@ -175,7 +184,21 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-slate-900">{bankAccounts.length} Bank Accounts</p>
-                    <p className="text-sm text-slate-500">Payment sources</p>
+                    {Object.keys(totalBankBalanceByCurrency).length === 0 ? (
+                      <p className="text-sm text-slate-500">Payment sources</p>
+                    ) : Object.keys(totalBankBalanceByCurrency).length === 1 ? (
+                      <p className="text-sm text-slate-500">Balance: {formatCurrency(Object.values(totalBankBalanceByCurrency)[0], Object.keys(totalBankBalanceByCurrency)[0])}</p>
+                    ) : (
+                      <div className="text-sm text-slate-500">
+                        <span>Balance: </span>
+                        {Object.entries(totalBankBalanceByCurrency).map(([currency, amount], idx) => (
+                          <span key={currency}>
+                            {idx > 0 && ', '}
+                            {formatCurrency(amount, currency)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 {expandedBanks ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}

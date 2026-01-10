@@ -502,10 +502,12 @@ export default function Dashboard() {
                               </div>
                             )}
                             {section === 'simulator' && cards.length > 0 && (
-                              <Collapsible open={simulatorExpanded} onOpenChange={setSimulatorExpanded}>
-                                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                                  <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                                    <h3 className="font-semibold text-slate-800">Payment Simulator</h3>
+                              <div>
+                                <h2 className="text-xl font-bold text-slate-800 mb-4">Payment Simulator</h2>
+                                <Collapsible open={simulatorExpanded} onOpenChange={setSimulatorExpanded}>
+                                  <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                                    <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                      <h3 className="font-semibold text-slate-800">Details</h3>
                                     {simulatorExpanded ? (
                                       <ChevronUp className="w-5 h-5 text-slate-500" />
                                     ) : (
@@ -519,6 +521,7 @@ export default function Dashboard() {
                                   </CollapsibleContent>
                                 </div>
                               </Collapsible>
+                              </div>
                             )}
                             {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}
                             {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />}

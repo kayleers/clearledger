@@ -158,6 +158,11 @@ export default function BankAccountDetail() {
   const sortedDeposits = [...deposits].filter(d => d.amount > 0).sort((a, b) => new Date(b.date) - new Date(a.date));
   const sortedWithdrawals = [...deposits].filter(d => d.amount < 0).sort((a, b) => new Date(b.date) - new Date(a.date));
 
+  // Calculate ongoing balance
+  const totalDeposits = deposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
+  const totalWithdrawals = Math.abs(deposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
+  const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
+
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <div className="max-w-lg mx-auto p-6">
@@ -169,8 +174,14 @@ export default function BankAccountDetail() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-2xl">{account.name}</CardTitle>
+            <div className="mt-2">
+              <p className="text-3xl font-bold text-slate-900">
+                {formatCurrency(ongoingBalance, account.currency)}
+              </p>
+              <p className="text-sm text-slate-500">Current balance</p>
+            </div>
             {account.account_number && (
-              <p className="text-slate-500">••••{account.account_number.slice(-4)}</p>
+              <p className="text-slate-500 mt-2">••••{account.account_number.slice(-4)}</p>
             )}
           </CardHeader>
           <CardContent>

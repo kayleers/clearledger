@@ -92,6 +92,20 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
     return acc;
   }, {});
 
+  const minLoanPaymentByCurrency = mortgageLoans.reduce((acc, loan) => {
+    const curr = loan.currency || 'USD';
+    if (!acc[curr]) acc[curr] = 0;
+    acc[curr] += loan.monthly_payment || 0;
+    return acc;
+  }, {});
+
+  const projectedLoanPaymentByCurrency = mortgageLoans.reduce((acc, loan) => {
+    const curr = loan.currency || 'USD';
+    if (!acc[curr]) acc[curr] = 0;
+    acc[curr] += loan.projected_monthly_payment || loan.monthly_payment || 0;
+    return acc;
+  }, {});
+
   // Calculate ongoing balance for bank accounts
   const totalBankBalanceByCurrency = bankAccounts.reduce((acc, account) => {
     const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
@@ -341,20 +355,32 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-slate-900">{mortgageLoans.length} Loans</p>
-                    {Object.keys(totalLoansByCurrency).length === 0 ? (
-                      <p className="text-sm text-slate-500">No balances</p>
-                    ) : Object.keys(totalLoansByCurrency).length === 1 ? (
-                      <p className="text-sm text-slate-500">Total: {formatCurrency(Object.values(totalLoansByCurrency)[0], Object.keys(totalLoansByCurrency)[0])}</p>
+                    {Object.keys(minLoanPaymentByCurrency).length === 1 ? (
+                      <>
+                        <p className="text-sm text-slate-500">Min Due: {formatCurrency(Object.values(minLoanPaymentByCurrency)[0], Object.keys(minLoanPaymentByCurrency)[0])}</p>
+                        <p className="text-sm text-blue-600 font-medium">Projected: {formatCurrency(Object.values(projectedLoanPaymentByCurrency)[0], Object.keys(projectedLoanPaymentByCurrency)[0])}</p>
+                      </>
                     ) : (
-                      <div className="text-sm text-slate-500">
-                        <span>Total: </span>
-                        {Object.entries(totalLoansByCurrency).map(([currency, amount], idx) => (
-                          <span key={currency}>
-                            {idx > 0 && ', '}
-                            {formatCurrency(amount, currency)}
-                          </span>
-                        ))}
-                      </div>
+                      <>
+                        <div className="text-sm text-slate-500">
+                          <span>Min Due: </span>
+                          {Object.entries(minLoanPaymentByCurrency).map(([currency, amount], idx) => (
+                            <span key={currency}>
+                              {idx > 0 && ', '}
+                              {formatCurrency(amount, currency)}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="text-sm text-blue-600 font-medium">
+                          <span>Projected: </span>
+                          {Object.entries(projectedLoanPaymentByCurrency).map(([currency, amount], idx) => (
+                            <span key={currency}>
+                              {idx > 0 && ', '}
+                              {formatCurrency(amount, currency)}
+                            </span>
+                          ))}
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>

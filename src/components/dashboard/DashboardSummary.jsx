@@ -168,6 +168,21 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                           <span className="font-medium">{formatCurrency(minPayment, card.currency)}</span>
                         </div>
                         <div className="flex justify-between">
+                          <span className="text-slate-500">Projected Payment:</span>
+                          <span className="font-medium text-blue-600">
+                            {formatCurrency(
+                              (() => {
+                                let projected = minPayment;
+                                if (card.autopay_amount_type === 'full_balance') projected = card.balance;
+                                else if (card.autopay_amount_type === 'custom' && card.autopay_custom_amount) projected = card.autopay_custom_amount;
+                                if (card.additional_payment_enabled && card.additional_payment_amount) projected += card.additional_payment_amount;
+                                return Math.min(projected, card.balance);
+                              })(),
+                              card.currency
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
                           <span className="text-slate-500">Utilization:</span>
                           <span className={getUtilizationColor(utilization)}>{utilization}%</span>
                         </div>
@@ -347,8 +362,12 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                             <div className="h-full bg-orange-500 rounded-full" style={{ width: `${progress}%` }} />
                           </div>
                           <div className="flex justify-between text-xs text-slate-500">
-                            <span>Payment: {formatCurrency(loan.monthly_payment, loan.currency)}/mo</span>
+                            <span>Min Payment: {formatCurrency(loan.monthly_payment, loan.currency)}/mo</span>
                             <span>{progress.toFixed(0)}% paid</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-slate-500">Projected Payment:</span>
+                            <span className="font-medium text-blue-600">{formatCurrency(loan.monthly_payment, loan.currency)}/mo</span>
                           </div>
                         </div>
                       </div>

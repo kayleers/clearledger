@@ -36,6 +36,8 @@ const loanTypeLabels = {
 export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
   const [showAddLoan, setShowAddLoan] = useState(false);
   const [editingLoan, setEditingLoan] = useState(null);
+  const [editingProjected, setEditingProjected] = useState(null);
+  const [projectedPayment, setProjectedPayment] = useState('');
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
@@ -181,9 +183,32 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
                       <p className="font-semibold text-lg">{formatCurrency(loan.current_balance, currency)}</p>
                     </div>
                     <div>
-                      <p className="text-slate-500">Monthly Payment</p>
+                      <p className="text-slate-500">Min Payment</p>
                       <p className="font-semibold text-lg">{formatCurrency(loan.monthly_payment, currency)}</p>
                     </div>
+                  </div>
+
+                  {/* Projected Payment Section */}
+                  <div className="pt-3 border-t" onClick={(e) => e.preventDefault()}>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs text-slate-500">Projected Payment</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setEditingProjected(loan);
+                          setProjectedPayment('');
+                        }}
+                      >
+                        <Edit2 className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                    </div>
+                    <p className="text-base font-bold text-blue-600">
+                      {formatCurrency(loan.projected_monthly_payment || loan.monthly_payment, currency)}/mo
+                    </p>
                   </div>
 
                   <div className="space-y-1">
@@ -272,7 +297,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
       />
 
       {/* Edit Projected Payment Dialog */}
-      <Dialog open={!!editingLoan} onOpenChange={() => setEditingLoan(null)}>
+      <Dialog open={!!editingProjected} onOpenChange={() => setEditingProjected(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Projected Payment</DialogTitle>
@@ -285,25 +310,25 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
                 <Input
                   type="number"
                   step="0.01"
-                  placeholder={editingLoan?.monthly_payment.toString()}
+                  placeholder={editingProjected?.monthly_payment.toString()}
                   value={projectedPayment}
                   onChange={(e) => setProjectedPayment(e.target.value)}
                   className="pl-7"
                 />
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Minimum: {editingLoan && formatCurrency(editingLoan.monthly_payment, editingLoan.currency)}
+                Minimum: {editingProjected && formatCurrency(editingProjected.monthly_payment, editingProjected.currency)}
               </p>
             </div>
             <Button
               onClick={() => {
-                if (editingLoan && projectedPayment) {
+                if (editingProjected && projectedPayment) {
                   updateLoanMutation.mutate({
-                    id: editingLoan.id,
+                    id: editingProjected.id,
                     data: { projected_monthly_payment: parseFloat(projectedPayment) }
                   });
                   setProjectedPayment('');
-                  setEditingLoan(null);
+                  setEditingProjected(null);
                 }
               }}
               className="w-full"

@@ -247,13 +247,13 @@ export default function PaymentCalendar() {
                 </div>
               )}
               <div className="space-y-0.5">
-                {items.slice(0, 2).map((item, idx) => (
-                  <div key={idx} className="text-xs truncate">
-                    {item.type === 'deposit' ? '💰' : item.type === 'bill' ? BILL_CATEGORY_ICONS[item.category] : '💳'} {item.name}
+                {items.slice(0, 3).map((item, idx) => (
+                  <div key={idx} className="text-[10px] truncate text-slate-600">
+                    {item.name}
                   </div>
                 ))}
-                {items.length > 2 && (
-                  <div className="text-xs text-slate-500">+{items.length - 2} more</div>
+                {items.length > 3 && (
+                  <div className="text-[10px] text-slate-400">+{items.length - 3} more</div>
                 )}
               </div>
             </div>

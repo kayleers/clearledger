@@ -85,12 +85,29 @@ export default function CreditCardItem({ card, isDragging }) {
             </p>
           </div>
 
-          {/* Min Payment */}
-          <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
-            <span className="text-slate-500 text-sm">Minimum Payment</span>
-            <span className="font-semibold text-slate-700">
-              {formatCurrency(minPayment, currency)}
-            </span>
+          {/* Min Payment and Projected Payment */}
+          <div className="pt-2 border-t border-slate-100 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-slate-500 text-sm">Minimum Payment</span>
+              <span className="font-semibold text-slate-700">
+                {formatCurrency(minPayment, currency)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-slate-500 text-sm">Projected Payment</span>
+              <span className="font-semibold text-blue-600">
+                {formatCurrency(
+                  (() => {
+                    let projected = minPayment;
+                    if (card.autopay_amount_type === 'full_balance') projected = card.balance;
+                    else if (card.autopay_amount_type === 'custom' && card.autopay_custom_amount) projected = card.autopay_custom_amount;
+                    if (card.additional_payment_enabled && card.additional_payment_amount) projected += card.additional_payment_amount;
+                    return Math.min(projected, card.balance);
+                  })(),
+                  currency
+                )}
+              </span>
+            </div>
           </div>
 
           {/* Payment Info */}

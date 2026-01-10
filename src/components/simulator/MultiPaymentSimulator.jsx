@@ -769,7 +769,7 @@ function CardVariableInput({ card, variablePayments, defaultPayment, onVariableP
                   {monthNames[index]}
                   {!payment.amount && !isPaidOff && defaultPayment && (
                     <span className="text-slate-400 font-normal ml-1">
-                      (${defaultPayment})
+                      ({formatCurrency(parseFloat(defaultPayment) || 0, card.currency)})
                     </span>
                   )}
                   {isPaidOff && (

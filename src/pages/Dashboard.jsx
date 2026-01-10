@@ -499,6 +499,7 @@ export default function Dashboard() {
                                   </CollapsibleContent>
                                 </div>
                               </Collapsible>
+                              </div>
                             )}
                             {section === 'simulator' && cards.length > 0 && (
                               <Collapsible open={simulatorExpanded} onOpenChange={setSimulatorExpanded}>

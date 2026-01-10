@@ -177,17 +177,33 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
     const scenarios = [];
     cards.forEach(card => {
       const scenario = calculatePayoffTimeline(card.balance, card.apr, card.min_payment);
-      scenarios.push(scenario);
+      scenarios.push({ ...scenario, currency: card.currency, id: card.id });
     });
     loans.forEach(loan => {
       const scenario = calculatePayoffTimeline(loan.current_balance, loan.interest_rate, loan.monthly_payment);
-      scenarios.push(scenario);
+      scenarios.push({ ...scenario, currency: loan.currency, id: loan.id });
     });
     return scenarios;
   }, [cards, loans]);
 
   const minTotalInterest = minScenarios.reduce((sum, s) => sum + s.totalInterest, 0);
   const interestSaved = minTotalInterest - totalInterest;
+
+  // Group interest saved by currency
+  const interestSavedByCurrency = useMemo(() => {
+    const grouped = {};
+    minScenarios.forEach(minScenario => {
+      const curr = minScenario.currency || 'USD';
+      const matchingScenario = allScenarios.find(s => s.id === minScenario.id);
+      if (matchingScenario) {
+        if (!grouped[curr]) {
+          grouped[curr] = 0;
+        }
+        grouped[curr] += (minScenario.totalInterest - matchingScenario.totalInterest);
+      }
+    });
+    return grouped;
+  }, [minScenarios, allScenarios]);
 
   const canSaveScenario = accessControl.canAddScenario(savedScenarios.length);
 
@@ -447,12 +463,23 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
                       <Sparkles className="w-5 h-5" />
                       <span className="font-medium">You Save</span>
                     </div>
-                    <div className="grid grid-cols-1 gap-2">
-                      <div>
-                        <p className="text-2xl font-bold">{formatCurrency(interestSaved)}</p>
+                    {Object.keys(interestSavedByCurrency).length === 1 ? (
+                      <div className="grid grid-cols-1 gap-2">
+                        <div>
+                          <p className="text-2xl font-bold">{formatCurrency(Object.values(interestSavedByCurrency)[0], Object.keys(interestSavedByCurrency)[0])}</p>
+                          <p className="text-xs text-emerald-100">in interest</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        {Object.entries(interestSavedByCurrency).map(([currency, amount]) => (
+                          <p key={currency} className="text-xl font-bold">
+                            {formatCurrency(amount, currency)}
+                          </p>
+                        ))}
                         <p className="text-xs text-emerald-100">in interest</p>
                       </div>
-                    </div>
+                    )}
                     <p className="text-xs text-emerald-100 mt-2">
                       vs. paying only minimum payments
                     </p>

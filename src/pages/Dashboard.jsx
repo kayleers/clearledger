@@ -23,7 +23,7 @@ import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'banks', 'bills', 'loans']);
+  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'loans']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(true);
@@ -121,8 +121,7 @@ export default function Dashboard() {
       try {
         const user = await base44.auth.me();
         if (user.section_order) {
-          // Filter out simulator and calendar, ensure summary and cards are included
-          let newOrder = user.section_order.filter(s => s !== 'simulator' && s !== 'calendar');
+          let newOrder = user.section_order;
           let updated = false;
 
           if (!newOrder.includes('summary')) {
@@ -133,6 +132,16 @@ export default function Dashboard() {
           if (!newOrder.includes('cards')) {
             const summaryIndex = newOrder.indexOf('summary');
             newOrder.splice(summaryIndex + 1, 0, 'cards');
+            updated = true;
+          }
+
+          if (!newOrder.includes('calendar')) {
+            newOrder.push('calendar');
+            updated = true;
+          }
+
+          if (!newOrder.includes('simulator')) {
+            newOrder.push('simulator');
             updated = true;
           }
 
@@ -373,47 +382,6 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Fixed Sections - Calendar and Simulator */}
-            {cards.length > 0 && (
-              <div className="mt-8 space-y-6">
-                <Collapsible open={calendarExpanded} onOpenChange={setCalendarExpanded}>
-                  <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                    <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                      <h3 className="font-semibold text-slate-800">Payment Schedule</h3>
-                      {calendarExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-slate-500" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-slate-500" />
-                      )}
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="p-4 pt-0">
-                        <PaymentCalendar />
-                      </div>
-                    </CollapsibleContent>
-                  </div>
-                </Collapsible>
-
-                <Collapsible open={simulatorExpanded} onOpenChange={setSimulatorExpanded}>
-                  <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                    <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                      <h3 className="font-semibold text-slate-800">Payment Simulator</h3>
-                      {simulatorExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-slate-500" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-slate-500" />
-                      )}
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="p-4 pt-0">
-                        <MultiPaymentSimulator cards={cards} loans={mortgageLoans} />
-                      </div>
-                    </CollapsibleContent>
-                  </div>
-                </Collapsible>
-              </div>
-            )}
-
             {/* Draggable Sections */}
             <div className="mt-8">
               <Droppable droppableId="sections" type="section">
@@ -500,6 +468,44 @@ export default function Dashboard() {
                                     </Button>
                                     )}
                               </div>
+                            )}
+                            {section === 'calendar' && cards.length > 0 && (
+                              <Collapsible open={calendarExpanded} onOpenChange={setCalendarExpanded}>
+                                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                                  <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                    <h3 className="font-semibold text-slate-800">Payment Schedule</h3>
+                                    {calendarExpanded ? (
+                                      <ChevronUp className="w-5 h-5 text-slate-500" />
+                                    ) : (
+                                      <ChevronDown className="w-5 h-5 text-slate-500" />
+                                    )}
+                                  </CollapsibleTrigger>
+                                  <CollapsibleContent>
+                                    <div className="p-4 pt-0">
+                                      <PaymentCalendar />
+                                    </div>
+                                  </CollapsibleContent>
+                                </div>
+                              </Collapsible>
+                            )}
+                            {section === 'simulator' && cards.length > 0 && (
+                              <Collapsible open={simulatorExpanded} onOpenChange={setSimulatorExpanded}>
+                                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                                  <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                    <h3 className="font-semibold text-slate-800">Payment Simulator</h3>
+                                    {simulatorExpanded ? (
+                                      <ChevronUp className="w-5 h-5 text-slate-500" />
+                                    ) : (
+                                      <ChevronDown className="w-5 h-5 text-slate-500" />
+                                    )}
+                                  </CollapsibleTrigger>
+                                  <CollapsibleContent>
+                                    <div className="p-4 pt-0">
+                                      <MultiPaymentSimulator cards={cards} loans={mortgageLoans} />
+                                    </div>
+                                  </CollapsibleContent>
+                                </div>
+                              </Collapsible>
                             )}
                             {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}
                             {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />}

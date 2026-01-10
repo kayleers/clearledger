@@ -486,12 +486,12 @@ export default function Dashboard() {
                                   <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                                     <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
                                       <h3 className="font-semibold text-slate-800">Details</h3>
-                                    {calendarExpanded ? (
-                                      <ChevronUp className="w-5 h-5 text-slate-500" />
-                                    ) : (
-                                      <ChevronDown className="w-5 h-5 text-slate-500" />
-                                    )}
-                                  </CollapsibleTrigger>
+                                      {calendarExpanded ? (
+                                        <ChevronUp className="w-5 h-5 text-slate-500" />
+                                      ) : (
+                                        <ChevronDown className="w-5 h-5 text-slate-500" />
+                                      )}
+                                    </CollapsibleTrigger>
                                   <CollapsibleContent>
                                     <div className="p-4 pt-0">
                                       <PaymentCalendar />

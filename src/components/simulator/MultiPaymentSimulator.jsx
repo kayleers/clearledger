@@ -884,7 +884,7 @@ function CardVariableInput({ card, variablePayments, defaultPayment, onVariableP
             type="number"
             step="1"
             min="0"
-            placeholder={card.min_payment.toString()}
+            placeholder={(card.projected_monthly_payment || card.min_payment).toString()}
             value={defaultPayment}
             onChange={(e) => onDefaultPaymentChange(e.target.value)}
             className="pl-7 h-10"
@@ -998,7 +998,7 @@ function LoanVariableInput({ loan, variablePayments, defaultPayment, onVariableP
             type="number"
             step="1"
             min="0"
-            placeholder={loan.monthly_payment.toString()}
+            placeholder={(loan.projected_monthly_payment || loan.monthly_payment).toString()}
             value={defaultPayment}
             onChange={(e) => onDefaultPaymentChange(e.target.value)}
             className="pl-7 h-10"

@@ -192,6 +192,26 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
     return grouped;
   }, [cards, loans]);
 
+  // Group total debt by currency
+  const totalDebtByCurrency = useMemo(() => {
+    const grouped = {};
+    cards.forEach(card => {
+      const curr = card.currency || 'USD';
+      if (!grouped[curr]) {
+        grouped[curr] = 0;
+      }
+      grouped[curr] += card.balance || 0;
+    });
+    loans.forEach(loan => {
+      const curr = loan.currency || 'USD';
+      if (!grouped[curr]) {
+        grouped[curr] = 0;
+      }
+      grouped[curr] += loan.current_balance || 0;
+    });
+    return grouped;
+  }, [cards, loans]);
+
   // Calculate minimum payment scenario
   const minScenarios = useMemo(() => {
     const scenarios = [];
@@ -318,10 +338,23 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
           <TabsContent value="simulator" className="space-y-6 mt-4">
             {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl">
-                <p className="text-xs text-purple-700 mb-1">Total Debt</p>
-                <p className="text-xl font-bold text-purple-900">{formatCurrency(totalBalance)}</p>
-              </div>
+              {Object.keys(totalDebtByCurrency).length === 1 ? (
+                <div className="p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl">
+                  <p className="text-xs text-purple-700 mb-1">Total Debt</p>
+                  <p className="text-xl font-bold text-purple-900">{formatCurrency(Object.values(totalDebtByCurrency)[0], Object.keys(totalDebtByCurrency)[0])}</p>
+                </div>
+              ) : (
+                <div className="p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl">
+                  <p className="text-xs text-purple-700 mb-1 text-center">Total Debt</p>
+                  <div className="space-y-0.5">
+                    {Object.entries(totalDebtByCurrency).map(([currency, amount]) => (
+                      <p key={currency} className="text-base font-bold text-purple-900 text-center">
+                        {formatCurrency(amount, currency)}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
               {Object.keys(minPaymentByCurrency).length === 1 ? (
                 <div className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl">
                   <p className="text-xs text-amber-700 mb-1">Total Min Payment</p>

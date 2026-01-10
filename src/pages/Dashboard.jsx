@@ -10,6 +10,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
+import FinancialOverview from '@/components/dashboard/FinancialOverview';
+import CardsDetailTable from '@/components/dashboard/CardsDetailTable';
 import CreditCardItem from '@/components/cards/CreditCardItem';
 import AddCardForm from '@/components/cards/AddCardForm';
 import BankAccountList from '@/components/bankaccounts/BankAccountList';
@@ -23,7 +25,7 @@ import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'banks', 'bills', 'loans']);
+  const [sectionOrder, setSectionOrder] = useState(['overview', 'cardsTable', 'cards', 'banks', 'bills', 'loans']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(true);
@@ -121,18 +123,24 @@ export default function Dashboard() {
       try {
         const user = await base44.auth.me();
         if (user.section_order) {
-          // Filter out simulator and calendar, ensure summary and cards are included
-          let newOrder = user.section_order.filter(s => s !== 'simulator' && s !== 'calendar');
+          // Filter out simulator, calendar, and old summary
+          let newOrder = user.section_order.filter(s => s !== 'simulator' && s !== 'calendar' && s !== 'summary');
           let updated = false;
 
-          if (!newOrder.includes('summary')) {
-            newOrder = ['summary', ...newOrder];
+          if (!newOrder.includes('overview')) {
+            newOrder = ['overview', ...newOrder];
+            updated = true;
+          }
+
+          if (!newOrder.includes('cardsTable')) {
+            const overviewIndex = newOrder.indexOf('overview');
+            newOrder.splice(overviewIndex + 1, 0, 'cardsTable');
             updated = true;
           }
 
           if (!newOrder.includes('cards')) {
-            const summaryIndex = newOrder.indexOf('summary');
-            newOrder.splice(summaryIndex + 1, 0, 'cards');
+            const cardsTableIndex = newOrder.indexOf('cardsTable');
+            newOrder.splice(cardsTableIndex + 1, 0, 'cards');
             updated = true;
           }
 
@@ -432,13 +440,11 @@ export default function Dashboard() {
                               opacity: snapshot.isDragging ? 0.8 : 1,
                             }}
                           >
-                            {section === 'summary' && cards.length > 0 && (
-                              <DashboardSummary 
-                                cards={cards} 
-                                bankAccounts={bankAccounts}
-                                recurringBills={recurringBills}
-                                mortgageLoans={mortgageLoans}
-                              />
+                            {section === 'overview' && cards.length > 0 && (
+                              <FinancialOverview cards={cards} />
+                            )}
+                            {section === 'cardsTable' && cards.length > 0 && (
+                              <CardsDetailTable cards={cards} />
                             )}
                             {section === 'cards' && cards.length > 0 && (
                               <div>

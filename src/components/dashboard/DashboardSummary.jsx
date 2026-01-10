@@ -305,7 +305,9 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-slate-900">{mortgageLoans.length} Loans</p>
-                    {Object.keys(totalLoansByCurrency).length === 1 ? (
+                    {Object.keys(totalLoansByCurrency).length === 0 ? (
+                      <p className="text-sm text-slate-500">No balances</p>
+                    ) : Object.keys(totalLoansByCurrency).length === 1 ? (
                       <p className="text-sm text-slate-500">Total: {formatCurrency(Object.values(totalLoansByCurrency)[0], Object.keys(totalLoansByCurrency)[0])}</p>
                     ) : (
                       <div className="text-sm text-slate-500">

@@ -159,6 +159,19 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
   const totalMinPayment = [...cards, ...loans].reduce((sum, item) => 
     sum + (item.min_payment || item.monthly_payment || 0), 0);
 
+  // Group totals by currency
+  const interestByCurrency = useMemo(() => {
+    const grouped = {};
+    allScenarios.forEach(s => {
+      const curr = s.currency || 'USD';
+      if (!grouped[curr]) {
+        grouped[curr] = 0;
+      }
+      grouped[curr] += s.totalInterest;
+    });
+    return grouped;
+  }, [allScenarios]);
+
   // Calculate minimum payment scenario
   const minScenarios = useMemo(() => {
     const scenarios = [];
@@ -404,13 +417,27 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
                     </p>
                     <p className="text-xs text-blue-600">to pay off</p>
                   </div>
-                  <div className="p-4 bg-purple-50 rounded-xl text-center">
-                    <DollarSign className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                    <p className="text-2xl font-bold text-purple-900">
-                      {formatCurrency(totalInterest)}
-                    </p>
-                    <p className="text-xs text-purple-600">total interest</p>
-                  </div>
+                  {Object.keys(interestByCurrency).length === 1 ? (
+                    <div className="p-4 bg-purple-50 rounded-xl text-center">
+                      <DollarSign className="w-5 h-5 text-purple-600 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-purple-900">
+                        {formatCurrency(Object.values(interestByCurrency)[0], Object.keys(interestByCurrency)[0])}
+                      </p>
+                      <p className="text-xs text-purple-600">total interest</p>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-purple-50 rounded-xl">
+                      <DollarSign className="w-5 h-5 text-purple-600 mx-auto mb-2" />
+                      <p className="text-xs text-purple-600 text-center mb-2">total interest</p>
+                      <div className="space-y-1">
+                        {Object.entries(interestByCurrency).map(([currency, amount]) => (
+                          <p key={currency} className="text-lg font-bold text-purple-900 text-center">
+                            {formatCurrency(amount, currency)}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Savings Comparison */}

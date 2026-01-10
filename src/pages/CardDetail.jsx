@@ -73,6 +73,8 @@ export default function CardDetail() {
   const [pendingScenario, setPendingScenario] = useState(null);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [projectedPayment, setProjectedPayment] = useState('');
+  const [isEditingProjected, setIsEditingProjected] = useState(false);
   const accessControl = useAccessControl();
 
   // Fetch card
@@ -386,6 +388,59 @@ export default function CardDetail() {
                 <p className="text-xs text-slate-500 mb-1">Monthly Interest</p>
                 <p className="text-lg font-bold text-red-600">{formatCurrency(monthlyInterest, currency)}</p>
               </div>
+            </div>
+
+            {/* Projected Payment Section */}
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-slate-500">Projected Payment</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-xs"
+                  onClick={() => setIsEditingProjected(!isEditingProjected)}
+                >
+                  <Edit2 className="w-3 h-3 mr-1" />
+                  {isEditingProjected ? 'Cancel' : 'Edit'}
+                </Button>
+              </div>
+              {isEditingProjected ? (
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder={minPayment.toString()}
+                      value={projectedPayment}
+                      onChange={(e) => setProjectedPayment(e.target.value)}
+                      className="pl-7 h-9"
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (projectedPayment) {
+                        updateCardMutation.mutate({ 
+                          id: cardId, 
+                          data: { projected_monthly_payment: parseFloat(projectedPayment) }
+                        });
+                      }
+                      setIsEditingProjected(false);
+                    }}
+                    className="h-9"
+                  >
+                    Save
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-lg font-bold text-blue-600">
+                  {formatCurrency(card.projected_monthly_payment || minPayment, currency)}
+                </p>
+              )}
+              <p className="text-xs text-slate-400 mt-1">
+                Your planned monthly payment amount
+              </p>
             </div>
 
             {/* Utilization Bar */}

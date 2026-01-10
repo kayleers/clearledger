@@ -50,6 +50,8 @@ export default function LoanDetail() {
   const [pendingScenario, setPendingScenario] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [projectedPayment, setProjectedPayment] = useState('');
+  const [isEditingProjected, setIsEditingProjected] = useState(false);
   const accessControl = useAccessControl();
 
   // Fetch loan
@@ -74,6 +76,14 @@ export default function LoanDetail() {
     queryKey: ['loan-scenarios', loanId],
     queryFn: () => base44.entities.LoanPayoffScenario.filter({ loan_id: loanId }, '-created_date'),
     enabled: !!loanId
+  });
+
+  const updateLoanMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.MortgageLoan.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mortgage-loan', loanId] });
+      queryClient.invalidateQueries({ queryKey: ['mortgage-loans'] });
+    }
   });
 
   const createPaymentMutation = useMutation({
@@ -226,6 +236,59 @@ export default function LoanDetail() {
                 <p className="text-xs text-slate-500 mb-1">Total Paid</p>
                 <p className="text-lg font-bold text-emerald-600">{formatCurrency(loan.loan_amount - loan.current_balance, currency)}</p>
               </div>
+            </div>
+
+            {/* Projected Payment Section */}
+            <div className="pt-4 border-t">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-slate-500">Projected Payment</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-xs"
+                  onClick={() => setIsEditingProjected(!isEditingProjected)}
+                >
+                  <Edit2 className="w-3 h-3 mr-1" />
+                  {isEditingProjected ? 'Cancel' : 'Edit'}
+                </Button>
+              </div>
+              {isEditingProjected ? (
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder={loan.monthly_payment.toString()}
+                      value={projectedPayment}
+                      onChange={(e) => setProjectedPayment(e.target.value)}
+                      className="pl-7 h-9"
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (projectedPayment) {
+                        updateLoanMutation.mutate({ 
+                          id: loanId, 
+                          data: { projected_monthly_payment: parseFloat(projectedPayment) }
+                        });
+                      }
+                      setIsEditingProjected(false);
+                    }}
+                    className="h-9"
+                  >
+                    Save
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-lg font-bold text-blue-600 text-center">
+                  {formatCurrency(loan.projected_monthly_payment || loan.monthly_payment, currency)}
+                </p>
+              )}
+              <p className="text-xs text-slate-400 mt-1 text-center">
+                Your planned monthly payment amount
+              </p>
             </div>
 
             {/* Progress Bar */}

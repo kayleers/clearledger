@@ -13,13 +13,37 @@ export default function TotalDebtCard({ cards }) {
   const totalLimit = cards.reduce((sum, card) => sum + (card.credit_limit || 0), 0);
   const totalUtilization = calculateUtilization(totalBalance, totalLimit);
 
+  // Group by currency
+  const balanceByCurrency = cards.reduce((acc, card) => {
+    const curr = card.currency || 'USD';
+    if (!acc[curr]) {
+      acc[curr] = { balance: 0, limit: 0 };
+    }
+    acc[curr].balance += card.balance || 0;
+    acc[curr].limit += card.credit_limit || 0;
+    return acc;
+  }, {});
+
+  const currencies = Object.keys(balanceByCurrency);
+  const isSingleCurrency = currencies.length === 1;
+
   return (
     <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white overflow-hidden">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
-          <div>
+          <div className="flex-1">
             <p className="text-slate-300 text-sm mb-1">Total Debt</p>
-            <p className="text-3xl font-bold">{formatCurrency(totalBalance)}</p>
+            {isSingleCurrency ? (
+              <p className="text-3xl font-bold">{formatCurrency(totalBalance, currencies[0])}</p>
+            ) : (
+              <div className="space-y-1">
+                {Object.entries(balanceByCurrency).map(([currency, data]) => (
+                  <p key={currency} className="text-2xl font-bold">
+                    {formatCurrency(data.balance, currency)}
+                  </p>
+                ))}
+              </div>
+            )}
           </div>
           <div className="p-3 bg-white/10 rounded-xl">
             <CreditCard className="w-6 h-6" />
@@ -37,9 +61,19 @@ export default function TotalDebtCard({ cards }) {
               style={{ width: `${Math.min(totalUtilization, 100)}%` }}
             />
           </div>
-          <p className="text-xs text-slate-400">
-            {formatCurrency(totalBalance)} of {formatCurrency(totalLimit)} limit
-          </p>
+          {isSingleCurrency ? (
+            <p className="text-xs text-slate-400">
+              {formatCurrency(totalBalance, currencies[0])} of {formatCurrency(totalLimit, currencies[0])} limit
+            </p>
+          ) : (
+            <div className="space-y-1">
+              {Object.entries(balanceByCurrency).map(([currency, data]) => (
+                <p key={currency} className="text-xs text-slate-400">
+                  {formatCurrency(data.balance, currency)} of {formatCurrency(data.limit, currency)} limit
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

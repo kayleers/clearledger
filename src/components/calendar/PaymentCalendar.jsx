@@ -409,9 +409,8 @@ export default function PaymentCalendar() {
         )}
       </CardHeader>
       <CardContent>
-        {view === 'calendar' ? renderCalendarView() : renderListView()}
         {!hasFullAccess && (
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-sm text-slate-700 mb-2">
               🔒 Free tier limited to {monthsLimit} months. Upgrade for unlimited access!
             </p>
@@ -420,6 +419,7 @@ export default function PaymentCalendar() {
             </Button>
           </div>
         )}
+        {view === 'calendar' ? renderCalendarView() : renderListView()}
       </CardContent>
 
       <UpgradeDialog

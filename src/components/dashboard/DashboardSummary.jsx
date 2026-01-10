@@ -71,6 +71,13 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
     return acc;
   }, {});
 
+  const projectedPaymentByCurrency = cards.reduce((acc, card) => {
+    const curr = card.currency || 'USD';
+    if (!acc[curr]) acc[curr] = 0;
+    acc[curr] += card.projected_monthly_payment || calculateMinimumPayment(card.min_payment, card.balance);
+    return acc;
+  }, {});
+
   const monthlyBillsByCurrency = recurringBills.filter(b => b.frequency === 'monthly').reduce((acc, bill) => {
     const curr = bill.currency || 'USD';
     if (!acc[curr]) acc[curr] = 0;
@@ -130,17 +137,31 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                 <div className="text-left">
                   <p className="font-semibold text-slate-900">{cards.length} Credit Cards</p>
                   {Object.keys(minPaymentByCurrency).length === 1 ? (
-                    <p className="text-sm text-slate-500">Min Due: {formatCurrency(Object.values(minPaymentByCurrency)[0], Object.keys(minPaymentByCurrency)[0])}</p>
+                    <>
+                      <p className="text-sm text-slate-500">Min Due: {formatCurrency(Object.values(minPaymentByCurrency)[0], Object.keys(minPaymentByCurrency)[0])}</p>
+                      <p className="text-sm text-blue-600 font-medium">Projected: {formatCurrency(Object.values(projectedPaymentByCurrency)[0], Object.keys(projectedPaymentByCurrency)[0])}</p>
+                    </>
                   ) : (
-                    <div className="text-sm text-slate-500">
-                      <span>Min Due: </span>
-                      {Object.entries(minPaymentByCurrency).map(([currency, amount], idx) => (
-                        <span key={currency}>
-                          {idx > 0 && ', '}
-                          {formatCurrency(amount, currency)}
-                        </span>
-                      ))}
-                    </div>
+                    <>
+                      <div className="text-sm text-slate-500">
+                        <span>Min Due: </span>
+                        {Object.entries(minPaymentByCurrency).map(([currency, amount], idx) => (
+                          <span key={currency}>
+                            {idx > 0 && ', '}
+                            {formatCurrency(amount, currency)}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="text-sm text-blue-600 font-medium">
+                        <span>Projected: </span>
+                        {Object.entries(projectedPaymentByCurrency).map(([currency, amount], idx) => (
+                          <span key={currency}>
+                            {idx > 0 && ', '}
+                            {formatCurrency(amount, currency)}
+                          </span>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -367,7 +388,7 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-slate-500">Projected Payment:</span>
-                            <span className="font-medium text-blue-600">{formatCurrency(loan.monthly_payment, loan.currency)}/mo</span>
+                            <span className="font-medium text-blue-600">{formatCurrency(loan.projected_monthly_payment || loan.monthly_payment, loan.currency)}/mo</span>
                           </div>
                         </div>
                       </div>

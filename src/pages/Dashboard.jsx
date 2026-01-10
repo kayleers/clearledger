@@ -259,6 +259,7 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['credit-card'] });
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['all-deposits'] });
       setShowQuickAdd(false);
     }
   });
@@ -278,6 +279,7 @@ export default function Dashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['all-deposits'] });
       setShowQuickAdd(false);
     }
   });
@@ -310,6 +312,7 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['loan-payments'] });
       queryClient.invalidateQueries({ queryKey: ['mortgage-loans'] });
       queryClient.invalidateQueries({ queryKey: ['deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['all-deposits'] });
       setShowQuickAdd(false);
     }
   });

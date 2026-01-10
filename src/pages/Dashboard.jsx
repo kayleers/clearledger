@@ -411,7 +411,7 @@ export default function Dashboard() {
                             {section === 'cards' && cards.length > 0 && (
                               <div>
                                 <div className="flex items-center justify-between mb-4">
-                                  <h2 className="text-lg font-semibold text-slate-800">Your Cards</h2>
+                                  <h2 className="text-xl font-bold text-slate-800">Your Cards</h2>
                                   {!showAddCard && (
                                     <Button
                                       size="sm"

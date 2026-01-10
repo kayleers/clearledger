@@ -25,6 +25,10 @@ import PayoffChart from './PayoffChart';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
 
+const getCurrencySymbol = (currency = 'USD') => {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(0).replace(/[\d.,\s]/g, '');
+};
+
 export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
   const [paymentType, setPaymentType] = useState('fixed');
   const [cardPayments, setCardPayments] = useState({});
@@ -643,7 +647,7 @@ function CardFixedInput({ card, payment, onPaymentChange }) {
         <Label className="text-xs">Monthly Payment</Label>
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(card.currency)}</span>
             <Input
               type="number"
               value={payment}
@@ -679,7 +683,7 @@ function LoanFixedInput({ loan, payment, onPaymentChange }) {
         <Label className="text-xs">Monthly Payment</Label>
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(loan.currency)}</span>
             <Input
               type="number"
               value={payment}
@@ -733,7 +737,7 @@ function CardVariableInput({ card, variablePayments, defaultPayment, onVariableP
       <div className="mb-3">
         <Label className="text-sm font-medium text-slate-700 mb-2 block">Default Monthly Payment</Label>
         <div className="relative max-w-xs">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(card.currency)}</span>
           <Input
             type="number"
             step="1"
@@ -784,7 +788,7 @@ function CardVariableInput({ card, variablePayments, defaultPayment, onVariableP
                   )}
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{getCurrencySymbol(card.currency)}</span>
                   <Input
                     type="text"
                     placeholder={displayDefault}
@@ -847,7 +851,7 @@ function LoanVariableInput({ loan, variablePayments, defaultPayment, onVariableP
       <div className="mb-3">
         <Label className="text-sm font-medium text-slate-700 mb-2 block">Default Monthly Payment</Label>
         <div className="relative max-w-xs">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(loan.currency)}</span>
           <Input
             type="number"
             step="1"
@@ -898,7 +902,7 @@ function LoanVariableInput({ loan, variablePayments, defaultPayment, onVariableP
                   )}
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{getCurrencySymbol(loan.currency)}</span>
                   <Input
                     type="text"
                     placeholder={displayDefault}

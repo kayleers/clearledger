@@ -23,7 +23,7 @@ import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['cards', 'banks', 'bills', 'loans']);
+  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'banks', 'bills', 'loans']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(true);
@@ -121,12 +121,18 @@ export default function Dashboard() {
       try {
         const user = await base44.auth.me();
         if (user.section_order) {
-          // Filter out simulator and calendar, ensure cards is included
+          // Filter out simulator and calendar, ensure summary and cards are included
           let newOrder = user.section_order.filter(s => s !== 'simulator' && s !== 'calendar');
           let updated = false;
 
+          if (!newOrder.includes('summary')) {
+            newOrder = ['summary', ...newOrder];
+            updated = true;
+          }
+
           if (!newOrder.includes('cards')) {
-            newOrder = ['cards', ...newOrder];
+            const summaryIndex = newOrder.indexOf('summary');
+            newOrder.splice(summaryIndex + 1, 0, 'cards');
             updated = true;
           }
 
@@ -326,18 +332,6 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* Summary */}
-            {cards.length > 0 && (
-              <div className="mb-6">
-                <DashboardSummary 
-                  cards={cards} 
-                  bankAccounts={bankAccounts}
-                  recurringBills={recurringBills}
-                  mortgageLoans={mortgageLoans}
-                />
-              </div>
-            )}
-
             {/* Add Card Form */}
             <AnimatePresence>
               {showAddCard && (
@@ -438,6 +432,14 @@ export default function Dashboard() {
                               opacity: snapshot.isDragging ? 0.8 : 1,
                             }}
                           >
+                            {section === 'summary' && cards.length > 0 && (
+                              <DashboardSummary 
+                                cards={cards} 
+                                bankAccounts={bankAccounts}
+                                recurringBills={recurringBills}
+                                mortgageLoans={mortgageLoans}
+                              />
+                            )}
                             {section === 'cards' && cards.length > 0 && (
                               <div>
                                 <div className="flex items-center justify-between mb-4">

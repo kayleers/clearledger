@@ -208,6 +208,7 @@ export default function Dashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['all-deposits'] });
       queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
       setShowQuickAdd(false);
     }
@@ -225,6 +226,7 @@ export default function Dashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['all-deposits'] });
       queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
       setShowQuickAdd(false);
     }

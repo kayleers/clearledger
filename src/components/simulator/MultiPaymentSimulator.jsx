@@ -904,7 +904,7 @@ function CardVariableInput({ card, variablePayments, defaultPayment, onVariableP
             if (scenario && scenario.months !== Infinity) {
               isPaidOff = index >= scenario.months;
             }
-            const displayDefault = isPaidOff ? "0" : (defaultPayment || "0");
+            const displayDefault = isPaidOff ? "0" : (defaultPayment || (card.projected_monthly_payment || card.min_payment).toString());
             
             // Get predicted balance for this month from breakdown
             const predictedBalance = scenario?.breakdown?.[index]?.balance;

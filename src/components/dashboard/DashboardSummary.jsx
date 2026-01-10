@@ -70,6 +70,8 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
 
   return (
     <div className="space-y-4">
+      <h2 className="text-xl font-bold text-slate-800">Your Overview</h2>
+      
       {/* Expandable Cards Details */}
       <Collapsible open={expandedCards} onOpenChange={setExpandedCards}>
         <Card className="border-blue-200">

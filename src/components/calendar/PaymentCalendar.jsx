@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List, Lock } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import { useAccessControl } from '@/components/access/useAccessControl';
@@ -247,11 +248,23 @@ export default function PaymentCalendar() {
                 </div>
               )}
               <div className="space-y-0.5">
-                {items.slice(0, 3).map((item, idx) => (
-                  <div key={idx} className="text-[10px] truncate text-slate-600">
-                    {item.name}
-                  </div>
-                ))}
+                <TooltipProvider>
+                  {items.slice(0, 3).map((item, idx) => (
+                    <Tooltip key={idx}>
+                      <TooltipTrigger asChild>
+                        <div className="text-[10px] truncate text-slate-600 cursor-help">
+                          {item.name}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-medium">{item.name}</p>
+                        <p className={item.type === 'deposit' ? 'text-green-600' : 'text-red-600'}>
+                          {item.type === 'deposit' ? '+' : '-'}{formatCurrency(item.amount, item.currency)}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </TooltipProvider>
                 {items.length > 3 && (
                   <div className="text-[10px] text-slate-400">+{items.length - 3} more</div>
                 )}

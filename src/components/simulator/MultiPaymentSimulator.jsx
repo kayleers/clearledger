@@ -674,8 +674,30 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
                       </div>
                       <div className="text-sm text-slate-600 space-y-1">
                         <p><strong>Payoff Time:</strong> {formatMonthsToYears(longestMonths)}</p>
-                        <p><strong>Total Interest:</strong> {formatCurrency(totalInterest)}</p>
-                        <p><strong>Interest Saved:</strong> {formatCurrency(interestSaved)}</p>
+                        <div>
+                          <strong>Total Interest:</strong>
+                          {Object.keys(interestByCurrency).length === 1 ? (
+                            <span> {formatCurrency(Object.values(interestByCurrency)[0], Object.keys(interestByCurrency)[0])}</span>
+                          ) : (
+                            <div className="ml-4 mt-1 space-y-0.5">
+                              {Object.entries(interestByCurrency).map(([currency, amount]) => (
+                                <p key={currency}>{formatCurrency(amount, currency)}</p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <strong>Interest Saved:</strong>
+                          {Object.keys(interestSavedByCurrency).length === 1 ? (
+                            <span> {formatCurrency(Object.values(interestSavedByCurrency)[0], Object.keys(interestSavedByCurrency)[0])}</span>
+                          ) : (
+                            <div className="ml-4 mt-1 space-y-0.5">
+                              {Object.entries(interestSavedByCurrency).map(([currency, amount]) => (
+                                <p key={currency}>{formatCurrency(amount, currency)}</p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <Button 
                         onClick={handleSaveScenario}

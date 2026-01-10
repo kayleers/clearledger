@@ -54,6 +54,28 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
   const totalMinPayment = cards.reduce((sum, card) => 
     sum + calculateMinimumPayment(card.min_payment, card.balance), 0);
 
+  // Group by currency
+  const minPaymentByCurrency = cards.reduce((acc, card) => {
+    const curr = card.currency || 'USD';
+    if (!acc[curr]) acc[curr] = 0;
+    acc[curr] += calculateMinimumPayment(card.min_payment, card.balance);
+    return acc;
+  }, {});
+
+  const monthlyBillsByCurrency = recurringBills.filter(b => b.frequency === 'monthly').reduce((acc, bill) => {
+    const curr = bill.currency || 'USD';
+    if (!acc[curr]) acc[curr] = 0;
+    acc[curr] += bill.amount;
+    return acc;
+  }, {});
+
+  const totalLoansByCurrency = mortgageLoans.reduce((acc, loan) => {
+    const curr = loan.currency || 'USD';
+    if (!acc[curr]) acc[curr] = 0;
+    acc[curr] += loan.current_balance;
+    return acc;
+  }, {});
+
   const getUtilizationMessage = () => {
     if (totalUtilization <= 30) {
       return { text: 'Great! Your credit usage is healthy', icon: CheckCircle, color: 'text-emerald-600' };
@@ -83,7 +105,19 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-slate-900">{cards.length} Credit Cards</p>
-                  <p className="text-sm text-slate-500">Min Due: {formatCurrency(totalMinPayment)}</p>
+                  {Object.keys(minPaymentByCurrency).length === 1 ? (
+                    <p className="text-sm text-slate-500">Min Due: {formatCurrency(Object.values(minPaymentByCurrency)[0], Object.keys(minPaymentByCurrency)[0])}</p>
+                  ) : (
+                    <div className="text-sm text-slate-500">
+                      <span>Min Due: </span>
+                      {Object.entries(minPaymentByCurrency).map(([currency, amount], idx) => (
+                        <span key={currency}>
+                          {idx > 0 && ', '}
+                          {formatCurrency(amount, currency)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               {expandedCards ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
@@ -180,7 +214,19 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-slate-900">{recurringBills.length} Recurring Bills</p>
-                    <p className="text-sm text-slate-500">Monthly: {formatCurrency(recurringBills.filter(b => b.frequency === 'monthly').reduce((sum, b) => sum + b.amount, 0))}</p>
+                    {Object.keys(monthlyBillsByCurrency).length === 1 ? (
+                      <p className="text-sm text-slate-500">Monthly: {formatCurrency(Object.values(monthlyBillsByCurrency)[0], Object.keys(monthlyBillsByCurrency)[0])}</p>
+                    ) : (
+                      <div className="text-sm text-slate-500">
+                        <span>Monthly: </span>
+                        {Object.entries(monthlyBillsByCurrency).map(([currency, amount], idx) => (
+                          <span key={currency}>
+                            {idx > 0 && ', '}
+                            {formatCurrency(amount, currency)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 {expandedBills ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
@@ -221,7 +267,19 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-slate-900">{mortgageLoans.length} Loans</p>
-                    <p className="text-sm text-slate-500">Total: {formatCurrency(mortgageLoans.reduce((sum, l) => sum + l.current_balance, 0))}</p>
+                    {Object.keys(totalLoansByCurrency).length === 1 ? (
+                      <p className="text-sm text-slate-500">Total: {formatCurrency(Object.values(totalLoansByCurrency)[0], Object.keys(totalLoansByCurrency)[0])}</p>
+                    ) : (
+                      <div className="text-sm text-slate-500">
+                        <span>Total: </span>
+                        {Object.entries(totalLoansByCurrency).map(([currency, amount], idx) => (
+                          <span key={currency}>
+                            {idx > 0 && ', '}
+                            {formatCurrency(amount, currency)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 {expandedLoans ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}

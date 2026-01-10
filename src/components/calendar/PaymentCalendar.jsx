@@ -86,12 +86,13 @@ export default function PaymentCalendar() {
     // Credit card payments
     cards.forEach(card => {
       if (card.due_date === day) {
-        const minPayment = Math.min(card.min_payment || 0, card.balance);
+        const projectedPayment = card.projected_monthly_payment || card.min_payment || 0;
+        const paymentAmount = Math.min(projectedPayment, card.balance);
         items.push({
           type: 'card_payment',
           id: card.id,
           name: card.name,
-          amount: minPayment,
+          amount: paymentAmount,
           currency: card.currency,
           accountId: card.bank_account_id,
           accountName: getBankAccountName(card.bank_account_id)
@@ -118,11 +119,12 @@ export default function PaymentCalendar() {
     // Loan payments
     loans.forEach(loan => {
       if (loan.payment_due_date === day) {
+        const projectedPayment = loan.projected_monthly_payment || loan.monthly_payment;
         items.push({
           type: 'loan_payment',
           id: loan.id,
           name: loan.name,
-          amount: loan.monthly_payment,
+          amount: projectedPayment,
           currency: loan.currency,
           accountId: loan.bank_account_id,
           accountName: getBankAccountName(loan.bank_account_id)
@@ -343,7 +345,8 @@ export default function PaymentCalendar() {
                     <CollapsibleContent>
                       <div className="pl-12 pr-3 py-2 text-sm text-slate-600">
                         <p><strong>Account:</strong> {item.accountName || 'Not specified'}</p>
-                        {item.type === 'card_payment' && <p className="text-xs text-slate-500 mt-1">Minimum payment due</p>}
+                        {item.type === 'card_payment' && <p className="text-xs text-slate-500 mt-1">Projected payment</p>}
+                        {item.type === 'loan_payment' && <p className="text-xs text-slate-500 mt-1">Projected payment</p>}
                       </div>
                     </CollapsibleContent>
                   </Collapsible>

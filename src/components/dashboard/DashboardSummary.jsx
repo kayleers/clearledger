@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -54,6 +56,13 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
   const totalMinPayment = cards.reduce((sum, card) => 
     sum + calculateMinimumPayment(card.min_payment, card.balance), 0);
 
+  // Fetch all deposits for bank accounts
+  const { data: allDeposits = [] } = useQuery({
+    queryKey: ['all-deposits'],
+    queryFn: () => base44.entities.Deposit.list(),
+    enabled: bankAccounts.length > 0
+  });
+
   // Group by currency
   const minPaymentByCurrency = cards.reduce((acc, card) => {
     const curr = card.currency || 'USD';
@@ -76,11 +85,17 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
     return acc;
   }, {});
 
+  // Calculate ongoing balance for bank accounts
   const totalBankBalanceByCurrency = bankAccounts.reduce((acc, account) => {
-    if (account.balance && account.balance !== 0) {
+    const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
+    const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
+    const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
+    const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
+    
+    if (ongoingBalance !== 0) {
       const curr = account.currency || 'USD';
       if (!acc[curr]) acc[curr] = 0;
-      acc[curr] += account.balance;
+      acc[curr] += ongoingBalance;
     }
     return acc;
   }, {});

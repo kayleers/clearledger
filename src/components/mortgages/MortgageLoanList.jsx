@@ -270,6 +270,49 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
         onOpenChange={setShowUpgradeDialog}
         context="loans"
       />
+
+      {/* Edit Projected Payment Dialog */}
+      <Dialog open={!!editingLoan} onOpenChange={() => setEditingLoan(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Projected Payment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Projected Monthly Payment</Label>
+              <div className="relative mt-2">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder={editingLoan?.monthly_payment.toString()}
+                  value={projectedPayment}
+                  onChange={(e) => setProjectedPayment(e.target.value)}
+                  className="pl-7"
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Minimum: {editingLoan && formatCurrency(editingLoan.monthly_payment, editingLoan.currency)}
+              </p>
+            </div>
+            <Button
+              onClick={() => {
+                if (editingLoan && projectedPayment) {
+                  updateLoanMutation.mutate({
+                    id: editingLoan.id,
+                    data: { projected_monthly_payment: parseFloat(projectedPayment) }
+                  });
+                  setProjectedPayment('');
+                  setEditingLoan(null);
+                }
+              }}
+              className="w-full"
+            >
+              Save
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

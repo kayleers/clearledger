@@ -883,7 +883,7 @@ function LoanVariableInput({ loan, variablePayments, defaultPayment, onVariableP
                   {monthNames[index]}
                   {!payment.amount && !isPaidOff && defaultPayment && (
                     <span className="text-slate-400 font-normal ml-1">
-                      (${defaultPayment})
+                      ({formatCurrency(parseFloat(defaultPayment) || 0, loan.currency)})
                     </span>
                   )}
                   {isPaidOff && (

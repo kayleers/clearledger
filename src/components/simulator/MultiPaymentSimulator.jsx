@@ -172,6 +172,26 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
     return grouped;
   }, [allScenarios]);
 
+  // Group minimum payments by currency
+  const minPaymentByCurrency = useMemo(() => {
+    const grouped = {};
+    cards.forEach(card => {
+      const curr = card.currency || 'USD';
+      if (!grouped[curr]) {
+        grouped[curr] = 0;
+      }
+      grouped[curr] += card.min_payment || 0;
+    });
+    loans.forEach(loan => {
+      const curr = loan.currency || 'USD';
+      if (!grouped[curr]) {
+        grouped[curr] = 0;
+      }
+      grouped[curr] += loan.monthly_payment || 0;
+    });
+    return grouped;
+  }, [cards, loans]);
+
   // Calculate minimum payment scenario
   const minScenarios = useMemo(() => {
     const scenarios = [];

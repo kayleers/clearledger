@@ -237,12 +237,12 @@ export default function PaymentCalendar() {
           {items.length > 0 && (
             <div className="space-y-1">
               {totalPayments > 0 && (
-                <div className="text-xs text-red-600 font-medium">
+                <div className="text-[10px] text-red-600 font-medium">
                   -{formatCurrency(totalPayments)}
                 </div>
               )}
               {totalDeposits > 0 && (
-                <div className="text-xs text-green-600 font-medium">
+                <div className="text-[10px] text-green-600 font-medium">
                   +{formatCurrency(totalDeposits)}
                 </div>
               )}

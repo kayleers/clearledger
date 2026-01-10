@@ -10,6 +10,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
+import TotalDebtCard from '@/components/dashboard/TotalDebtCard';
 import CreditCardItem from '@/components/cards/CreditCardItem';
 import AddCardForm from '@/components/cards/AddCardForm';
 import BankAccountList from '@/components/bankaccounts/BankAccountList';
@@ -23,7 +24,7 @@ import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'loans']);
+  const [sectionOrder, setSectionOrder] = useState(['totalDebt', 'summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'loans']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(true);
@@ -124,8 +125,14 @@ export default function Dashboard() {
           let newOrder = user.section_order;
           let updated = false;
 
+          if (!newOrder.includes('totalDebt')) {
+            newOrder = ['totalDebt', ...newOrder];
+            updated = true;
+          }
+
           if (!newOrder.includes('summary')) {
-            newOrder = ['summary', ...newOrder];
+            const totalDebtIndex = newOrder.indexOf('totalDebt');
+            newOrder.splice(totalDebtIndex + 1, 0, 'summary');
             updated = true;
           }
 
@@ -400,6 +407,9 @@ export default function Dashboard() {
                               opacity: snapshot.isDragging ? 0.8 : 1,
                             }}
                           >
+                            {section === 'totalDebt' && cards.length > 0 && (
+                              <TotalDebtCard cards={cards} />
+                            )}
                             {section === 'summary' && cards.length > 0 && (
                               <DashboardSummary 
                                 cards={cards} 

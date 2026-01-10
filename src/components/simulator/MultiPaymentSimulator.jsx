@@ -322,10 +322,23 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
                 <p className="text-xs text-purple-700 mb-1">Total Debt</p>
                 <p className="text-xl font-bold text-purple-900">{formatCurrency(totalBalance)}</p>
               </div>
-              <div className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl">
-                <p className="text-xs text-amber-700 mb-1">Total Min Payment</p>
-                <p className="text-xl font-bold text-amber-900">{formatCurrency(totalMinPayment)}</p>
-              </div>
+              {Object.keys(minPaymentByCurrency).length === 1 ? (
+                <div className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl">
+                  <p className="text-xs text-amber-700 mb-1">Total Min Payment</p>
+                  <p className="text-xl font-bold text-amber-900">{formatCurrency(Object.values(minPaymentByCurrency)[0], Object.keys(minPaymentByCurrency)[0])}</p>
+                </div>
+              ) : (
+                <div className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl">
+                  <p className="text-xs text-amber-700 mb-1 text-center">Total Min Payment</p>
+                  <div className="space-y-0.5">
+                    {Object.entries(minPaymentByCurrency).map(([currency, amount]) => (
+                      <p key={currency} className="text-base font-bold text-amber-900 text-center">
+                        {formatCurrency(amount, currency)}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Payment Type Tabs */}

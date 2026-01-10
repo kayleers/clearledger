@@ -231,24 +231,35 @@ export default function PaymentCalendar() {
 
     for (let day = 1; day <= daysInMonth; day++) {
       const items = getItemsForDay(day);
-      const totalPayments = items.filter(i => i.type !== 'deposit').reduce((sum, i) => sum + i.amount, 0);
-      const totalDeposits = items.filter(i => i.type === 'deposit').reduce((sum, i) => sum + i.amount, 0);
+      
+      // Group by currency
+      const paymentsByCurrency = items.filter(i => i.type !== 'deposit').reduce((acc, i) => {
+        const curr = i.currency || 'USD';
+        acc[curr] = (acc[curr] || 0) + i.amount;
+        return acc;
+      }, {});
+      
+      const depositsByCurrency = items.filter(i => i.type === 'deposit').reduce((acc, i) => {
+        const curr = i.currency || 'USD';
+        acc[curr] = (acc[curr] || 0) + i.amount;
+        return acc;
+      }, {});
 
       days.push(
         <div key={day} className="border border-slate-200 p-2 min-h-24 bg-white">
           <div className="font-semibold text-sm mb-1">{day}</div>
           {items.length > 0 && (
             <div className="space-y-1">
-              {totalPayments > 0 && (
-                <div className="text-[9px] text-red-600 font-medium">
-                  -{formatCurrency(totalPayments)}
+              {Object.entries(paymentsByCurrency).map(([currency, amount]) => (
+                <div key={`payment-${currency}`} className="text-[9px] text-red-600 font-medium">
+                  -{formatCurrency(amount, currency)}
                 </div>
-              )}
-              {totalDeposits > 0 && (
-                <div className="text-[9px] text-green-600 font-medium">
-                  +{formatCurrency(totalDeposits)}
+              ))}
+              {Object.entries(depositsByCurrency).map(([currency, amount]) => (
+                <div key={`deposit-${currency}`} className="text-[9px] text-green-600 font-medium">
+                  +{formatCurrency(amount, currency)}
                 </div>
-              )}
+              ))}
               <div className="space-y-0.5">
                 <TooltipProvider>
                   {items.slice(0, 3).map((item, idx) => (

@@ -8,9 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Building2, Plus, Edit2, Trash2, GripVertical } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { useQuery } from '@tanstack/react-query';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
+import { formatCurrency } from '@/components/utils/calculations';
 
 export default function BankAccountList({ bankAccounts = [] }) {
   const [showAddAccount, setShowAddAccount] = useState(false);
@@ -18,6 +20,20 @@ export default function BankAccountList({ bankAccounts = [] }) {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
+
+  // Fetch all deposits for calculating ongoing balance
+  const { data: allDeposits = [] } = useQuery({
+    queryKey: ['all-deposits'],
+    queryFn: () => base44.entities.Deposit.list(),
+    enabled: bankAccounts.length > 0
+  });
+
+  const getOngoingBalance = (account) => {
+    const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
+    const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
+    const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
+    return (account.balance || 0) + totalDeposits - totalWithdrawals;
+  };
 
   const createAccountMutation = useMutation({
     mutationFn: (data) => base44.entities.BankAccount.create(data),
@@ -112,7 +128,7 @@ export default function BankAccountList({ bankAccounts = [] }) {
                   <div>
                     <p className="font-semibold text-slate-800">{account.name}</p>
                     <div className="flex items-center gap-2 text-sm text-slate-500">
-                      <span>{account.currency}</span>
+                      <span className="font-medium text-slate-700">{formatCurrency(getOngoingBalance(account), account.currency)}</span>
                       {account.account_number && (
                         <>
                           <span>•</span>

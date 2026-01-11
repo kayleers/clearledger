@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [upgradeContext, setUpgradeContext] = useState('general');
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [editingCard, setEditingCard] = useState(null);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
 
@@ -73,6 +74,21 @@ export default function Dashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       setShowAddCard(false);
+    }
+  });
+
+  const updateCardMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.CreditCard.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+      setEditingCard(null);
+    }
+  });
+
+  const deleteCardMutation = useMutation({
+    mutationFn: (cardId) => base44.entities.CreditCard.delete(cardId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
     }
   });
 
@@ -365,9 +381,9 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* Add Card Form */}
+            {/* Add/Edit Card Form */}
             <AnimatePresence>
-              {showAddCard && (
+              {(showAddCard || editingCard) && (
                 <motion.div
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -375,9 +391,19 @@ export default function Dashboard() {
                   className="mb-6"
                 >
                   <AddCardForm
-                    onSubmit={(data) => createCardMutation.mutate(data)}
-                    onCancel={() => setShowAddCard(false)}
-                    isLoading={createCardMutation.isPending}
+                    card={editingCard}
+                    onSubmit={(data) => {
+                      if (editingCard) {
+                        updateCardMutation.mutate({ id: editingCard.id, data });
+                      } else {
+                        createCardMutation.mutate(data);
+                      }
+                    }}
+                    onCancel={() => {
+                      setShowAddCard(false);
+                      setEditingCard(null);
+                    }}
+                    isLoading={createCardMutation.isPending || updateCardMutation.isPending}
                   />
                 </motion.div>
               )}
@@ -473,7 +499,19 @@ export default function Dashboard() {
                                                   animate={{ opacity: 1, y: 0 }}
                                                   transition={{ delay: cardIndex * 0.1 }}
                                                 >
-                                                  <CreditCardItem card={card} isDragging={snapshot.isDragging} />
+                                                  <CreditCardItem 
+                                                    card={card} 
+                                                    isDragging={snapshot.isDragging}
+                                                    onEdit={(card) => {
+                                                      setEditingCard(card);
+                                                      setShowAddCard(false);
+                                                    }}
+                                                    onDelete={(card) => {
+                                                      if (window.confirm(`Delete ${card.name}?`)) {
+                                                        deleteCardMutation.mutate(card.id);
+                                                      }
+                                                    }}
+                                                  />
                                                 </motion.div>
                                               </div>
                                             )}

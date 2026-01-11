@@ -406,12 +406,22 @@ export default function Dashboard() {
               </div>
             )}
 
+            {/* Overview Section - Always Pinned at Top */}
+            <div className="mb-6">
+              <DashboardSummary 
+                cards={cards} 
+                bankAccounts={bankAccounts}
+                recurringBills={recurringBills}
+                mortgageLoans={mortgageLoans}
+              />
+            </div>
+
             {/* Draggable Sections */}
             <div className="mt-8">
               <Droppable droppableId="sections" type="section">
                 {(provided) => (
                   <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {sectionOrder.map((section, index) => (
+                    {sectionOrder.filter(s => s !== 'summary').map((section, index) => (
                       <Draggable key={section} draggableId={section} index={index} type="section">
                         {(provided, snapshot) => (
                           <div
@@ -423,15 +433,6 @@ export default function Dashboard() {
                               opacity: snapshot.isDragging ? 0.8 : 1,
                             }}
                           >
-
-                            {section === 'summary' && cards.length > 0 && (
-                              <DashboardSummary 
-                                cards={cards} 
-                                bankAccounts={bankAccounts}
-                                recurringBills={recurringBills}
-                                mortgageLoans={mortgageLoans}
-                              />
-                            )}
                             {section === 'cards' && cards.length > 0 && (
                               <Collapsible open={cardsExpanded} onOpenChange={setCardsExpanded}>
                                 <div className="flex items-center justify-between mb-4">

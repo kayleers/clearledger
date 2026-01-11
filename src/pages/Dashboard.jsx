@@ -89,13 +89,6 @@ export default function Dashboard() {
     }
   });
 
-  const deleteCardMutation = useMutation({
-    mutationFn: (cardId) => base44.entities.CreditCard.delete(cardId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
-    }
-  });
-
   const reorderSectionsMutation = useMutation({
     mutationFn: async (newOrder) => {
       await base44.auth.updateMe({ section_order: newOrder });
@@ -491,11 +484,7 @@ export default function Dashboard() {
                                                   animate={{ opacity: 1, y: 0 }}
                                                   transition={{ delay: cardIndex * 0.1 }}
                                                 >
-                                                  <CreditCardItem 
-                                                    card={card} 
-                                                    isDragging={snapshot.isDragging}
-                                                    onDelete={(cardId) => deleteCardMutation.mutate(cardId)}
-                                                  />
+                                                  <CreditCardItem card={card} isDragging={snapshot.isDragging} />
                                                 </motion.div>
                                               </div>
                                             )}

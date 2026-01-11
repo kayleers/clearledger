@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { CreditCard, ChevronRight, GripVertical, Zap, Calendar, Trash2 } from 'lucide-react';
+import { CreditCard, ChevronRight, GripVertical, Zap, Calendar } from 'lucide-react';
 import { 
   calculateUtilization, 
   calculateMinimumPayment,
@@ -23,7 +23,7 @@ const cardColors = {
   pink: 'from-pink-500 to-pink-700'
 };
 
-export default function CreditCardItem({ card, isDragging, onDelete }) {
+export default function CreditCardItem({ card, isDragging }) {
   const utilization = calculateUtilization(card.balance, card.credit_limit);
   const minPayment = calculateMinimumPayment(card.min_payment, card.balance);
   const gradient = cardColors[card.color] || cardColors.slate;
@@ -36,21 +36,8 @@ export default function CreditCardItem({ card, isDragging, onDelete }) {
           <GripVertical className="w-4 h-4 text-slate-500" />
         </div>
       </div>
-      <Card className={`overflow-hidden hover:shadow-lg transition-all duration-300 ${isDragging ? 'shadow-xl scale-105' : ''} relative`}>
-        {/* Delete Button */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            if (window.confirm(`Delete ${card.name}?`)) {
-              onDelete(card.id);
-            }
-          }}
-          className="absolute top-2 right-2 z-20 p-2 bg-red-500/90 hover:bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-
-        <Link to={createPageUrl(`CardDetail?id=${card.id}`)}>
+      <Link to={createPageUrl(`CardDetail?id=${card.id}`)}>
+        <Card className={`overflow-hidden hover:shadow-lg transition-all duration-300 ${isDragging ? 'shadow-xl scale-105' : ''}`}>
         {/* Card Header with Gradient */}
         <div className={`bg-gradient-to-r ${gradient} p-4 text-white`}>
           <div className="flex items-start justify-between">
@@ -145,8 +132,8 @@ export default function CreditCardItem({ card, isDragging, onDelete }) {
             </div>
           </div>
           </div>
-          </Link>
           </Card>
+          </Link>
           </div>
           );
           }

@@ -49,19 +49,14 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading }) {
   };
 
   return (
-    <Card className="border-0 shadow-xl">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-blue-600" />
-            {card ? 'Edit Credit Card' : 'Add Credit Card'}
-          </CardTitle>
-          <Button variant="ghost" size="icon" onClick={onCancel}>
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+          <CreditCard className="w-5 h-5 text-blue-600" />
+          {card ? 'Edit Credit Card' : 'Add Credit Card'}
+        </h2>
+      </div>
+      <div>
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Card Name */}
           <div className="space-y-2">
@@ -235,7 +230,7 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading }) {
             {isLoading ? (card ? 'Updating Card...' : 'Adding Card...') : (card ? 'Update Card' : 'Add Card')}
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </>
   );
 }

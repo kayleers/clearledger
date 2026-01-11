@@ -381,33 +381,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* Add/Edit Card Form */}
-            <AnimatePresence>
-              {(showAddCard || editingCard) && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="mb-6"
-                >
-                  <AddCardForm
-                    card={editingCard}
-                    onSubmit={(data) => {
-                      if (editingCard) {
-                        updateCardMutation.mutate({ id: editingCard.id, data });
-                      } else {
-                        createCardMutation.mutate(data);
-                      }
-                    }}
-                    onCancel={() => {
-                      setShowAddCard(false);
-                      setEditingCard(null);
-                    }}
-                    isLoading={createCardMutation.isPending || updateCardMutation.isPending}
-                  />
-                </motion.div>
-              )}
-              </AnimatePresence>
+
 
 
 
@@ -675,6 +649,32 @@ export default function Dashboard() {
             </Dialog>
           </>
         )}
+
+        {/* Add/Edit Card Dialog */}
+        <Dialog open={showAddCard || !!editingCard} onOpenChange={(open) => {
+          if (!open) {
+            setShowAddCard(false);
+            setEditingCard(null);
+          }
+        }}>
+          <DialogContent className="max-w-md">
+            <AddCardForm
+              card={editingCard}
+              onSubmit={(data) => {
+                if (editingCard) {
+                  updateCardMutation.mutate({ id: editingCard.id, data });
+                } else {
+                  createCardMutation.mutate(data);
+                }
+              }}
+              onCancel={() => {
+                setShowAddCard(false);
+                setEditingCard(null);
+              }}
+              isLoading={createCardMutation.isPending || updateCardMutation.isPending}
+            />
+          </DialogContent>
+        </Dialog>
 
         {/* Privacy Policy Dialog */}
         <Dialog open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy}>

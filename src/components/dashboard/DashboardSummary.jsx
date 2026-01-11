@@ -46,6 +46,7 @@ const BILL_CATEGORY_ICONS = {
 };
 
 export default function DashboardSummary({ cards, bankAccounts = [], recurringBills = [], mortgageLoans = [] }) {
+  const [overviewExpanded, setOverviewExpanded] = useState(true);
   const [expandedCards, setExpandedCards] = useState(false);
   const [expandedBills, setExpandedBills] = useState(false);
   const [expandedLoans, setExpandedLoans] = useState(false);
@@ -136,9 +137,20 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
   const Icon = utilizationMessage.icon;
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold text-slate-800">Your Overview</h2>
-      
+    <Collapsible open={overviewExpanded} onOpenChange={setOverviewExpanded}>
+      <div className="flex items-center justify-between mb-4">
+        <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+          <h2 className="text-xl font-bold text-slate-800">Your Overview</h2>
+          {overviewExpanded ? (
+            <ChevronUp className="w-5 h-5 text-slate-500" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-slate-500" />
+          )}
+        </CollapsibleTrigger>
+      </div>
+
+      <CollapsibleContent>
+        <div className="space-y-4">
       {/* Expandable Cards Details */}
       <Collapsible open={expandedCards} onOpenChange={setExpandedCards}>
         <Card className="border-blue-200">
@@ -436,8 +448,8 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
           </Card>
         </Collapsible>
       )}
-
-
-    </div>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

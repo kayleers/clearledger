@@ -29,6 +29,7 @@ export default function Dashboard() {
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(true);
   const [simulatorExpanded, setSimulatorExpanded] = useState(true);
+  const [cardsExpanded, setCardsExpanded] = useState(true);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [upgradeContext, setUpgradeContext] = useState('general');
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
@@ -435,9 +436,16 @@ export default function Dashboard() {
                               />
                             )}
                             {section === 'cards' && cards.length > 0 && (
-                              <div>
+                              <Collapsible open={cardsExpanded} onOpenChange={setCardsExpanded}>
                                 <div className="flex items-center justify-between mb-4">
-                                  <h2 className="text-xl font-bold text-slate-800">Your Cards</h2>
+                                  <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                                    <h2 className="text-xl font-bold text-slate-800">Your Cards</h2>
+                                    {cardsExpanded ? (
+                                      <ChevronUp className="w-5 h-5 text-slate-500" />
+                                    ) : (
+                                      <ChevronDown className="w-5 h-5 text-slate-500" />
+                                    )}
+                                  </CollapsibleTrigger>
                                   {!showAddCard && (
                                     <Button
                                       size="sm"
@@ -449,51 +457,53 @@ export default function Dashboard() {
                                     </Button>
                                   )}
                                 </div>
-                                <Droppable droppableId="cards" type="card">
-                                  {(provided) => (
-                                    <div 
-                                      {...provided.droppableProps} 
-                                      ref={provided.innerRef}
-                                      className="space-y-4"
-                                    >
-                                      {cards.map((card, cardIndex) => (
-                                        <Draggable key={card.id} draggableId={card.id} index={cardIndex} type="card">
-                                          {(provided, snapshot) => (
-                                            <div
-                                              ref={provided.innerRef}
-                                              {...provided.draggableProps}
-                                              {...provided.dragHandleProps}
-                                              style={{
-                                                ...provided.draggableProps.style,
-                                                opacity: snapshot.isDragging ? 0.9 : 1,
-                                              }}
-                                            >
-                                              <motion.div
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: cardIndex * 0.1 }}
+                                <CollapsibleContent>
+                                  <Droppable droppableId="cards" type="card">
+                                    {(provided) => (
+                                      <div 
+                                        {...provided.droppableProps} 
+                                        ref={provided.innerRef}
+                                        className="space-y-4"
+                                      >
+                                        {cards.map((card, cardIndex) => (
+                                          <Draggable key={card.id} draggableId={card.id} index={cardIndex} type="card">
+                                            {(provided, snapshot) => (
+                                              <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                                style={{
+                                                  ...provided.draggableProps.style,
+                                                  opacity: snapshot.isDragging ? 0.9 : 1,
+                                                }}
                                               >
-                                                <CreditCardItem card={card} isDragging={snapshot.isDragging} />
-                                              </motion.div>
-                                            </div>
-                                          )}
-                                        </Draggable>
-                                      ))}
-                                      {provided.placeholder}
-                                    </div>
+                                                <motion.div
+                                                  initial={{ opacity: 0, y: 20 }}
+                                                  animate={{ opacity: 1, y: 0 }}
+                                                  transition={{ delay: cardIndex * 0.1 }}
+                                                >
+                                                  <CreditCardItem card={card} isDragging={snapshot.isDragging} />
+                                                </motion.div>
+                                              </div>
+                                            )}
+                                          </Draggable>
+                                        ))}
+                                        {provided.placeholder}
+                                      </div>
                                     )}
-                                    </Droppable>
-                                    {!showAddCard && (
+                                  </Droppable>
+                                  {!showAddCard && (
                                     <Button
-                                    variant="outline"
-                                    className="w-full h-14 border-dashed border-2 text-slate-500 mt-4"
-                                    onClick={handleAddCardClick}
+                                      variant="outline"
+                                      className="w-full h-14 border-dashed border-2 text-slate-500 mt-4"
+                                      onClick={handleAddCardClick}
                                     >
-                                    <Plus className="w-5 h-5 mr-2" />
-                                    Add Another Card
+                                      <Plus className="w-5 h-5 mr-2" />
+                                      Add Another Card
                                     </Button>
-                                    )}
-                              </div>
+                                  )}
+                                </CollapsibleContent>
+                              </Collapsible>
                             )}
                             {section === 'calendar' && cards.length > 0 && (
                               <div>

@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Receipt, Plus, Edit2, Trash2, Calendar, GripVertical } from 'lucide-react';
+import { Receipt, Plus, Edit2, Trash2, Calendar, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { formatCurrency } from '@/components/utils/calculations';
 import { format } from 'date-fns';
@@ -35,6 +36,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
   const [showAddBill, setShowAddBill] = useState(false);
   const [editingBill, setEditingBill] = useState(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
 
@@ -95,19 +97,28 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Recurring Bills</h2>
-        <Button
-          size="sm"
-          onClick={handleAddBillClick}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Add Bill
-        </Button>
-      </div>
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+        <div className="flex items-center justify-between">
+          <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+            <h2 className="text-xl font-bold text-slate-800">Recurring Bills</h2>
+            {isExpanded ? (
+              <ChevronUp className="w-5 h-5 text-slate-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-slate-500" />
+            )}
+          </CollapsibleTrigger>
+          <Button
+            size="sm"
+            onClick={handleAddBillClick}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Bill
+          </Button>
+        </div>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
+        <CollapsibleContent>
+          <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="recurring-bills">
           {(provided) => (
             <div className="grid gap-3" {...provided.droppableProps} ref={provided.innerRef}>
@@ -209,6 +220,8 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
           </CardContent>
         </Card>
       )}
+        </CollapsibleContent>
+      </Collapsible>
 
       <Dialog open={showAddBill} onOpenChange={setShowAddBill}>
         <DialogContent>

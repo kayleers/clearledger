@@ -20,7 +20,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import { formatCurrency, formatMonthsToYears, calculatePayoffTimeline, calculateVariablePayoffTimeline } from '@/components/utils/calculations';
+import { formatCurrency, formatMonthsToYears, calculatePayoffTimeline, calculateVariablePayoffTimeline, calculateRequiredPayment } from '@/components/utils/calculations';
 import PayoffChart from './PayoffChart';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';

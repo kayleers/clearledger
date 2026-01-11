@@ -27,9 +27,9 @@ export default function Dashboard() {
   const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'loans', 'pricing', 'privacy']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
-  const [calendarExpanded, setCalendarExpanded] = useState(true);
-  const [simulatorExpanded, setSimulatorExpanded] = useState(true);
-  const [cardsExpanded, setCardsExpanded] = useState(true);
+  const [calendarExpanded, setCalendarExpanded] = useState(false);
+  const [simulatorExpanded, setSimulatorExpanded] = useState(false);
+  const [cardsExpanded, setCardsExpanded] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [upgradeContext, setUpgradeContext] = useState('general');
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);

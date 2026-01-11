@@ -450,7 +450,7 @@ export default function Dashboard() {
                                     <Button
                                       size="sm"
                                       onClick={handleAddCardClick}
-                                      className="rounded-full"
+                                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                                     >
                                       <Plus className="w-4 h-4 mr-1" />
                                       Add Card

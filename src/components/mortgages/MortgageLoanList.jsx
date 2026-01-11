@@ -40,7 +40,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
   const [editingProjected, setEditingProjected] = useState(null);
   const [projectedPayment, setProjectedPayment] = useState('');
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
 

@@ -36,7 +36,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [] }) {
   const [showAddBill, setShowAddBill] = useState(false);
   const [editingBill, setEditingBill] = useState(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
 

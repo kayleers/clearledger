@@ -19,7 +19,7 @@ export default function BankAccountList({ bankAccounts = [] }) {
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
 

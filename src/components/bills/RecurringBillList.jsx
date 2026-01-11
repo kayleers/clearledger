@@ -462,13 +462,12 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
         </div>
       )}
       <div className="space-y-2">
-        <Label htmlFor="billAccount">Bank Account</Label>
+        <Label htmlFor="billAccount">Bank Account (Optional)</Label>
         <select
           id="billAccount"
           value={formData.bank_account_id}
           onChange={(e) => setFormData({ ...formData, bank_account_id: e.target.value })}
           className="w-full h-10 px-3 rounded-md border border-slate-200"
-          required
         >
           <option value="">Select account</option>
           {bankAccounts.map(account => (

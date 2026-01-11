@@ -103,7 +103,7 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
               </div>
             )}
             <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-              <h2 className="text-xl font-bold text-lime-400">Bank Accounts</h2>
+              <h2 className="text-xl font-bold text-emerald-400">Bank Accounts</h2>
               {isExpanded ? (
                 <ChevronUp className="w-5 h-5 text-slate-500" />
               ) : (

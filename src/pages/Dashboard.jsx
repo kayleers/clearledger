@@ -89,6 +89,13 @@ export default function Dashboard() {
     }
   });
 
+  const deleteCardMutation = useMutation({
+    mutationFn: (cardId) => base44.entities.CreditCard.delete(cardId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+    }
+  });
+
   const reorderSectionsMutation = useMutation({
     mutationFn: async (newOrder) => {
       await base44.auth.updateMe({ section_order: newOrder });
@@ -348,8 +355,8 @@ export default function Dashboard() {
         {/* Header */}
         <header className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-emerald-400 drop-shadow-lg">ClearLedger</h1>
-            <p className="text-emerald-400">Private bill & balance tracking. Smarter payment planning.</p>
+            <h1 className="text-2xl font-bold text-white drop-shadow-lg">ClearLedger</h1>
+            <p className="text-slate-200">Private bill & balance tracking. Smarter payment planning.</p>
           </div>
           <img 
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/7335a5ce2_WhatsAppImage2026-01-08at73945PM.jpeg" 
@@ -383,24 +390,26 @@ export default function Dashboard() {
               )}
               </AnimatePresence>
 
-
-
-            {/* Overview Section - Always Pinned at Top */}
-            <div className="mb-6">
-              <DashboardSummary 
-                cards={cards} 
-                bankAccounts={bankAccounts}
-                recurringBills={recurringBills}
-                mortgageLoans={mortgageLoans}
-              />
-            </div>
-
-            {/* Empty State Message */}
-            {cards.length === 0 && bankAccounts.length === 0 && recurringBills.length === 0 && mortgageLoans.length === 0 && (
-              <div className="mb-6 text-center py-8 bg-white/10 rounded-lg border border-white/20">
-                <p className="text-white/80 text-sm">
-                  Add your first credit card, bank account, loan, or recurring bill to start tracking your finances
-                </p>
+              {/* Empty State for Cards */}
+            {cards.length === 0 && (
+              <div className="mb-6">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-12 bg-white rounded-2xl border-2 border-dashed border-slate-200"
+                >
+                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <CreditCard className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <h3 className="font-semibold text-slate-800 mb-2">Add Your First Card</h3>
+                  <p className="text-slate-500 text-sm mb-4 max-w-xs mx-auto">
+                    Start tracking your credit card debt and create a plan to pay it off
+                  </p>
+                  <Button onClick={handleAddCardClick}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Credit Card
+                  </Button>
+                </motion.div>
               </div>
             )}
 
@@ -409,7 +418,7 @@ export default function Dashboard() {
               <Droppable droppableId="sections" type="section">
                 {(provided) => (
                   <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {sectionOrder.filter(s => s !== 'summary').map((section, index) => (
+                    {sectionOrder.map((section, index) => (
                       <Draggable key={section} draggableId={section} index={index} type="section">
                         {(provided, snapshot) => (
                           <div
@@ -421,7 +430,16 @@ export default function Dashboard() {
                               opacity: snapshot.isDragging ? 0.8 : 1,
                             }}
                           >
-                            {section === 'cards' && (
+
+                            {section === 'summary' && cards.length > 0 && (
+                              <DashboardSummary 
+                                cards={cards} 
+                                bankAccounts={bankAccounts}
+                                recurringBills={recurringBills}
+                                mortgageLoans={mortgageLoans}
+                              />
+                            )}
+                            {section === 'cards' && cards.length > 0 && (
                               <Collapsible open={cardsExpanded} onOpenChange={setCardsExpanded}>
                                 <div className="flex items-center justify-between mb-4">
                                   <div className="flex items-center gap-2">
@@ -429,7 +447,7 @@ export default function Dashboard() {
                                       <GripVertical className="w-5 h-5 text-slate-400" />
                                     </div>
                                     <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                      <h2 className="text-xl font-bold text-emerald-400">Credit Cards</h2>
+                                      <h2 className="text-xl font-bold text-lime-400">Credit Cards</h2>
                                       {cardsExpanded ? (
                                         <ChevronUp className="w-5 h-5 text-slate-500" />
                                       ) : (
@@ -473,7 +491,11 @@ export default function Dashboard() {
                                                   animate={{ opacity: 1, y: 0 }}
                                                   transition={{ delay: cardIndex * 0.1 }}
                                                 >
-                                                  <CreditCardItem card={card} isDragging={snapshot.isDragging} />
+                                                  <CreditCardItem 
+                                                    card={card} 
+                                                    isDragging={snapshot.isDragging}
+                                                    onDelete={(cardId) => deleteCardMutation.mutate(cardId)}
+                                                  />
                                                 </motion.div>
                                               </div>
                                             )}
@@ -501,7 +523,7 @@ export default function Dashboard() {
                                         </CollapsibleContent>
                                         </Collapsible>
                                         )}
-                            {section === 'calendar' && (
+                            {section === 'calendar' && cards.length > 0 && (
                               <Collapsible open={calendarExpanded} onOpenChange={setCalendarExpanded}>
                                 <div className="flex items-center justify-between mb-4">
                                   <div className="flex items-center gap-2">
@@ -509,7 +531,7 @@ export default function Dashboard() {
                                       <GripVertical className="w-5 h-5 text-slate-400" />
                                     </div>
                                     <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                      <h2 className="text-xl font-bold text-emerald-400">Payment Schedule</h2>
+                                      <h2 className="text-xl font-bold text-lime-400">Payment Schedule</h2>
                                       {calendarExpanded ? (
                                         <ChevronUp className="w-5 h-5 text-slate-500" />
                                       ) : (
@@ -525,7 +547,7 @@ export default function Dashboard() {
                                 </CollapsibleContent>
                               </Collapsible>
                             )}
-                            {section === 'simulator' && (
+                            {section === 'simulator' && cards.length > 0 && (
                               <Collapsible open={simulatorExpanded} onOpenChange={setSimulatorExpanded}>
                                 <div className="flex items-center justify-between mb-4">
                                   <div className="flex items-center gap-2">
@@ -533,7 +555,7 @@ export default function Dashboard() {
                                       <GripVertical className="w-5 h-5 text-slate-400" />
                                     </div>
                                     <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                      <h2 className="text-xl font-bold text-emerald-400">Payment Simulator</h2>
+                                      <h2 className="text-xl font-bold text-lime-400">Payment Simulator</h2>
                                       {simulatorExpanded ? (
                                         <ChevronUp className="w-5 h-5 text-slate-500" />
                                       ) : (

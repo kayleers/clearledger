@@ -383,28 +383,7 @@ export default function Dashboard() {
               )}
               </AnimatePresence>
 
-              {/* Empty State for Cards */}
-            {cards.length === 0 && (
-              <div className="mb-6">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-12 bg-white rounded-2xl border-2 border-dashed border-slate-200"
-                >
-                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <CreditCard className="w-8 h-8 text-blue-600" />
-                  </div>
-                  <h3 className="font-semibold text-slate-800 mb-2">Add Your First Card</h3>
-                  <p className="text-slate-500 text-sm mb-4 max-w-xs mx-auto">
-                    Start tracking your credit card debt and create a plan to pay it off
-                  </p>
-                  <Button onClick={handleAddCardClick}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Credit Card
-                  </Button>
-                </motion.div>
-              </div>
-            )}
+
 
             {/* Overview Section - Always Pinned at Top */}
             <div className="mb-6">

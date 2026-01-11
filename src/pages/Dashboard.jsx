@@ -348,7 +348,7 @@ export default function Dashboard() {
         {/* Header */}
         <header className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-emerald-400 drop-shadow-lg">ClearLedger</h1>
+            <h1 className="text-3xl font-bold text-emerald-400 drop-shadow-lg">ClearLedger</h1>
             <p className="text-white">Private bill & balance tracking. Smarter payment planning.</p>
           </div>
           <img 

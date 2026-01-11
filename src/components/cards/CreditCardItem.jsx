@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { CreditCard, ChevronRight, GripVertical, Zap, Calendar } from 'lucide-react';
+import { CreditCard, ChevronRight, GripVertical, Zap, Calendar, Pencil, Trash2 } from 'lucide-react';
 import { 
   calculateUtilization, 
   calculateMinimumPayment,
@@ -23,7 +23,7 @@ const cardColors = {
   pink: 'from-pink-500 to-pink-700'
 };
 
-export default function CreditCardItem({ card, isDragging }) {
+export default function CreditCardItem({ card, isDragging, onEdit, onDelete }) {
   const utilization = calculateUtilization(card.balance, card.credit_limit);
   const minPayment = calculateMinimumPayment(card.min_payment, card.balance);
   const gradient = cardColors[card.color] || cardColors.slate;
@@ -52,7 +52,27 @@ export default function CreditCardItem({ card, isDragging }) {
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onEdit?.(card);
+                }}
+                className="p-1.5 hover:bg-white/20 rounded transition-colors"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onDelete?.(card);
+                }}
+                className="p-1.5 hover:bg-white/20 rounded transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <ChevronRight className="w-5 h-5 opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+            </div>
           </div>
         </div>
 

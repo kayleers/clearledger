@@ -343,13 +343,13 @@ export default function Dashboard() {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800">
         <div className="max-w-lg mx-auto px-4 py-6 pb-24 relative z-0">
         {/* Header */}
         <header className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">ClearLedger</h1>
-            <p className="text-slate-500">Private bill & balance tracking. Smarter payment planning.</p>
+            <h1 className="text-2xl font-bold text-white drop-shadow-lg">ClearLedger</h1>
+            <p className="text-slate-200">Private bill & balance tracking. Smarter payment planning.</p>
           </div>
           <img 
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/7335a5ce2_WhatsAppImage2026-01-08at73945PM.jpeg" 

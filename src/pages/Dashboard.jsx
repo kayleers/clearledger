@@ -437,7 +437,7 @@ export default function Dashboard() {
                               <Collapsible open={cardsExpanded} onOpenChange={setCardsExpanded}>
                                 <div className="flex items-center justify-between mb-4">
                                   <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                    <h2 className="text-xl font-bold text-slate-800">Your Cards</h2>
+                                    <h2 className="text-xl font-bold text-slate-800">Credit Cards</h2>
                                     {cardsExpanded ? (
                                       <ChevronUp className="w-5 h-5 text-slate-500" />
                                     ) : (

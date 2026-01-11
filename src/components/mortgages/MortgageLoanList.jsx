@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Home, Plus, Edit2, Trash2, TrendingDown, GripVertical } from 'lucide-react';
+import { Home, Plus, Edit2, Trash2, TrendingDown, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatCurrency } from '@/components/utils/calculations';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 import { useAccessControl } from '@/components/access/useAccessControl';
@@ -39,6 +40,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
   const [editingProjected, setEditingProjected] = useState(null);
   const [projectedPayment, setProjectedPayment] = useState('');
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
 
@@ -104,19 +106,28 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Mortgages & Loans</h2>
-        <Button
-          size="sm"
-          onClick={handleAddLoanClick}
-          className="bg-indigo-600 hover:bg-indigo-700"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Add Loan
-        </Button>
-      </div>
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+        <div className="flex items-center justify-between">
+          <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+            <h2 className="text-xl font-bold text-slate-800">Mortgages & Loans</h2>
+            {isExpanded ? (
+              <ChevronUp className="w-5 h-5 text-slate-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-slate-500" />
+            )}
+          </CollapsibleTrigger>
+          <Button
+            size="sm"
+            onClick={handleAddLoanClick}
+            className="bg-indigo-600 hover:bg-indigo-700"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Loan
+          </Button>
+        </div>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
+        <CollapsibleContent>
+          <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="mortgage-loans">
           {(provided) => (
             <div className="grid gap-3" {...provided.droppableProps} ref={provided.innerRef}>
@@ -262,6 +273,8 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
           </CardContent>
         </Card>
       )}
+        </CollapsibleContent>
+      </Collapsible>
 
       <Dialog open={showAddLoan} onOpenChange={setShowAddLoan}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">

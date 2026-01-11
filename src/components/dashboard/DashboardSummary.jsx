@@ -323,19 +323,21 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
             <CollapsibleContent>
               <div className="px-4 pb-4 space-y-2">
                 {recurringBills.map(bill => (
-                  <div key={bill.id} className="p-3 bg-slate-50 rounded-lg">
-                    <div className="flex justify-between items-start mb-1">
-                      <div className="flex items-center gap-2">
-                        <span>{BILL_CATEGORY_ICONS[bill.category]}</span>
-                        <p className="font-medium text-slate-900">{bill.name}</p>
+                  <Link key={bill.id} to={createPageUrl(`BillDetail?id=${bill.id}`)} className="block">
+                    <div className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+                      <div className="flex justify-between items-start mb-1">
+                        <div className="flex items-center gap-2">
+                          <span>{BILL_CATEGORY_ICONS[bill.category]}</span>
+                          <p className="font-medium text-slate-900">{bill.name}</p>
+                        </div>
+                        <p className="text-sm font-semibold text-slate-900">{formatCurrency(bill.amount, bill.currency)}</p>
                       </div>
-                      <p className="text-sm font-semibold text-slate-900">{formatCurrency(bill.amount, bill.currency)}</p>
+                      <div className="flex justify-between text-xs text-slate-500">
+                        <span className="capitalize">{bill.frequency.replace('_', ' ')}</span>
+                        {bill.due_date && <span>Due: {bill.due_date}{bill.due_date === 1 ? 'st' : bill.due_date === 2 ? 'nd' : bill.due_date === 3 ? 'rd' : 'th'}</span>}
+                      </div>
                     </div>
-                    <div className="flex justify-between text-xs text-slate-500">
-                      <span className="capitalize">{bill.frequency.replace('_', ' ')}</span>
-                      {bill.due_date && <span>Due: {bill.due_date}{bill.due_date === 1 ? 'st' : bill.due_date === 2 ? 'nd' : bill.due_date === 3 ? 'rd' : 'th'}</span>}
-                    </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </CollapsibleContent>

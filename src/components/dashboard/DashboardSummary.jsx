@@ -140,7 +140,7 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
     <Collapsible open={overviewExpanded} onOpenChange={setOverviewExpanded}>
       <div className="flex items-center justify-between mb-4">
         <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-          <h2 className="text-xl font-bold text-slate-800">Your Overview</h2>
+          <h2 className="text-xl font-bold text-lime-400">Your Overview</h2>
           {overviewExpanded ? (
             <ChevronUp className="w-5 h-5 text-slate-500" />
           ) : (

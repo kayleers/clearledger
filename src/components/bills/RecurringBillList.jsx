@@ -106,7 +106,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
               </div>
             )}
             <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-              <h2 className="text-xl font-bold text-slate-800">Recurring Bills</h2>
+              <h2 className="text-xl font-bold text-lime-400">Recurring Bills</h2>
               {isExpanded ? (
                 <ChevronUp className="w-5 h-5 text-slate-500" />
               ) : (

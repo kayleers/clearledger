@@ -440,7 +440,7 @@ export default function Dashboard() {
                                       <GripVertical className="w-5 h-5 text-slate-400" />
                                     </div>
                                     <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                      <h2 className="text-xl font-bold text-slate-800">Credit Cards</h2>
+                                      <h2 className="text-xl font-bold text-lime-400">Credit Cards</h2>
                                       {cardsExpanded ? (
                                         <ChevronUp className="w-5 h-5 text-slate-500" />
                                       ) : (
@@ -520,7 +520,7 @@ export default function Dashboard() {
                                       <GripVertical className="w-5 h-5 text-slate-400" />
                                     </div>
                                     <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                      <h2 className="text-xl font-bold text-slate-800">Payment Schedule</h2>
+                                      <h2 className="text-xl font-bold text-lime-400">Payment Schedule</h2>
                                       {calendarExpanded ? (
                                         <ChevronUp className="w-5 h-5 text-slate-500" />
                                       ) : (
@@ -544,7 +544,7 @@ export default function Dashboard() {
                                       <GripVertical className="w-5 h-5 text-slate-400" />
                                     </div>
                                     <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                      <h2 className="text-xl font-bold text-slate-800">Payment Simulator</h2>
+                                      <h2 className="text-xl font-bold text-lime-400">Payment Simulator</h2>
                                       {simulatorExpanded ? (
                                         <ChevronUp className="w-5 h-5 text-slate-500" />
                                       ) : (

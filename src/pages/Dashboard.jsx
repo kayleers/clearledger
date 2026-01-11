@@ -344,7 +344,7 @@ export default function Dashboard() {
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-        <div className="max-w-lg mx-auto px-4 py-6 pb-24">
+        <div className="max-w-lg mx-auto px-4 py-6 pb-24 relative z-0">
         {/* Header */}
         <header className="mb-6 flex items-start justify-between">
           <div>

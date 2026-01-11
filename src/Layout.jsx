@@ -4,7 +4,7 @@ import { EntitlementsProvider } from '@/components/access/EntitlementsProvider';
 export default function Layout({ children, currentPageName }) {
   return (
     <EntitlementsProvider>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-teal-800">
         {children}
 
         <style>{`

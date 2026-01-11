@@ -501,7 +501,7 @@ export default function Dashboard() {
                                         </CollapsibleContent>
                                         </Collapsible>
                                         )}
-                            {section === 'calendar' && cards.length > 0 && (
+                            {section === 'calendar' && (
                               <Collapsible open={calendarExpanded} onOpenChange={setCalendarExpanded}>
                                 <div className="flex items-center justify-between mb-4">
                                   <div className="flex items-center gap-2">
@@ -525,7 +525,7 @@ export default function Dashboard() {
                                 </CollapsibleContent>
                               </Collapsible>
                             )}
-                            {section === 'simulator' && cards.length > 0 && (
+                            {section === 'simulator' && (
                               <Collapsible open={simulatorExpanded} onOpenChange={setSimulatorExpanded}>
                                 <div className="flex items-center justify-between mb-4">
                                   <div className="flex items-center gap-2">

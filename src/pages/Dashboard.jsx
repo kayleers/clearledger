@@ -416,6 +416,15 @@ export default function Dashboard() {
               />
             </div>
 
+            {/* Empty State Message */}
+            {cards.length === 0 && bankAccounts.length === 0 && recurringBills.length === 0 && mortgageLoans.length === 0 && (
+              <div className="mb-6 text-center py-8 bg-white/10 rounded-lg border border-white/20">
+                <p className="text-white/80 text-sm">
+                  Add your first credit card, bank account, loan, or recurring bill to start tracking your finances
+                </p>
+              </div>
+            )}
+
             {/* Draggable Sections */}
             <div className="mt-8">
               <Droppable droppableId="sections" type="section">

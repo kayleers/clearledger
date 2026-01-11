@@ -421,7 +421,7 @@ export default function Dashboard() {
                               opacity: snapshot.isDragging ? 0.8 : 1,
                             }}
                           >
-                            {section === 'cards' && cards.length > 0 && (
+                            {section === 'cards' && (
                               <Collapsible open={cardsExpanded} onOpenChange={setCardsExpanded}>
                                 <div className="flex items-center justify-between mb-4">
                                   <div className="flex items-center gap-2">

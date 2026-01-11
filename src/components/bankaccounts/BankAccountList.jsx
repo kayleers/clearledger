@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, Plus, Edit2, Trash2, GripVertical } from 'lucide-react';
+import { Building2, Plus, Edit2, Trash2, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useQuery } from '@tanstack/react-query';
 import CurrencySelector from '@/components/currency/CurrencySelector';
@@ -18,6 +19,7 @@ export default function BankAccountList({ bankAccounts = [] }) {
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
 
@@ -92,19 +94,28 @@ export default function BankAccountList({ bankAccounts = [] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Bank Accounts</h2>
-        <Button
-          size="sm"
-          onClick={handleAddAccountClick}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Add Account
-        </Button>
-      </div>
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+        <div className="flex items-center justify-between">
+          <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+            <h2 className="text-xl font-bold text-slate-800">Bank Accounts</h2>
+            {isExpanded ? (
+              <ChevronUp className="w-5 h-5 text-slate-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-slate-500" />
+            )}
+          </CollapsibleTrigger>
+          <Button
+            size="sm"
+            onClick={handleAddAccountClick}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Account
+          </Button>
+        </div>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
+        <CollapsibleContent>
+          <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="bank-accounts">
           {(provided) => (
             <div className="grid gap-3" {...provided.droppableProps} ref={provided.innerRef}>
@@ -184,6 +195,8 @@ export default function BankAccountList({ bankAccounts = [] }) {
           </CardContent>
         </Card>
       )}
+        </CollapsibleContent>
+      </Collapsible>
 
       <Dialog open={showAddAccount} onOpenChange={setShowAddAccount}>
         <DialogContent>

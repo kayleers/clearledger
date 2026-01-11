@@ -363,7 +363,7 @@ export default function CardDetail() {
 
           <div className="text-4xl font-bold mb-2">{formatCurrency(card.balance, currency)}</div>
           <p className="text-white/70 text-sm">
-            {formatCurrency(card.credit_limit - card.balance, currency)} available
+            {formatCurrency(card.credit_limit - card.balance, currency)} available • {formatCurrency(card.credit_limit, currency)} limit
           </p>
         </div>
       </div>

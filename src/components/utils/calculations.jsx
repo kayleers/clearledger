@@ -209,6 +209,21 @@ export const formatPercent = (value) => {
   return `${(value || 0).toFixed(1)}%`;
 };
 
+export const calculateRequiredPayment = (balance, apr, targetMonths) => {
+  if (balance <= 0 || targetMonths <= 0) return 0;
+  if (!apr || apr === 0) {
+    // No interest, just divide balance by months
+    return Math.ceil((balance / targetMonths) * 100) / 100;
+  }
+  
+  const monthlyRate = apr / 12;
+  const n = targetMonths;
+  
+  // PMT formula: P * (r * (1+r)^n) / ((1+r)^n - 1)
+  const payment = balance * (monthlyRate * Math.pow(1 + monthlyRate, n)) / (Math.pow(1 + monthlyRate, n) - 1);
+  return Math.ceil(payment * 100) / 100;
+};
+
 export const formatMonthsToYears = (months) => {
   if (!months || months === 0) return '0 months';
   if (months === Infinity) return 'Never';

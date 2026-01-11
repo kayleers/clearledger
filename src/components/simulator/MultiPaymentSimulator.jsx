@@ -37,6 +37,8 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
   const [loanVariablePayments, setLoanVariablePayments] = useState({});
   const [cardDefaultPayments, setCardDefaultPayments] = useState({});
   const [loanDefaultPayments, setLoanDefaultPayments] = useState({});
+  const [cardTargetMonths, setCardTargetMonths] = useState({});
+  const [loanTargetMonths, setLoanTargetMonths] = useState({});
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -91,6 +93,12 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
         if (payment > 0) {
           scenario = calculatePayoffTimeline(card.balance, card.apr, payment);
         }
+      } else if (paymentType === 'target') {
+        const targetMonths = parseInt(cardTargetMonths[card.id]) || 0;
+        if (targetMonths > 0) {
+          const requiredPayment = calculateRequiredPayment(card.balance, card.apr, targetMonths);
+          scenario = calculatePayoffTimeline(card.balance, card.apr, requiredPayment);
+        }
       } else {
         const defaultPayment = parseFloat(cardDefaultPayments[card.id]) || 0;
         const varPayments = (cardVariablePayments[card.id] || []).map(p => ({
@@ -124,6 +132,12 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
         if (payment > 0) {
           scenario = calculatePayoffTimeline(loan.current_balance, loan.interest_rate, payment);
         }
+      } else if (paymentType === 'target') {
+        const targetMonths = parseInt(loanTargetMonths[loan.id]) || 0;
+        if (targetMonths > 0) {
+          const requiredPayment = calculateRequiredPayment(loan.current_balance, loan.interest_rate, targetMonths);
+          scenario = calculatePayoffTimeline(loan.current_balance, loan.interest_rate, requiredPayment);
+        }
       } else {
         const defaultPayment = parseFloat(loanDefaultPayments[loan.id]) || 0;
         const varPayments = (loanVariablePayments[loan.id] || []).map(p => ({
@@ -150,7 +164,7 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
     });
 
     return scenarios;
-  }, [cards, loans, paymentType, cardPayments, loanPayments, cardVariablePayments, loanVariablePayments, cardDefaultPayments, loanDefaultPayments]);
+  }, [cards, loans, paymentType, cardPayments, loanPayments, cardVariablePayments, loanVariablePayments, cardDefaultPayments, loanDefaultPayments, cardTargetMonths, loanTargetMonths]);
 
   // Calculate totals
   const totalBalance = allScenarios.reduce((sum, s) => sum + s.balance, 0);
@@ -376,9 +390,10 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
 
             {/* Payment Type Tabs */}
             <Tabs value={paymentType} onValueChange={setPaymentType}>
-              <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="fixed">Same Each Month</TabsTrigger>
-                <TabsTrigger value="variable">Different Amounts</TabsTrigger>
+              <TabsList className="grid grid-cols-3 w-full">
+                <TabsTrigger value="fixed">Fixed</TabsTrigger>
+                <TabsTrigger value="target">Target Time</TabsTrigger>
+                <TabsTrigger value="variable">Variable</TabsTrigger>
               </TabsList>
 
               <TabsContent value="fixed" className="space-y-4 mt-4">
@@ -416,6 +431,48 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
                           loan={loan}
                           payment={loanPayments[loan.id] || ''}
                           onPaymentChange={(val) => setLoanPayments({ ...loanPayments, [loan.id]: val })}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="target" className="space-y-4 mt-4">
+                {/* Credit Cards */}
+                {cards.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      Credit Cards
+                    </h3>
+                    <div className="space-y-3">
+                      {cards.map(card => (
+                        <CardTargetInput
+                          key={card.id}
+                          card={card}
+                          targetMonths={cardTargetMonths[card.id] || ''}
+                          onTargetMonthsChange={(val) => setCardTargetMonths({ ...cardTargetMonths, [card.id]: val })}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Loans */}
+                {loans.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                      <Landmark className="w-4 h-4" />
+                      Loans & Mortgages
+                    </h3>
+                    <div className="space-y-3">
+                      {loans.map(loan => (
+                        <LoanTargetInput
+                          key={loan.id}
+                          loan={loan}
+                          targetMonths={loanTargetMonths[loan.id] || ''}
+                          onTargetMonthsChange={(val) => setLoanTargetMonths({ ...loanTargetMonths, [loan.id]: val })}
                         />
                       ))}
                     </div>
@@ -958,6 +1015,162 @@ function CardVariableInput({ card, variablePayments, defaultPayment, onVariableP
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function CardTargetInput({ card, targetMonths, onTargetMonthsChange }) {
+  const [years, setYears] = useState(Math.floor((targetMonths || 36) / 12));
+  const [months, setMonths] = useState((targetMonths || 36) % 12);
+
+  const totalMonths = years * 12 + months;
+  const requiredPayment = totalMonths > 0 ? calculateRequiredPayment(card.balance, card.apr, totalMonths) : 0;
+  const scenario = totalMonths > 0 ? calculatePayoffTimeline(card.balance, card.apr, requiredPayment) : null;
+
+  const handleYearsChange = (newYears) => {
+    setYears(newYears);
+    onTargetMonthsChange((newYears * 12 + months).toString());
+  };
+
+  const handleMonthsChange = (newMonths) => {
+    setMonths(newMonths);
+    onTargetMonthsChange((years * 12 + newMonths).toString());
+  };
+
+  return (
+    <div className="bg-white rounded-lg p-3 border border-slate-200">
+      <div className="mb-3">
+        <p className="font-medium text-sm text-slate-900">{card.name}</p>
+        <p className="text-xs text-slate-500">
+          {formatCurrency(card.balance, card.currency)} • {(card.apr * 100).toFixed(2)}% APR
+        </p>
+      </div>
+      
+      <div className="space-y-4">
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <Label className="text-xs">Target Payoff: {years} year{years !== 1 ? 's' : ''}, {months} month{months !== 1 ? 's' : ''}</Label>
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs text-slate-500">Years: {years}</Label>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                value={years}
+                onChange={(e) => handleYearsChange(parseInt(e.target.value))}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-xs text-slate-500">Months: {months}</Label>
+              <input
+                type="range"
+                min="0"
+                max="11"
+                value={months}
+                onChange={(e) => handleMonthsChange(parseInt(e.target.value))}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              />
+            </div>
+          </div>
+        </div>
+
+        {requiredPayment > 0 && (
+          <div className="pt-3 border-t">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-slate-600">Required Payment:</span>
+              <span className="text-lg font-bold text-blue-600">{formatCurrency(requiredPayment, card.currency)}/mo</span>
+            </div>
+            {scenario && (
+              <div className="text-xs text-slate-500">
+                Total Interest: {formatCurrency(scenario.totalInterest, card.currency)}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LoanTargetInput({ loan, targetMonths, onTargetMonthsChange }) {
+  const [years, setYears] = useState(Math.floor((targetMonths || 60) / 12));
+  const [months, setMonths] = useState((targetMonths || 60) % 12);
+
+  const totalMonths = years * 12 + months;
+  const requiredPayment = totalMonths > 0 ? calculateRequiredPayment(loan.current_balance, loan.interest_rate, totalMonths) : 0;
+  const scenario = totalMonths > 0 ? calculatePayoffTimeline(loan.current_balance, loan.interest_rate, requiredPayment) : null;
+
+  const handleYearsChange = (newYears) => {
+    setYears(newYears);
+    onTargetMonthsChange((newYears * 12 + months).toString());
+  };
+
+  const handleMonthsChange = (newMonths) => {
+    setMonths(newMonths);
+    onTargetMonthsChange((years * 12 + newMonths).toString());
+  };
+
+  return (
+    <div className="bg-white rounded-lg p-3 border border-slate-200">
+      <div className="mb-3">
+        <p className="font-medium text-sm text-slate-900">{loan.name}</p>
+        <p className="text-xs text-slate-500">
+          {formatCurrency(loan.current_balance, loan.currency)} • {(loan.interest_rate * 100).toFixed(2)}% APR
+        </p>
+      </div>
+      
+      <div className="space-y-4">
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <Label className="text-xs">Target Payoff: {years} year{years !== 1 ? 's' : ''}, {months} month{months !== 1 ? 's' : ''}</Label>
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs text-slate-500">Years: {years}</Label>
+              <input
+                type="range"
+                min="0"
+                max="30"
+                value={years}
+                onChange={(e) => handleYearsChange(parseInt(e.target.value))}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-600"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-xs text-slate-500">Months: {months}</Label>
+              <input
+                type="range"
+                min="0"
+                max="11"
+                value={months}
+                onChange={(e) => handleMonthsChange(parseInt(e.target.value))}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-600"
+              />
+            </div>
+          </div>
+        </div>
+
+        {requiredPayment > 0 && (
+          <div className="pt-3 border-t">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-slate-600">Required Payment:</span>
+              <span className="text-lg font-bold text-orange-600">{formatCurrency(requiredPayment, loan.currency)}/mo</span>
+            </div>
+            {scenario && (
+              <div className="text-xs text-slate-500">
+                Total Interest: {formatCurrency(scenario.totalInterest, loan.currency)}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

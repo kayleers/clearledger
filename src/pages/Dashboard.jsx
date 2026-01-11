@@ -24,7 +24,7 @@ import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['totalDebt', 'summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'loans']);
+  const [sectionOrder, setSectionOrder] = useState(['totalDebt', 'summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'loans', 'pricing']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(true);
@@ -149,6 +149,11 @@ export default function Dashboard() {
 
           if (!newOrder.includes('simulator')) {
             newOrder.push('simulator');
+            updated = true;
+          }
+
+          if (!newOrder.includes('pricing')) {
+            newOrder.push('pricing');
             updated = true;
           }
 
@@ -531,6 +536,19 @@ export default function Dashboard() {
                             {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}
                             {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />}
                             {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} />}
+                            {section === 'pricing' && (
+                              <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                                <a 
+                                  href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/179f909b9_PricingChart.png"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block p-4 hover:bg-slate-50 transition-colors"
+                                >
+                                  <h2 className="text-xl font-bold text-slate-800 mb-2">Pricing</h2>
+                                  <p className="text-slate-500 text-sm">View our pricing plans and features</p>
+                                </a>
+                              </div>
+                            )}
                           </div>
                         )}
                       </Draggable>

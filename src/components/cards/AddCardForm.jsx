@@ -18,16 +18,16 @@ const cardColors = [
   { value: 'pink', label: 'Pink', class: 'bg-pink-500' }
 ];
 
-export default function AddCardForm({ onSubmit, onCancel, isLoading }) {
+export default function AddCardForm({ card, onSubmit, onCancel, isLoading }) {
   const [formData, setFormData] = useState({
-    name: '',
-    balance: '',
-    credit_limit: '',
-    apr: '',
-    min_payment: '',
-    statement_date: '',
-    due_date: '',
-    color: 'blue'
+    name: card?.name || '',
+    balance: card?.balance?.toString() || '',
+    credit_limit: card?.credit_limit?.toString() || '',
+    apr: card?.apr ? (card.apr * 100).toString() : '',
+    min_payment: card?.min_payment?.toString() || '',
+    statement_date: card?.statement_date?.toString() || '',
+    due_date: card?.due_date?.toString() || '',
+    color: card?.color || 'blue'
   });
 
   const handleSubmit = (e) => {
@@ -54,7 +54,7 @@ export default function AddCardForm({ onSubmit, onCancel, isLoading }) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-blue-600" />
-            Add Credit Card
+            {card ? 'Edit Credit Card' : 'Add Credit Card'}
           </CardTitle>
           <Button variant="ghost" size="icon" onClick={onCancel}>
             <X className="w-5 h-5" />
@@ -232,7 +232,7 @@ export default function AddCardForm({ onSubmit, onCancel, isLoading }) {
             className="w-full h-12 text-base font-medium"
             disabled={isLoading}
           >
-            {isLoading ? 'Adding Card...' : 'Add Card'}
+            {isLoading ? (card ? 'Updating Card...' : 'Adding Card...') : (card ? 'Update Card' : 'Add Card')}
           </Button>
         </form>
       </CardContent>

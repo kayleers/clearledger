@@ -24,7 +24,7 @@ import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['totalDebt', 'summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'loans', 'pricing', 'privacy']);
+  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'loans', 'pricing', 'privacy']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(true);
@@ -127,14 +127,14 @@ export default function Dashboard() {
           let newOrder = user.section_order;
           let updated = false;
 
-          if (!newOrder.includes('totalDebt')) {
-            newOrder = ['totalDebt', ...newOrder];
+          // Remove totalDebt from order if it exists (it's now inside cards)
+          if (newOrder.includes('totalDebt')) {
+            newOrder = newOrder.filter(s => s !== 'totalDebt');
             updated = true;
           }
 
           if (!newOrder.includes('summary')) {
-            const totalDebtIndex = newOrder.indexOf('totalDebt');
-            newOrder.splice(totalDebtIndex + 1, 0, 'summary');
+            newOrder = ['summary', ...newOrder];
             updated = true;
           }
 
@@ -424,9 +424,7 @@ export default function Dashboard() {
                               opacity: snapshot.isDragging ? 0.8 : 1,
                             }}
                           >
-                            {section === 'totalDebt' && cards.length > 0 && (
-                              <TotalDebtCard cards={cards} />
-                            )}
+
                             {section === 'summary' && cards.length > 0 && (
                               <DashboardSummary 
                                 cards={cards} 
@@ -489,22 +487,27 @@ export default function Dashboard() {
                                           </Draggable>
                                         ))}
                                         {provided.placeholder}
-                                      </div>
-                                    )}
-                                  </Droppable>
-                                  {!showAddCard && (
-                                    <Button
-                                      variant="outline"
-                                      className="w-full h-14 border-dashed border-2 text-slate-500 mt-4"
-                                      onClick={handleAddCardClick}
-                                    >
-                                      <Plus className="w-5 h-5 mr-2" />
-                                      Add Another Card
-                                    </Button>
-                                  )}
-                                </CollapsibleContent>
-                              </Collapsible>
-                            )}
+                                        </div>
+                                        )}
+                                        </Droppable>
+                                        {!showAddCard && (
+                                        <Button
+                                        variant="outline"
+                                        className="w-full h-14 border-dashed border-2 text-slate-500 mt-4"
+                                        onClick={handleAddCardClick}
+                                        >
+                                        <Plus className="w-5 h-5 mr-2" />
+                                        Add Another Card
+                                        </Button>
+                                        )}
+
+                                        {/* Total Debt Summary */}
+                                        <div className="mt-6">
+                                        <TotalDebtCard cards={cards} />
+                                        </div>
+                                        </CollapsibleContent>
+                                        </Collapsible>
+                                        )}
                             {section === 'calendar' && cards.length > 0 && (
                               <Collapsible open={calendarExpanded} onOpenChange={setCalendarExpanded}>
                                 <div className="flex items-center justify-between mb-4">

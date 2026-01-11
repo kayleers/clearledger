@@ -34,7 +34,7 @@ const loanTypeLabels = {
   other: 'Other Loan'
 };
 
-export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
+export default function MortgageLoanList({ loans = [], bankAccounts = [], dragHandleProps }) {
   const [showAddLoan, setShowAddLoan] = useState(false);
   const [editingLoan, setEditingLoan] = useState(null);
   const [editingProjected, setEditingProjected] = useState(null);
@@ -108,14 +108,21 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [] }) {
     <div className="space-y-4">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <div className="flex items-center justify-between">
-          <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-            <h2 className="text-xl font-bold text-slate-800">Mortgages & Loans</h2>
-            {isExpanded ? (
-              <ChevronUp className="w-5 h-5 text-slate-500" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-slate-500" />
+          <div className="flex items-center gap-2">
+            {dragHandleProps && (
+              <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                <GripVertical className="w-5 h-5 text-slate-400" />
+              </div>
             )}
-          </CollapsibleTrigger>
+            <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+              <h2 className="text-xl font-bold text-slate-800">Mortgages & Loans</h2>
+              {isExpanded ? (
+                <ChevronUp className="w-5 h-5 text-slate-500" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-slate-500" />
+              )}
+            </CollapsibleTrigger>
+          </div>
           <Button
             size="sm"
             onClick={handleAddLoanClick}

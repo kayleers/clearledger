@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';
@@ -417,7 +417,6 @@ export default function Dashboard() {
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
-                            {...provided.dragHandleProps}
                             className="mb-6"
                             style={{
                               ...provided.draggableProps.style,
@@ -436,14 +435,19 @@ export default function Dashboard() {
                             {section === 'cards' && cards.length > 0 && (
                               <Collapsible open={cardsExpanded} onOpenChange={setCardsExpanded}>
                                 <div className="flex items-center justify-between mb-4">
-                                  <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                    <h2 className="text-xl font-bold text-slate-800">Credit Cards</h2>
-                                    {cardsExpanded ? (
-                                      <ChevronUp className="w-5 h-5 text-slate-500" />
-                                    ) : (
-                                      <ChevronDown className="w-5 h-5 text-slate-500" />
-                                    )}
-                                  </CollapsibleTrigger>
+                                  <div className="flex items-center gap-2">
+                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                                      <GripVertical className="w-5 h-5 text-slate-400" />
+                                    </div>
+                                    <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                                      <h2 className="text-xl font-bold text-slate-800">Credit Cards</h2>
+                                      {cardsExpanded ? (
+                                        <ChevronUp className="w-5 h-5 text-slate-500" />
+                                      ) : (
+                                        <ChevronDown className="w-5 h-5 text-slate-500" />
+                                      )}
+                                    </CollapsibleTrigger>
+                                  </div>
                                   {!showAddCard && (
                                     <Button
                                       size="sm"
@@ -511,14 +515,19 @@ export default function Dashboard() {
                             {section === 'calendar' && cards.length > 0 && (
                               <Collapsible open={calendarExpanded} onOpenChange={setCalendarExpanded}>
                                 <div className="flex items-center justify-between mb-4">
-                                  <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                    <h2 className="text-xl font-bold text-slate-800">Payment Schedule</h2>
-                                    {calendarExpanded ? (
-                                      <ChevronUp className="w-5 h-5 text-slate-500" />
-                                    ) : (
-                                      <ChevronDown className="w-5 h-5 text-slate-500" />
-                                    )}
-                                  </CollapsibleTrigger>
+                                  <div className="flex items-center gap-2">
+                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                                      <GripVertical className="w-5 h-5 text-slate-400" />
+                                    </div>
+                                    <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                                      <h2 className="text-xl font-bold text-slate-800">Payment Schedule</h2>
+                                      {calendarExpanded ? (
+                                        <ChevronUp className="w-5 h-5 text-slate-500" />
+                                      ) : (
+                                        <ChevronDown className="w-5 h-5 text-slate-500" />
+                                      )}
+                                    </CollapsibleTrigger>
+                                  </div>
                                 </div>
                                 <CollapsibleContent>
                                   <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden p-4">
@@ -530,14 +539,19 @@ export default function Dashboard() {
                             {section === 'simulator' && cards.length > 0 && (
                               <Collapsible open={simulatorExpanded} onOpenChange={setSimulatorExpanded}>
                                 <div className="flex items-center justify-between mb-4">
-                                  <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                    <h2 className="text-xl font-bold text-slate-800">Payment Simulator</h2>
-                                    {simulatorExpanded ? (
-                                      <ChevronUp className="w-5 h-5 text-slate-500" />
-                                    ) : (
-                                      <ChevronDown className="w-5 h-5 text-slate-500" />
-                                    )}
-                                  </CollapsibleTrigger>
+                                  <div className="flex items-center gap-2">
+                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                                      <GripVertical className="w-5 h-5 text-slate-400" />
+                                    </div>
+                                    <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                                      <h2 className="text-xl font-bold text-slate-800">Payment Simulator</h2>
+                                      {simulatorExpanded ? (
+                                        <ChevronUp className="w-5 h-5 text-slate-500" />
+                                      ) : (
+                                        <ChevronDown className="w-5 h-5 text-slate-500" />
+                                      )}
+                                    </CollapsibleTrigger>
+                                  </div>
                                 </div>
                                 <CollapsibleContent>
                                   <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden p-4">
@@ -546,31 +560,41 @@ export default function Dashboard() {
                                 </CollapsibleContent>
                               </Collapsible>
                             )}
-                            {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} />}
-                            {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} />}
-                            {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} />}
+                            {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
+                            {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
+                            {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'pricing' && (
                               <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                                <a 
-                                  href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/179f909b9_PricingChart.png"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="block p-4 hover:bg-slate-50 transition-colors"
-                                >
-                                  <h2 className="text-xl font-bold text-slate-800 mb-2">Pricing</h2>
-                                  <p className="text-slate-500 text-sm">View our pricing plans and features</p>
-                                </a>
+                                <div className="flex items-center gap-2 p-4">
+                                  <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                                    <GripVertical className="w-5 h-5 text-slate-400" />
+                                  </div>
+                                  <a 
+                                    href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/179f909b9_PricingChart.png"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex-1 hover:bg-slate-50 transition-colors -m-4 p-4"
+                                  >
+                                    <h2 className="text-xl font-bold text-slate-800 mb-2">Pricing</h2>
+                                    <p className="text-slate-500 text-sm">View our pricing plans and features</p>
+                                  </a>
+                                </div>
                               </div>
                             )}
                             {section === 'privacy' && (
                               <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                                <button 
-                                  onClick={() => setShowPrivacyPolicy(true)}
-                                  className="w-full text-left p-4 hover:bg-slate-50 transition-colors"
-                                >
-                                  <h2 className="text-xl font-bold text-slate-800 mb-2">Privacy Policy</h2>
-                                  <p className="text-slate-500 text-sm">View our privacy policy</p>
-                                </button>
+                                <div className="flex items-center gap-2 p-4">
+                                  <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                                    <GripVertical className="w-5 h-5 text-slate-400" />
+                                  </div>
+                                  <button 
+                                    onClick={() => setShowPrivacyPolicy(true)}
+                                    className="flex-1 text-left hover:bg-slate-50 transition-colors -m-4 p-4"
+                                  >
+                                    <h2 className="text-xl font-bold text-slate-800 mb-2">Privacy Policy</h2>
+                                    <p className="text-slate-500 text-sm">View our privacy policy</p>
+                                  </button>
+                                </div>
                               </div>
                             )}
                           </div>

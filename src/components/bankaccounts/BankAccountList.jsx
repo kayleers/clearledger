@@ -15,7 +15,7 @@ import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
 import { formatCurrency } from '@/components/utils/calculations';
 
-export default function BankAccountList({ bankAccounts = [] }) {
+export default function BankAccountList({ bankAccounts = [], dragHandleProps }) {
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
@@ -96,14 +96,21 @@ export default function BankAccountList({ bankAccounts = [] }) {
     <div className="space-y-4">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <div className="flex items-center justify-between">
-          <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-            <h2 className="text-xl font-bold text-slate-800">Bank Accounts</h2>
-            {isExpanded ? (
-              <ChevronUp className="w-5 h-5 text-slate-500" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-slate-500" />
+          <div className="flex items-center gap-2">
+            {dragHandleProps && (
+              <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                <GripVertical className="w-5 h-5 text-slate-400" />
+              </div>
             )}
-          </CollapsibleTrigger>
+            <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+              <h2 className="text-xl font-bold text-slate-800">Bank Accounts</h2>
+              {isExpanded ? (
+                <ChevronUp className="w-5 h-5 text-slate-500" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-slate-500" />
+              )}
+            </CollapsibleTrigger>
+          </div>
           <Button
             size="sm"
             onClick={handleAddAccountClick}

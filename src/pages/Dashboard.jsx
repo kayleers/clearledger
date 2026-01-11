@@ -506,26 +506,23 @@ export default function Dashboard() {
                               </Collapsible>
                             )}
                             {section === 'calendar' && cards.length > 0 && (
-                              <div>
-                                <h2 className="text-xl font-bold text-slate-800 mb-4">Payment Schedule</h2>
-                                <Collapsible open={calendarExpanded} onOpenChange={setCalendarExpanded}>
-                                  <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                                    <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                                      <h3 className="font-semibold text-slate-800">Details</h3>
-                                      {calendarExpanded ? (
-                                        <ChevronUp className="w-5 h-5 text-slate-500" />
-                                      ) : (
-                                        <ChevronDown className="w-5 h-5 text-slate-500" />
-                                      )}
-                                    </CollapsibleTrigger>
-                                  <CollapsibleContent>
-                                    <div className="p-4 pt-0">
-                                      <PaymentCalendar />
-                                    </div>
-                                  </CollapsibleContent>
+                              <Collapsible open={calendarExpanded} onOpenChange={setCalendarExpanded}>
+                                <div className="flex items-center justify-between mb-4">
+                                  <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                                    <h2 className="text-xl font-bold text-slate-800">Payment Schedule</h2>
+                                    {calendarExpanded ? (
+                                      <ChevronUp className="w-5 h-5 text-slate-500" />
+                                    ) : (
+                                      <ChevronDown className="w-5 h-5 text-slate-500" />
+                                    )}
+                                  </CollapsibleTrigger>
                                 </div>
+                                <CollapsibleContent>
+                                  <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden p-4">
+                                    <PaymentCalendar />
+                                  </div>
+                                </CollapsibleContent>
                               </Collapsible>
-                              </div>
                             )}
                             {section === 'simulator' && cards.length > 0 && (
                               <Collapsible open={simulatorExpanded} onOpenChange={setSimulatorExpanded}>

@@ -251,14 +251,12 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                     <p className="font-semibold text-slate-900">{bankAccounts.length} Bank Accounts</p>
                     {Object.keys(totalBankBalanceByCurrency).length === 0 ? (
                       <p className="text-sm text-slate-500">Payment sources</p>
-                    ) : Object.keys(totalBankBalanceByCurrency).length === 1 ? (
-                      <p className="text-sm text-blue-600 font-medium">Balance: {formatCurrency(Object.values(totalBankBalanceByCurrency)[0], Object.keys(totalBankBalanceByCurrency)[0])}</p>
                     ) : (
-                      <div className="text-sm text-blue-600 font-medium">
-                        <span>Balance: </span>
+                      <div className="text-sm">
+                        <span className="text-slate-500">Total Balance: </span>
                         {Object.entries(totalBankBalanceByCurrency).map(([currency, amount], idx) => (
-                          <span key={currency}>
-                            {idx > 0 && ', '}
+                          <span key={currency} className="font-medium text-blue-600">
+                            {idx > 0 && ' + '}
                             {formatCurrency(amount, currency)}
                           </span>
                         ))}

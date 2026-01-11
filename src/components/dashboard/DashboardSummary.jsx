@@ -152,6 +152,7 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
       <CollapsibleContent>
         <div className="space-y-4">
       {/* Expandable Cards Details */}
+      {cards.length > 0 && (
       <Collapsible open={expandedCards} onOpenChange={setExpandedCards}>
         <Card className="border-blue-200">
           <CollapsibleTrigger className="w-full">
@@ -248,6 +249,7 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
           </CollapsibleContent>
         </Card>
       </Collapsible>
+      )}
 
       {/* Bank Accounts Section */}
       {bankAccounts.length > 0 && (

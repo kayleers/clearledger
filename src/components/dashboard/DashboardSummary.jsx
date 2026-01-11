@@ -271,19 +271,29 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="px-4 pb-4 space-y-2">
-                {bankAccounts.map(account => (
-                  <Link key={account.id} to={createPageUrl(`BankAccountDetail?id=${account.id}`)} className="block">
-                    <div className="p-3 bg-slate-50 rounded-lg flex justify-between items-center hover:bg-slate-100 transition-colors cursor-pointer">
-                      <div>
-                        <p className="font-medium text-slate-900">{account.name}</p>
-                        {account.account_number && (
-                          <p className="text-xs text-slate-500">••••{account.account_number.slice(-4)}</p>
-                        )}
+                {bankAccounts.map(account => {
+                  const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
+                  const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
+                  const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
+                  const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
+
+                  return (
+                    <Link key={account.id} to={createPageUrl(`BankAccountDetail?id=${account.id}`)} className="block">
+                      <div className="p-3 bg-slate-50 rounded-lg flex justify-between items-center hover:bg-slate-100 transition-colors cursor-pointer">
+                        <div>
+                          <p className="font-medium text-slate-900">{account.name}</p>
+                          {account.account_number && (
+                            <p className="text-xs text-slate-500">••••{account.account_number.slice(-4)}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-slate-900">{formatCurrency(ongoingBalance, account.currency)}</p>
+                          <p className="text-xs text-slate-500">{account.currency}</p>
+                        </div>
                       </div>
-                      <span className="text-sm font-medium text-slate-600">{account.currency}</span>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             </CollapsibleContent>
           </Card>

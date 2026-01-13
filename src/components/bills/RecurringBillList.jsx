@@ -231,7 +231,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
       </Collapsible>
 
       <Dialog open={showAddBill} onOpenChange={setShowAddBill}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Recurring Bill</DialogTitle>
           </DialogHeader>
@@ -244,7 +244,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
       </Dialog>
 
       <Dialog open={!!editingBill} onOpenChange={() => setEditingBill(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Recurring Bill</DialogTitle>
           </DialogHeader>
@@ -321,7 +321,7 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="billName">Bill Name</Label>
         <Input

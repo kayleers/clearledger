@@ -206,7 +206,7 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
       </Collapsible>
 
       <Dialog open={showAddAccount} onOpenChange={setShowAddAccount}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Bank Account</DialogTitle>
           </DialogHeader>
@@ -218,7 +218,7 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
       </Dialog>
 
       <Dialog open={!!editingAccount} onOpenChange={() => setEditingAccount(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Bank Account</DialogTitle>
           </DialogHeader>
@@ -252,7 +252,7 @@ function BankAccountForm({ account, onSubmit, isLoading }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="accountName">Account Name</Label>
         <Input

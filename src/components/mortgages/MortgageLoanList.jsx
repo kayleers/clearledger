@@ -284,7 +284,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], dragHa
       </Collapsible>
 
       <Dialog open={showAddLoan} onOpenChange={setShowAddLoan}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Add Mortgage/Loan</DialogTitle>
           </DialogHeader>
@@ -297,7 +297,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], dragHa
       </Dialog>
 
       <Dialog open={!!editingLoan} onOpenChange={() => setEditingLoan(null)}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Mortgage/Loan</DialogTitle>
           </DialogHeader>
@@ -408,7 +408,7 @@ function MortgageLoanForm({ loan, bankAccounts, onSubmit, isLoading }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
       <div className="space-y-2">
         <Label htmlFor="loanName">Loan Name</Label>
         <Input

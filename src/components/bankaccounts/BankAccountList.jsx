@@ -252,7 +252,7 @@ function BankAccountForm({ account, onSubmit, isLoading }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
       <div className="space-y-2">
         <Label htmlFor="accountName">Account Name</Label>
         <Input

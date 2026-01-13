@@ -56,7 +56,7 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading }) {
           {card ? 'Edit Credit Card' : 'Add Credit Card'}
         </h2>
       </div>
-      <div>
+      <div className="max-h-[60vh] overflow-y-auto pr-2">
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Card Name */}
           <div className="space-y-2">

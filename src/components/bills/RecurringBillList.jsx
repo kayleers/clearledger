@@ -321,7 +321,7 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+    <form onSubmit={handleSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
       <div className="space-y-2">
         <Label htmlFor="billName">Bill Name</Label>
         <Input

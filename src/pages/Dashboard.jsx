@@ -126,12 +126,18 @@ export default function Dashboard() {
     
     // Handle section reordering
     if (result.type === 'section') {
-      const items = Array.from(sectionOrder);
-      const [reorderedItem] = items.splice(result.source.index, 1);
-      items.splice(result.destination.index, 0, reorderedItem);
+      // Get only the draggable sections (excluding 'summary')
+      const draggableSections = sectionOrder.filter(s => s !== 'summary');
+      
+      // Reorder the draggable sections
+      const [reorderedItem] = draggableSections.splice(result.source.index, 1);
+      draggableSections.splice(result.destination.index, 0, reorderedItem);
 
-      setSectionOrder(items);
-      reorderSectionsMutation.mutate(items);
+      // Reconstruct the full order with 'summary' always first
+      const newOrder = ['summary', ...draggableSections];
+
+      setSectionOrder(newOrder);
+      reorderSectionsMutation.mutate(newOrder);
     }
   };
 

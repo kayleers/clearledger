@@ -663,7 +663,7 @@ export default function Dashboard() {
             setEditingCard(null);
           }
         }}>
-          <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogContent className="max-w-md">
             <AddCardForm
               card={editingCard}
               onSubmit={(data) => {

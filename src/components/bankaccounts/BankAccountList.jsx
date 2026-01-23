@@ -259,7 +259,12 @@ function BankAccountForm({ account, onSubmit, isLoading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const sanitizedData = {
+      ...formData,
+      balance: parseFloat(formData.balance) || 0,
+      stocks_investments: parseFloat(formData.stocks_investments) || 0
+    };
+    onSubmit(sanitizedData);
   };
 
   return (

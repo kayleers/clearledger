@@ -160,6 +160,7 @@ export default function QuickAddMenu({
             selectedType === 'bill_payment' ? bills.find(b => b.id === selectedTargetId) :
             loans.find(l => l.id === selectedTargetId)
           }
+          bankAccounts={bankAccounts}
           onSubmit={(data) => {
             if (selectedType === 'bank_deposit') onBankDeposit(data);
             else if (selectedType === 'bank_payment') onBankPayment(data);
@@ -183,11 +184,12 @@ export default function QuickAddMenu({
   );
 }
 
-function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading }) {
+function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading, bankAccounts }) {
   const [formData, setFormData] = useState({
     amount: '',
     date: new Date().toISOString().split('T')[0],
-    description: ''
+    description: '',
+    bank_account_id: target.bank_account_id || ''
   });
 
   const handleSubmit = (e) => {
@@ -282,6 +284,27 @@ function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading }) {
                 placeholder={type === 'bank_deposit' ? 'e.g., Salary payment' : 'e.g., Rent payment'}
                 required
               />
+            </div>
+          )}
+
+          {type === 'bill_payment' && bankAccounts && bankAccounts.length > 0 && (
+            <div>
+              <Label>Pay From Bank Account</Label>
+              <Select
+                value={formData.bank_account_id}
+                onValueChange={(value) => setFormData({ ...formData, bank_account_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select bank account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bankAccounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.name} ({formatCurrency(account.balance, account.currency)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 

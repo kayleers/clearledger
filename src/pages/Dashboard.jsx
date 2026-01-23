@@ -302,11 +302,12 @@ export default function Dashboard() {
   });
 
   const createBillPaymentMutation = useMutation({
-    mutationFn: async ({ amount, date, targetId }) => {
+    mutationFn: async ({ amount, date, targetId, bank_account_id }) => {
       const bill = recurringBills.find(b => b.id === targetId);
-      if (bill?.bank_account_id) {
+      const accountId = bank_account_id || bill?.bank_account_id;
+      if (accountId) {
         await base44.entities.Deposit.create({
-          bank_account_id: bill.bank_account_id,
+          bank_account_id: accountId,
           amount: -amount,
           date,
           description: `${bill.name} payment`,

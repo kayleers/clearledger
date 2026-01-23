@@ -123,11 +123,12 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
     const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
     const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
     const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
+    const totalWithInvestments = ongoingBalance + (account.stocks_investments || 0);
     
-    if (ongoingBalance !== 0) {
+    if (totalWithInvestments !== 0) {
       const curr = account.currency || 'USD';
       if (!acc[curr]) acc[curr] = 0;
-      acc[curr] += ongoingBalance;
+      acc[curr] += totalWithInvestments;
     }
     return acc;
   }, {});
@@ -296,20 +297,29 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                 const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
                 const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
                 const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
+                const totalWithInvestments = ongoingBalance + (account.stocks_investments || 0);
 
                 return (
                   <Link key={account.id} to={createPageUrl(`BankAccountDetail?id=${account.id}`)} className="block">
-                    <div className="p-3 bg-slate-50 rounded-lg flex justify-between items-center hover:bg-slate-100 transition-colors cursor-pointer">
-                      <div>
-                        <p className="font-medium text-slate-900">{account.name}</p>
-                        {account.account_number && (
-                          <p className="text-xs text-slate-500">••••{account.account_number.slice(-4)}</p>
-                        )}
+                    <div className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+                      <div className="flex justify-between items-start mb-1">
+                        <div>
+                          <p className="font-medium text-slate-900">{account.name}</p>
+                          {account.account_number && (
+                            <p className="text-xs text-slate-500">••••{account.account_number.slice(-4)}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-slate-900">{formatCurrency(totalWithInvestments, account.currency)}</p>
+                          <p className="text-xs text-slate-500">{account.currency}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-slate-900">{formatCurrency(ongoingBalance, account.currency)}</p>
-                        <p className="text-xs text-slate-500">{account.currency}</p>
-                      </div>
+                      {(account.stocks_investments > 0) && (
+                        <div className="flex justify-between text-xs mt-1">
+                          <span className="text-slate-500">Cash: {formatCurrency(ongoingBalance, account.currency)}</span>
+                          <span className="text-emerald-600">Investments: {formatCurrency(account.stocks_investments, account.currency)}</span>
+                        </div>
+                      )}
                     </div>
                   </Link>
                 );

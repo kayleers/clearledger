@@ -150,15 +150,12 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
   };
 
   const getTotalsByViewMode = () => {
-    if (viewMode === 'by-currency') {
-      const totals = {};
-      bills.forEach(bill => {
-        const curr = bill.currency || 'USD';
-        totals[curr] = (totals[curr] || 0) + bill.amount;
-      });
-      return totals;
-    }
-    return null;
+    const totals = {};
+    bills.forEach(bill => {
+      const curr = bill.currency || 'USD';
+      totals[curr] = (totals[curr] || 0) + bill.amount;
+    });
+    return totals;
   };
 
   const totalsByCurrency = getTotalsByViewMode();

@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
+import { formatCurrency } from '@/components/utils/calculations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';
@@ -464,7 +465,25 @@ export default function Dashboard() {
                                       <GripVertical className="w-5 h-5 text-slate-400" />
                                     </div>
                                     <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                      <h2 className="text-xl font-bold text-emerald-400">Credit Cards</h2>
+                                      <div>
+                                        <h2 className="text-xl font-bold text-emerald-400">Credit Cards</h2>
+                                        {(() => {
+                                          const totalsByCurrency = {};
+                                          cards.forEach(card => {
+                                            const curr = card.currency || 'USD';
+                                            totalsByCurrency[curr] = (totalsByCurrency[curr] || 0) + card.balance;
+                                          });
+                                          return Object.keys(totalsByCurrency).length > 0 && (
+                                            <div className="flex gap-2 mt-1">
+                                              {Object.entries(totalsByCurrency).map(([curr, total]) => (
+                                                <span key={curr} className="text-xs text-slate-400">
+                                                  {formatCurrency(total, curr)}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          );
+                                        })()}
+                                      </div>
                                       {cardsExpanded ? (
                                         <ChevronUp className="w-5 h-5 text-slate-500" />
                                       ) : (

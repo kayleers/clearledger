@@ -115,7 +115,25 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], dragHa
               </div>
             )}
             <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-              <h2 className="text-xl font-bold text-emerald-400">Loans</h2>
+              <div>
+                <h2 className="text-xl font-bold text-emerald-400">Loans</h2>
+                {(() => {
+                  const totalsByCurrency = {};
+                  loans.forEach(loan => {
+                    const curr = loan.currency || 'USD';
+                    totalsByCurrency[curr] = (totalsByCurrency[curr] || 0) + loan.current_balance;
+                  });
+                  return Object.keys(totalsByCurrency).length > 0 && (
+                    <div className="flex gap-2 mt-1">
+                      {Object.entries(totalsByCurrency).map(([curr, total]) => (
+                        <span key={curr} className="text-xs text-slate-400">
+                          {formatCurrency(total, curr)}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
               {isExpanded ? (
                 <ChevronUp className="w-5 h-5 text-slate-500" />
               ) : (

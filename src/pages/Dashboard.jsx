@@ -743,6 +743,7 @@ export default function Dashboard() {
             <div className="overflow-y-auto px-6 pb-6 pt-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
             <AddCardForm
               card={editingCard}
+              bankAccounts={bankAccounts}
               onSubmit={(data) => {
                 if (editingCard) {
                   updateCardMutation.mutate({ id: editingCard.id, data });

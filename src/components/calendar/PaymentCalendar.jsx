@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List, Lock } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import { useAccessControl } from '@/components/access/useAccessControl';
@@ -64,6 +66,11 @@ export default function PaymentCalendar() {
   const { data: recurringDeposits = [] } = useQuery({
     queryKey: ['recurring-deposits'],
     queryFn: () => base44.entities.RecurringDeposit.filter({ is_active: true })
+  });
+
+  const { data: bankTransfers = [] } = useQuery({
+    queryKey: ['bank-transfers'],
+    queryFn: () => base44.entities.BankTransfer.filter({ is_active: true })
   });
 
   const { data: paidStatuses = [] } = useQuery({
@@ -258,6 +265,23 @@ export default function PaymentCalendar() {
           category: deposit.category,
           accountId: deposit.bank_account_id,
           accountName: getBankAccountName(deposit.bank_account_id)
+        });
+      }
+    });
+
+    // Bank transfers
+    bankTransfers.forEach(transfer => {
+      if (transfer.frequency === 'monthly' && transfer.transfer_date === day) {
+        items.push({
+          type: 'transfer',
+          id: transfer.id,
+          name: transfer.name,
+          amount: transfer.amount,
+          currency: transfer.currency,
+          fromAccountId: transfer.from_account_id,
+          toAccountId: transfer.to_account_id,
+          fromAccountName: getBankAccountName(transfer.from_account_id),
+          toAccountName: getBankAccountName(transfer.to_account_id)
         });
       }
     });
@@ -470,8 +494,9 @@ export default function PaymentCalendar() {
                             />
                           )}
                           <span className="text-lg">
-                            {item.type === 'deposit' ? DEPOSIT_CATEGORY_ICONS[item.category] : 
-                             item.type === 'bill' ? BILL_CATEGORY_ICONS[item.category] : '💳'}
+                           {item.type === 'deposit' ? DEPOSIT_CATEGORY_ICONS[item.category] : 
+                            item.type === 'bill' ? BILL_CATEGORY_ICONS[item.category] : 
+                            item.type === 'transfer' ? '🔄' : '💳'}
                           </span>
                           <div className="text-left">
                             <p className={`font-medium text-sm ${paid ? 'line-through text-emerald-700' : ''}`}>
@@ -480,6 +505,7 @@ export default function PaymentCalendar() {
                             <Badge variant="outline" className="text-xs">
                               {item.type === 'deposit' ? 'Deposit' :
                                item.type === 'bill' ? 'Bill' :
+                               item.type === 'transfer' ? 'Transfer' :
                                item.type === 'card_payment' ? 'Card Payment' : 'Loan Payment'}
                             </Badge>
                           </div>
@@ -494,7 +520,11 @@ export default function PaymentCalendar() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <div className="pl-12 pr-3 py-2 text-sm text-slate-600">
-                        <p><strong>Account:</strong> {item.accountName || 'Not specified'}</p>
+                        {item.type === 'transfer' ? (
+                          <p><strong>From:</strong> {item.fromAccountName} <strong>To:</strong> {item.toAccountName}</p>
+                        ) : (
+                          <p><strong>Account:</strong> {item.accountName || 'Not specified'}</p>
+                        )}
                         {item.type === 'card_payment' && <p className="text-xs text-slate-500 mt-1">Projected payment</p>}
                         {item.type === 'loan_payment' && <p className="text-xs text-slate-500 mt-1">Projected payment</p>}
                         {paid && paidStatus && (

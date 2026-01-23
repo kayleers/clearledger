@@ -176,9 +176,21 @@ export default function BankAccountDetail() {
             <CardTitle className="text-2xl">{account.name}</CardTitle>
             <div className="mt-2">
               <p className="text-3xl font-bold text-slate-900">
-                {formatCurrency(ongoingBalance, account.currency)}
+                {formatCurrency(ongoingBalance + (account.stocks_investments || 0), account.currency)}
               </p>
-              <p className="text-sm text-slate-500">Current balance</p>
+              <p className="text-sm text-slate-500">Total balance</p>
+            </div>
+            <div className="flex gap-4 mt-3 text-sm">
+              <div>
+                <p className="text-slate-500">Cash</p>
+                <p className="font-semibold text-slate-900">{formatCurrency(ongoingBalance, account.currency)}</p>
+              </div>
+              {(account.stocks_investments > 0) && (
+                <div>
+                  <p className="text-slate-500">Investments</p>
+                  <p className="font-semibold text-emerald-600">{formatCurrency(account.stocks_investments, account.currency)}</p>
+                </div>
+              )}
             </div>
             {account.account_number && (
               <p className="text-slate-500 mt-2">••••{account.account_number.slice(-4)}</p>

@@ -154,6 +154,11 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
                         </>
                       )}
                     </div>
+                    {(account.stocks_investments > 0) && (
+                      <div className="flex items-center gap-1 text-xs text-emerald-600 mt-1">
+                        <span>📈 {formatCurrency(account.stocks_investments, account.currency)} in investments</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -248,6 +253,7 @@ function BankAccountForm({ account, onSubmit, isLoading }) {
     name: account?.name || '',
     account_number: account?.account_number || '',
     balance: account?.balance || '',
+    stocks_investments: account?.stocks_investments || '',
     currency: account?.currency || 'USD'
   });
 
@@ -279,7 +285,7 @@ function BankAccountForm({ account, onSubmit, isLoading }) {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="accountBalance">Current Balance</Label>
+        <Label htmlFor="accountBalance">Current Cash Balance</Label>
         <Input
           id="accountBalance"
           type="number"
@@ -287,6 +293,17 @@ function BankAccountForm({ account, onSubmit, isLoading }) {
           placeholder="0.00"
           value={formData.balance}
           onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="stocksInvestments">Stocks & Investments</Label>
+        <Input
+          id="stocksInvestments"
+          type="number"
+          step="0.01"
+          placeholder="0.00"
+          value={formData.stocks_investments}
+          onChange={(e) => setFormData({ ...formData, stocks_investments: parseFloat(e.target.value) || 0 })}
         />
       </div>
       <div className="space-y-2">

@@ -302,29 +302,33 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], dragHa
       </Collapsible>
 
       <Dialog open={showAddLoan} onOpenChange={setShowAddLoan}>
-        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
+          <DialogHeader className="p-6 pb-4 flex-shrink-0">
             <DialogTitle>Add Mortgage/Loan</DialogTitle>
           </DialogHeader>
-          <MortgageLoanForm
+          <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <MortgageLoanForm
             bankAccounts={bankAccounts}
             onSubmit={(data) => createLoanMutation.mutate(data)}
             isLoading={createLoanMutation.isPending}
           />
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!editingLoan} onOpenChange={() => setEditingLoan(null)}>
-        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
+          <DialogHeader className="p-6 pb-4 flex-shrink-0">
             <DialogTitle>Edit Mortgage/Loan</DialogTitle>
           </DialogHeader>
-          <MortgageLoanForm
+          <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <MortgageLoanForm
             loan={editingLoan}
             bankAccounts={bankAccounts}
             onSubmit={(data) => updateLoanMutation.mutate({ id: editingLoan.id, data })}
             isLoading={updateLoanMutation.isPending}
           />
+          </div>
         </DialogContent>
       </Dialog>
 

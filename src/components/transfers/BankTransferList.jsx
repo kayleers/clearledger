@@ -425,29 +425,33 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
       </Collapsible>
 
       <Dialog open={showAddTransfer} onOpenChange={setShowAddTransfer}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
+          <DialogHeader className="p-6 pb-4 flex-shrink-0">
             <DialogTitle>Add Bank Transfer</DialogTitle>
           </DialogHeader>
-          <BankTransferForm
+          <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <BankTransferForm
             bankAccounts={bankAccounts}
             onSubmit={(data) => createTransferMutation.mutate(data)}
             isLoading={createTransferMutation.isPending}
           />
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!editingTransfer} onOpenChange={() => setEditingTransfer(null)}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
+          <DialogHeader className="p-6 pb-4 flex-shrink-0">
             <DialogTitle>Edit Bank Transfer</DialogTitle>
           </DialogHeader>
-          <BankTransferForm
+          <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <BankTransferForm
             transfer={editingTransfer}
             bankAccounts={bankAccounts}
             onSubmit={(data) => updateTransferMutation.mutate({ id: editingTransfer.id, data })}
             isLoading={updateTransferMutation.isPending}
           />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

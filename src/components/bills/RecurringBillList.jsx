@@ -448,29 +448,33 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
       </Collapsible>
 
       <Dialog open={showAddBill} onOpenChange={setShowAddBill}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
+          <DialogHeader className="p-6 pb-4 flex-shrink-0">
             <DialogTitle>Add Recurring Bill</DialogTitle>
           </DialogHeader>
-          <RecurringBillForm
+          <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <RecurringBillForm
             bankAccounts={bankAccounts}
             onSubmit={(data) => createBillMutation.mutate(data)}
             isLoading={createBillMutation.isPending}
           />
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!editingBill} onOpenChange={() => setEditingBill(null)}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
+          <DialogHeader className="p-6 pb-4 flex-shrink-0">
             <DialogTitle>Edit Recurring Bill</DialogTitle>
           </DialogHeader>
-          <RecurringBillForm
+          <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <RecurringBillForm
             bill={editingBill}
             bankAccounts={bankAccounts}
             onSubmit={(data) => updateBillMutation.mutate({ id: editingBill.id, data })}
             isLoading={updateBillMutation.isPending}
           />
+          </div>
         </DialogContent>
       </Dialog>
 

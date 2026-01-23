@@ -686,11 +686,11 @@ export default function Dashboard() {
               setShowQuickAdd(open);
               if (!open) setQuickAddCardId(null);
             }}>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
+              <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
+                <DialogHeader className="p-6 pb-4 flex-shrink-0">
                   <DialogTitle>Quick Add</DialogTitle>
                 </DialogHeader>
-                
+                <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <QuickAddMenu
                   cards={cards}
                   bankAccounts={bankAccounts}
@@ -706,6 +706,7 @@ export default function Dashboard() {
                              createBankPaymentMutation.isPending || createCardPaymentMutation.isPending || 
                              createBillPaymentMutation.isPending || createLoanPaymentMutation.isPending}
                 />
+                </div>
               </DialogContent>
             </Dialog>
           </>
@@ -718,7 +719,8 @@ export default function Dashboard() {
             setEditingCard(null);
           }
         }}>
-          <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <div className="overflow-y-auto px-6 pb-6 pt-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
             <AddCardForm
               card={editingCard}
               onSubmit={(data) => {
@@ -734,15 +736,17 @@ export default function Dashboard() {
               }}
               isLoading={createCardMutation.isPending || updateCardMutation.isPending}
             />
+            </div>
           </DialogContent>
         </Dialog>
 
         {/* Privacy Policy Dialog */}
         <Dialog open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <DialogHeader className="p-6 pb-4 flex-shrink-0">
               <DialogTitle>Privacy Policy</DialogTitle>
             </DialogHeader>
+            <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="prose prose-sm max-w-none text-slate-700 space-y-4">
               <p className="text-sm text-slate-500">Last updated: January 6, 2026</p>
               
@@ -804,6 +808,7 @@ export default function Dashboard() {
               <h3 className="font-bold text-slate-900 mt-6">Contact</h3>
               <p>If you have questions about this privacy policy or your privacy rights, you may contact us at:</p>
               <p className="font-medium">khaoskrservices@gmail.com</p>
+            </div>
             </div>
           </DialogContent>
         </Dialog>

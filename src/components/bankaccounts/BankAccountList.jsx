@@ -144,7 +144,12 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
                     <Building2 className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-800">{account.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-slate-800">{account.name}</p>
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-slate-200 text-slate-600">
+                        {account.account_type === 'savings' ? '🏦' : '💳'}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2 text-sm text-slate-500">
                       <span className="font-medium text-slate-700">{formatCurrency(getOngoingBalance(account), account.currency)}</span>
                       {account.account_number && (
@@ -251,6 +256,7 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
 function BankAccountForm({ account, onSubmit, isLoading }) {
   const [formData, setFormData] = useState({
     name: account?.name || '',
+    account_type: account?.account_type || 'checking',
     account_number: account?.account_number || '',
     balance: account?.balance || '',
     stocks_investments: account?.stocks_investments || '',
@@ -278,6 +284,25 @@ function BankAccountForm({ account, onSubmit, isLoading }) {
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           required
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="accountType">Account Type</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant={formData.account_type === 'checking' ? 'default' : 'outline'}
+            onClick={() => setFormData({ ...formData, account_type: 'checking' })}
+          >
+            💳 Checking
+          </Button>
+          <Button
+            type="button"
+            variant={formData.account_type === 'savings' ? 'default' : 'outline'}
+            onClick={() => setFormData({ ...formData, account_type: 'savings' })}
+          >
+            🏦 Savings
+          </Button>
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="accountNumber">Account Number (Last 4 digits - Optional)</Label>

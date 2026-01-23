@@ -133,6 +133,41 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
     return acc;
   }, {});
 
+  // Calculate balances by account type
+  const savingsBalanceByCurrency = bankAccounts.reduce((acc, account) => {
+    if (account.account_type === 'savings') {
+      const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
+      const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
+      const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
+      const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
+      const totalWithInvestments = ongoingBalance + (account.stocks_investments || 0);
+      
+      if (totalWithInvestments !== 0) {
+        const curr = account.currency || 'USD';
+        if (!acc[curr]) acc[curr] = 0;
+        acc[curr] += totalWithInvestments;
+      }
+    }
+    return acc;
+  }, {});
+
+  const checkingBalanceByCurrency = bankAccounts.reduce((acc, account) => {
+    if (account.account_type !== 'savings') {
+      const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
+      const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
+      const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
+      const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
+      const totalWithInvestments = ongoingBalance + (account.stocks_investments || 0);
+      
+      if (totalWithInvestments !== 0) {
+        const curr = account.currency || 'USD';
+        if (!acc[curr]) acc[curr] = 0;
+        acc[curr] += totalWithInvestments;
+      }
+    }
+    return acc;
+  }, {});
+
   const getUtilizationMessage = () => {
     if (totalUtilization <= 30) {
       return { text: 'Great! Your credit usage is healthy', icon: CheckCircle, color: 'text-emerald-600' };
@@ -275,15 +310,42 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                   {Object.keys(totalBankBalanceByCurrency).length === 0 ? (
                     <p className="text-sm text-slate-500">Payment sources</p>
                   ) : (
-                    <div className="text-sm">
-                      <span className="text-slate-500">Total Balance: </span>
-                      {Object.entries(totalBankBalanceByCurrency).map(([currency, amount], idx) => (
-                        <span key={currency} className="font-medium text-blue-600">
-                          {idx > 0 && ' + '}
-                          {formatCurrency(amount, currency)}
-                        </span>
-                      ))}
-                    </div>
+                    <>
+                      <div className="text-sm">
+                        <span className="text-slate-500">Total: </span>
+                        {Object.entries(totalBankBalanceByCurrency).map(([currency, amount], idx) => (
+                          <span key={currency} className="font-medium text-blue-600">
+                            {idx > 0 && ' + '}
+                            {formatCurrency(amount, currency)}
+                          </span>
+                        ))}
+                      </div>
+                      {(Object.keys(checkingBalanceByCurrency).length > 0 || Object.keys(savingsBalanceByCurrency).length > 0) && (
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          {Object.keys(checkingBalanceByCurrency).length > 0 && (
+                            <span>
+                              💳 {Object.entries(checkingBalanceByCurrency).map(([currency, amount], idx) => (
+                                <span key={currency}>
+                                  {idx > 0 && ' + '}
+                                  {formatCurrency(amount, currency)}
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                          {Object.keys(checkingBalanceByCurrency).length > 0 && Object.keys(savingsBalanceByCurrency).length > 0 && ' • '}
+                          {Object.keys(savingsBalanceByCurrency).length > 0 && (
+                            <span>
+                              🏦 {Object.entries(savingsBalanceByCurrency).map(([currency, amount], idx) => (
+                                <span key={currency}>
+                                  {idx > 0 && ' + '}
+                                  {formatCurrency(amount, currency)}
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -304,7 +366,12 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                     <div className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
                       <div className="flex justify-between items-start mb-1">
                         <div>
-                          <p className="font-medium text-slate-900">{account.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-slate-900">{account.name}</p>
+                            <span className="text-xs">
+                              {account.account_type === 'savings' ? '🏦' : '💳'}
+                            </span>
+                          </div>
                           {account.account_number && (
                             <p className="text-xs text-slate-500">••••{account.account_number.slice(-4)}</p>
                           )}

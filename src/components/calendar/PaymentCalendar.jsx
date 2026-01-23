@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List, Lock } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import { useAccessControl } from '@/components/access/useAccessControl';
@@ -62,6 +63,118 @@ export default function PaymentCalendar() {
     queryKey: ['recurring-deposits'],
     queryFn: () => base44.entities.RecurringDeposit.filter({ is_active: true })
   });
+
+  const { data: paidStatuses = [] } = useQuery({
+    queryKey: ['scheduled-payment-statuses'],
+    queryFn: () => base44.entities.ScheduledPaymentStatus.list()
+  });
+
+  const queryClient = useQueryClient();
+
+  const markAsPaidMutation = useMutation({
+    mutationFn: async ({ item, year, month, day }) => {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Create payment status record
+      await base44.entities.ScheduledPaymentStatus.create({
+        item_type: item.type,
+        item_id: item.id,
+        year,
+        month,
+        day,
+        is_paid: true,
+        paid_date: today,
+        amount_paid: item.amount
+      });
+
+      // Process the payment based on type
+      if (item.type === 'card_payment') {
+        const card = cards.find(c => c.id === item.id);
+        if (card) {
+          await base44.entities.Payment.create({
+            card_id: card.id,
+            amount: item.amount,
+            date: today,
+            note: 'Manual payment from schedule'
+          });
+          await base44.entities.CreditCard.update(card.id, {
+            balance: Math.max(0, card.balance - item.amount)
+          });
+          if (card.bank_account_id) {
+            await base44.entities.Deposit.create({
+              bank_account_id: card.bank_account_id,
+              amount: -item.amount,
+              date: today,
+              description: `Payment to ${card.name}`,
+              category: 'other'
+            });
+          }
+        }
+      } else if (item.type === 'bill') {
+        if (item.accountId) {
+          await base44.entities.Deposit.create({
+            bank_account_id: item.accountId,
+            amount: -item.amount,
+            date: today,
+            description: `${item.name} payment`,
+            category: 'other'
+          });
+        }
+      } else if (item.type === 'loan_payment') {
+        const loan = loans.find(l => l.id === item.id);
+        if (loan) {
+          await base44.entities.LoanPayment.create({
+            loan_id: loan.id,
+            amount: item.amount,
+            date: today,
+            note: 'Manual payment from schedule'
+          });
+          await base44.entities.MortgageLoan.update(loan.id, {
+            current_balance: Math.max(0, loan.current_balance - item.amount)
+          });
+          if (loan.bank_account_id) {
+            await base44.entities.Deposit.create({
+              bank_account_id: loan.bank_account_id,
+              amount: -item.amount,
+              date: today,
+              description: `Payment to ${loan.name}`,
+              category: 'other'
+            });
+          }
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scheduled-payment-statuses'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+      queryClient.invalidateQueries({ queryKey: ['mortgage-loans'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['all-deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['loan-payments'] });
+    }
+  });
+
+  const unmarkAsPaidMutation = useMutation({
+    mutationFn: async ({ statusId }) => {
+      await base44.entities.ScheduledPaymentStatus.delete(statusId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scheduled-payment-statuses'] });
+    }
+  });
+
+  const isPaid = (itemType, itemId, year, month, day) => {
+    return paidStatuses.find(
+      s => s.item_type === itemType && 
+           s.item_id === itemId && 
+           s.year === year && 
+           s.month === month && 
+           s.day === day &&
+           s.is_paid
+    );
+  };
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -245,8 +358,10 @@ export default function PaymentCalendar() {
         return acc;
       }, {});
 
+      const hasPaidItems = items.some(item => item.type !== 'deposit' && isPaid(item.type, item.id, currentMonth.getFullYear(), currentMonth.getMonth(), day));
+      
       days.push(
-        <div key={day} className="border border-slate-200 p-2 min-h-24 bg-white">
+        <div key={day} className={`border border-slate-200 p-2 min-h-24 ${hasPaidItems ? 'bg-emerald-50' : 'bg-white'}`}>
           <div className="font-semibold text-sm mb-1">{day}</div>
           {items.length > 0 && (
             <div className="space-y-1">
@@ -262,21 +377,25 @@ export default function PaymentCalendar() {
               ))}
               <div className="space-y-0.5">
                 <TooltipProvider>
-                  {items.slice(0, 3).map((item, idx) => (
-                    <Tooltip key={idx}>
-                      <TooltipTrigger asChild>
-                        <div className="text-[10px] truncate text-slate-600 cursor-help">
-                          {item.name}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="font-medium">{item.name}</p>
-                        <p className={item.type === 'deposit' ? 'text-green-600' : 'text-red-600'}>
-                          {item.type === 'deposit' ? '+' : '-'}{formatCurrency(item.amount, item.currency)}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
+                  {items.slice(0, 3).map((item, idx) => {
+                    const paid = item.type !== 'deposit' && isPaid(item.type, item.id, currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                    return (
+                      <Tooltip key={idx}>
+                        <TooltipTrigger asChild>
+                          <div className={`text-[10px] truncate cursor-help ${paid ? 'text-emerald-700 line-through' : 'text-slate-600'}`}>
+                            {paid && '✓ '}{item.name}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="font-medium">{item.name}</p>
+                          <p className={item.type === 'deposit' ? 'text-green-600' : 'text-red-600'}>
+                            {item.type === 'deposit' ? '+' : '-'}{formatCurrency(item.amount, item.currency)}
+                          </p>
+                          {paid && <p className="text-xs text-emerald-600 mt-1">✓ Paid</p>}
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
                 </TooltipProvider>
                 {items.length > 3 && (
                   <div className="text-[10px] text-slate-400">+{items.length - 3} more</div>
@@ -326,18 +445,35 @@ export default function PaymentCalendar() {
               {items.map((item, idx) => {
                 const key = `${year}-${month}-${day}-${item.type}-${item.id}`;
                 const isExpanded = expandedItems[key];
+                const paidStatus = item.type !== 'deposit' ? isPaid(item.type, item.id, year, month, day) : null;
+                const paid = !!paidStatus;
 
                 return (
                   <Collapsible key={idx} open={isExpanded} onOpenChange={() => toggleExpanded(key)}>
                     <CollapsibleTrigger className="w-full">
-                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer">
+                      <div className={`flex items-center justify-between p-3 rounded-lg hover:bg-slate-100 cursor-pointer ${paid ? 'bg-emerald-50' : 'bg-slate-50'}`}>
                         <div className="flex items-center gap-2 flex-1">
+                          {item.type !== 'deposit' && (
+                            <Checkbox
+                              checked={paid}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  markAsPaidMutation.mutate({ item, year, month, day });
+                                } else if (paidStatus) {
+                                  unmarkAsPaidMutation.mutate({ statusId: paidStatus.id });
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          )}
                           <span className="text-lg">
                             {item.type === 'deposit' ? DEPOSIT_CATEGORY_ICONS[item.category] : 
                              item.type === 'bill' ? BILL_CATEGORY_ICONS[item.category] : '💳'}
                           </span>
                           <div className="text-left">
-                            <p className="font-medium text-sm">{item.name}</p>
+                            <p className={`font-medium text-sm ${paid ? 'line-through text-emerald-700' : ''}`}>
+                              {paid && '✓ '}{item.name}
+                            </p>
                             <Badge variant="outline" className="text-xs">
                               {item.type === 'deposit' ? 'Deposit' :
                                item.type === 'bill' ? 'Bill' :
@@ -346,7 +482,7 @@ export default function PaymentCalendar() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className={`font-semibold ${item.type === 'deposit' ? 'text-green-600' : 'text-red-600'}`}>
+                          <span className={`font-semibold ${item.type === 'deposit' ? 'text-green-600' : paid ? 'text-emerald-600' : 'text-red-600'}`}>
                             {item.type === 'deposit' ? '+' : '-'}{formatCurrency(item.amount, item.currency)}
                           </span>
                           {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -358,6 +494,9 @@ export default function PaymentCalendar() {
                         <p><strong>Account:</strong> {item.accountName || 'Not specified'}</p>
                         {item.type === 'card_payment' && <p className="text-xs text-slate-500 mt-1">Projected payment</p>}
                         {item.type === 'loan_payment' && <p className="text-xs text-slate-500 mt-1">Projected payment</p>}
+                        {paid && paidStatus && (
+                          <p className="text-xs text-emerald-600 mt-1">✓ Paid on {paidStatus.paid_date}</p>
+                        )}
                       </div>
                     </CollapsibleContent>
                   </Collapsible>

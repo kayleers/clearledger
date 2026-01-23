@@ -206,27 +206,31 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
       </Collapsible>
 
       <Dialog open={showAddAccount} onOpenChange={setShowAddAccount}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="p-6 pb-4 flex-shrink-0">
             <DialogTitle>Add Bank Account</DialogTitle>
           </DialogHeader>
-          <BankAccountForm
-            onSubmit={(data) => createAccountMutation.mutate(data)}
-            isLoading={createAccountMutation.isPending}
-          />
+          <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <BankAccountForm
+              onSubmit={(data) => createAccountMutation.mutate(data)}
+              isLoading={createAccountMutation.isPending}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!editingAccount} onOpenChange={() => setEditingAccount(null)}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="p-6 pb-4 flex-shrink-0">
             <DialogTitle>Edit Bank Account</DialogTitle>
           </DialogHeader>
-          <BankAccountForm
-            account={editingAccount}
-            onSubmit={(data) => updateAccountMutation.mutate({ id: editingAccount.id, data })}
-            isLoading={updateAccountMutation.isPending}
-          />
+          <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <BankAccountForm
+              account={editingAccount}
+              onSubmit={(data) => updateAccountMutation.mutate({ id: editingAccount.id, data })}
+              isLoading={updateAccountMutation.isPending}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -243,6 +247,7 @@ function BankAccountForm({ account, onSubmit, isLoading }) {
   const [formData, setFormData] = useState({
     name: account?.name || '',
     account_number: account?.account_number || '',
+    balance: account?.balance || '',
     currency: account?.currency || 'USD'
   });
 
@@ -271,6 +276,17 @@ function BankAccountForm({ account, onSubmit, isLoading }) {
           maxLength="4"
           value={formData.account_number}
           onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="accountBalance">Current Balance</Label>
+        <Input
+          id="accountBalance"
+          type="number"
+          step="0.01"
+          placeholder="0.00"
+          value={formData.balance}
+          onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
         />
       </div>
       <div className="space-y-2">

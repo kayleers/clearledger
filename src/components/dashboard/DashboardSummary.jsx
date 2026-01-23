@@ -310,7 +310,7 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                   {Object.keys(totalBankBalanceByCurrency).length === 0 ? (
                     <p className="text-sm text-slate-500">Payment sources</p>
                   ) : (
-                    <>
+                    <div className="space-y-0.5">
                       <div className="text-sm">
                         <span className="text-slate-500">Total: </span>
                         {Object.entries(totalBankBalanceByCurrency).map(([currency, amount], idx) => (
@@ -320,32 +320,29 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                           </span>
                         ))}
                       </div>
-                      {(Object.keys(checkingBalanceByCurrency).length > 0 || Object.keys(savingsBalanceByCurrency).length > 0) && (
-                        <div className="text-xs text-slate-500 mt-0.5">
-                          {Object.keys(checkingBalanceByCurrency).length > 0 && (
-                            <span>
-                              💳 {Object.entries(checkingBalanceByCurrency).map(([currency, amount], idx) => (
-                                <span key={currency}>
-                                  {idx > 0 && ' + '}
-                                  {formatCurrency(amount, currency)}
-                                </span>
-                              ))}
+                      {Object.keys(checkingBalanceByCurrency).length > 0 && (
+                        <div className="text-xs text-slate-500">
+                          <span>Checking: </span>
+                          {Object.entries(checkingBalanceByCurrency).map(([currency, amount], idx) => (
+                            <span key={currency}>
+                              {idx > 0 && ' + '}
+                              {formatCurrency(amount, currency)}
                             </span>
-                          )}
-                          {Object.keys(checkingBalanceByCurrency).length > 0 && Object.keys(savingsBalanceByCurrency).length > 0 && ' • '}
-                          {Object.keys(savingsBalanceByCurrency).length > 0 && (
-                            <span>
-                              🏦 {Object.entries(savingsBalanceByCurrency).map(([currency, amount], idx) => (
-                                <span key={currency}>
-                                  {idx > 0 && ' + '}
-                                  {formatCurrency(amount, currency)}
-                                </span>
-                              ))}
-                            </span>
-                          )}
+                          ))}
                         </div>
                       )}
-                    </>
+                      {Object.keys(savingsBalanceByCurrency).length > 0 && (
+                        <div className="text-xs text-slate-500">
+                          <span>Savings: </span>
+                          {Object.entries(savingsBalanceByCurrency).map(([currency, amount], idx) => (
+                            <span key={currency}>
+                              {idx > 0 && ' + '}
+                              {formatCurrency(amount, currency)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

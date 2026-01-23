@@ -37,6 +37,8 @@ export default function PaymentCalendar() {
   const [listPeriod, setListPeriod] = useState('month'); // 'month' or 'year'
   const [expandedItems, setExpandedItems] = useState({});
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [paymentDialog, setPaymentDialog] = useState(null); // { item, year, month, day }
+  const [selectedAccountId, setSelectedAccountId] = useState('');
   const accessControl = useAccessControl();
 
   const { data: cards = [] } = useQuery({
@@ -72,7 +74,7 @@ export default function PaymentCalendar() {
   const queryClient = useQueryClient();
 
   const markAsPaidMutation = useMutation({
-    mutationFn: async ({ item, year, month, day }) => {
+    mutationFn: async ({ item, year, month, day, bankAccountId }) => {
       const today = new Date().toISOString().split('T')[0];
       
       // Create payment status record
@@ -100,9 +102,9 @@ export default function PaymentCalendar() {
           await base44.entities.CreditCard.update(card.id, {
             balance: Math.max(0, card.balance - item.amount)
           });
-          if (card.bank_account_id) {
+          if (bankAccountId) {
             await base44.entities.Deposit.create({
-              bank_account_id: card.bank_account_id,
+              bank_account_id: bankAccountId,
               amount: -item.amount,
               date: today,
               description: `Payment to ${card.name}`,
@@ -111,9 +113,9 @@ export default function PaymentCalendar() {
           }
         }
       } else if (item.type === 'bill') {
-        if (item.accountId) {
+        if (bankAccountId) {
           await base44.entities.Deposit.create({
-            bank_account_id: item.accountId,
+            bank_account_id: bankAccountId,
             amount: -item.amount,
             date: today,
             description: `${item.name} payment`,
@@ -132,9 +134,9 @@ export default function PaymentCalendar() {
           await base44.entities.MortgageLoan.update(loan.id, {
             current_balance: Math.max(0, loan.current_balance - item.amount)
           });
-          if (loan.bank_account_id) {
+          if (bankAccountId) {
             await base44.entities.Deposit.create({
-              bank_account_id: loan.bank_account_id,
+              bank_account_id: bankAccountId,
               amount: -item.amount,
               date: today,
               description: `Payment to ${loan.name}`,
@@ -458,7 +460,8 @@ export default function PaymentCalendar() {
                               checked={paid}
                               onCheckedChange={(checked) => {
                                 if (checked) {
-                                  markAsPaidMutation.mutate({ item, year, month, day });
+                                  setPaymentDialog({ item, year, month, day });
+                                  setSelectedAccountId(item.accountId || '');
                                 } else if (paidStatus) {
                                   unmarkAsPaidMutation.mutate({ statusId: paidStatus.id });
                                 }
@@ -593,6 +596,62 @@ export default function PaymentCalendar() {
         onOpenChange={setShowUpgradeDialog}
         context="paymentSchedule"
       />
+
+      <Dialog open={!!paymentDialog} onOpenChange={(open) => !open && setPaymentDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Payment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Mark <strong>{paymentDialog?.item.name}</strong> as paid for{' '}
+              <strong>{formatCurrency(paymentDialog?.item.amount, paymentDialog?.item.currency)}</strong>?
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="paymentAccount">Pay from Bank Account</Label>
+              <select
+                id="paymentAccount"
+                value={selectedAccountId}
+                onChange={(e) => setSelectedAccountId(e.target.value)}
+                className="w-full h-10 px-3 rounded-md border border-slate-200"
+              >
+                <option value="">No bank account</option>
+                {bankAccounts.map(account => (
+                  <option key={account.id} value={account.id}>
+                    {account.name} - {formatCurrency(account.balance, account.currency)}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-slate-500">
+                Select a different account for one-time payment, or leave as default
+              </p>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setPaymentDialog(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  markAsPaidMutation.mutate({
+                    item: paymentDialog.item,
+                    year: paymentDialog.year,
+                    month: paymentDialog.month,
+                    day: paymentDialog.day,
+                    bankAccountId: selectedAccountId || null
+                  });
+                  setPaymentDialog(null);
+                }}
+                disabled={markAsPaidMutation.isPending}
+              >
+                {markAsPaidMutation.isPending ? 'Processing...' : 'Mark as Paid'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

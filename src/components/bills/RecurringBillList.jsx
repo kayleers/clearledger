@@ -37,6 +37,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
   const [editingBill, setEditingBill] = useState(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [viewMode, setViewMode] = useState('default'); // 'default', 'by-account', 'by-date', 'by-currency'
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
 
@@ -95,41 +96,130 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
     }
   };
 
+  const getSortedBills = () => {
+    let sorted = [...bills];
+    
+    if (viewMode === 'by-account') {
+      sorted.sort((a, b) => {
+        const accountA = bankAccounts.find(acc => acc.id === a.bank_account_id);
+        const accountB = bankAccounts.find(acc => acc.id === b.bank_account_id);
+        const nameA = accountA?.name || 'Unassigned';
+        const nameB = accountB?.name || 'Unassigned';
+        return nameA.localeCompare(nameB);
+      });
+    } else if (viewMode === 'by-date') {
+      sorted.sort((a, b) => {
+        const dateA = a.due_date || 999;
+        const dateB = b.due_date || 999;
+        return dateA - dateB;
+      });
+    } else if (viewMode === 'by-currency') {
+      sorted.sort((a, b) => {
+        const currA = a.currency || 'USD';
+        const currB = b.currency || 'USD';
+        return currA.localeCompare(currB);
+      });
+    }
+    
+    return sorted;
+  };
+
+  const groupedBills = () => {
+    const sorted = getSortedBills();
+    
+    if (viewMode === 'by-account') {
+      const grouped = {};
+      sorted.forEach(bill => {
+        const account = bankAccounts.find(acc => acc.id === bill.bank_account_id);
+        const key = account ? account.name : 'Unassigned';
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(bill);
+      });
+      return grouped;
+    } else if (viewMode === 'by-currency') {
+      const grouped = {};
+      sorted.forEach(bill => {
+        const key = bill.currency || 'USD';
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(bill);
+      });
+      return grouped;
+    }
+    
+    return { 'All Bills': sorted };
+  };
+
   return (
     <div className="space-y-4">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {dragHandleProps && (
-              <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                <GripVertical className="w-5 h-5 text-slate-400" />
-              </div>
-            )}
-            <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-              <h2 className="text-xl font-bold text-emerald-400">Recurring Bills</h2>
-              {isExpanded ? (
-                <ChevronUp className="w-5 h-5 text-slate-500" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-slate-500" />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {dragHandleProps && (
+                <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                  <GripVertical className="w-5 h-5 text-slate-400" />
+                </div>
               )}
-            </CollapsibleTrigger>
+              <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                <h2 className="text-xl font-bold text-emerald-400">Recurring Bills</h2>
+                {isExpanded ? (
+                  <ChevronUp className="w-5 h-5 text-slate-500" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-slate-500" />
+                )}
+              </CollapsibleTrigger>
+            </div>
+            <Button
+              size="sm"
+              onClick={handleAddBillClick}
+              className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add Bill
+            </Button>
           </div>
-          <Button
-            size="sm"
-            onClick={handleAddBillClick}
-            className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Add Bill
-          </Button>
+          
+          {isExpanded && bills.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                size="sm"
+                variant={viewMode === 'default' ? 'default' : 'outline'}
+                onClick={() => setViewMode('default')}
+              >
+                Default
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'by-account' ? 'default' : 'outline'}
+                onClick={() => setViewMode('by-account')}
+              >
+                By Account
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'by-date' ? 'default' : 'outline'}
+                onClick={() => setViewMode('by-date')}
+              >
+                By Due Date
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'by-currency' ? 'default' : 'outline'}
+                onClick={() => setViewMode('by-currency')}
+              >
+                By Currency
+              </Button>
+            </div>
+          )}
         </div>
 
         <CollapsibleContent>
-          <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="recurring-bills">
-          {(provided) => (
-            <div className="grid gap-3" {...provided.droppableProps} ref={provided.innerRef}>
-              {bills.map((bill, index) => {
+          {viewMode === 'default' ? (
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="recurring-bills">
+                {(provided) => (
+                  <div className="grid gap-3" {...provided.droppableProps} ref={provided.innerRef}>
+                    {bills.map((bill, index) => {
                 const account = bankAccounts.find(a => a.id === bill.bank_account_id);
                 return (
                   <Draggable key={bill.id} draggableId={bill.id} index={index}>
@@ -178,6 +268,11 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
                           From: {account.name}
                         </p>
                       )}
+                      {bill.end_date && (
+                        <p className="text-xs text-orange-600 mt-1">
+                          Ends: {format(new Date(bill.end_date), 'MMM d, yyyy')}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -208,12 +303,88 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
                     )}
                   </Draggable>
                 );
-              })}
-              {provided.placeholder}
+                    })}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          ) : (
+            <div className="space-y-6">
+              {Object.entries(groupedBills()).map(([groupName, groupBills]) => (
+                <div key={groupName}>
+                  <h3 className="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wide">
+                    {groupName}
+                    {viewMode === 'by-currency' && ` (${groupBills.reduce((sum, b) => sum + b.amount, 0).toFixed(2)})`}
+                  </h3>
+                  <div className="grid gap-3">
+                    {groupBills.map((bill) => {
+                      const account = bankAccounts.find(a => a.id === bill.bank_account_id);
+                      return (
+                        <Card key={bill.id} className="border-l-4 border-l-purple-500">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-lg">
+                                  {categoryIcons[bill.category] || '📄'}
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-slate-800">{bill.name}</p>
+                                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                                    <span>{formatCurrency(bill.amount, bill.currency || 'USD')}</span>
+                                    <span>•</span>
+                                    <span>{frequencyLabels[bill.frequency]}</span>
+                                    {(bill.frequency === 'monthly' || bill.frequency === 'quarterly') && bill.due_date && (
+                                      <>
+                                        <span>•</span>
+                                        <span>Due: {bill.due_date}{getOrdinalSuffix(bill.due_date)}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                  {account && (
+                                    <p className="text-xs text-slate-400 mt-1">
+                                      From: {account.name}
+                                    </p>
+                                  )}
+                                  {bill.end_date && (
+                                    <p className="text-xs text-orange-600 mt-1">
+                                      Ends: {format(new Date(bill.end_date), 'MMM d, yyyy')}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => setEditingBill(bill)}
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-red-500"
+                                  onClick={() => {
+                                    if (confirm('Delete this recurring bill?')) {
+                                      deleteBillMutation.mutate(bill.id);
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
-        </Droppable>
-      </DragDropContext>
 
       {bills.length === 0 && (
         <Card className="border-dashed">
@@ -276,7 +447,9 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
     day_of_week: bill?.day_of_week?.toString() || '1',
     due_month: bill?.due_month?.toString() || '1',
     bank_account_id: bill?.bank_account_id || '',
-    category: bill?.category || 'other'
+    category: bill?.category || 'other',
+    start_date: bill?.start_date || '',
+    end_date: bill?.end_date || ''
   });
 
   const [isRecurring, setIsRecurring] = useState(bill?.frequency !== 'one_time');
@@ -314,6 +487,14 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
       } else if (formData.frequency === 'yearly') {
         submitData.due_date = formData.due_date ? parseInt(formData.due_date) : null;
         submitData.due_month = formData.due_month ? parseInt(formData.due_month) : null;
+      }
+      
+      // Add start and end dates
+      if (formData.start_date) {
+        submitData.start_date = formData.start_date;
+      }
+      if (formData.end_date) {
+        submitData.end_date = formData.end_date;
       }
     }
 
@@ -459,6 +640,27 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
               </div>
             </div>
           )}
+          
+          <div className="space-y-2">
+            <Label htmlFor="startDate">Start Date (Optional)</Label>
+            <Input
+              id="startDate"
+              type="date"
+              value={formData.start_date}
+              onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="endDate">End Date (Optional)</Label>
+            <Input
+              id="endDate"
+              type="date"
+              value={formData.end_date}
+              onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+            />
+            <p className="text-xs text-slate-500">Leave empty for indefinite recurring</p>
+          </div>
         </div>
       )}
       <div className="space-y-2">

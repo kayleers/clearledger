@@ -117,35 +117,33 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
     return acc;
   }, {});
 
-  // Calculate ongoing balance for bank accounts
+  // Calculate ongoing balance for bank accounts (cash only, excluding investments)
   const totalBankBalanceByCurrency = bankAccounts.reduce((acc, account) => {
     const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
     const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
     const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
     const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
-    const totalWithInvestments = ongoingBalance + (account.stocks_investments || 0);
     
-    if (totalWithInvestments !== 0) {
+    if (ongoingBalance !== 0) {
       const curr = account.currency || 'USD';
       if (!acc[curr]) acc[curr] = 0;
-      acc[curr] += totalWithInvestments;
+      acc[curr] += ongoingBalance;
     }
     return acc;
   }, {});
 
-  // Calculate balances by account type
+  // Calculate balances by account type (cash only)
   const savingsBalanceByCurrency = bankAccounts.reduce((acc, account) => {
     if (account.account_type === 'savings') {
       const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
       const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
       const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
       const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
-      const totalWithInvestments = ongoingBalance + (account.stocks_investments || 0);
       
-      if (totalWithInvestments !== 0) {
+      if (ongoingBalance !== 0) {
         const curr = account.currency || 'USD';
         if (!acc[curr]) acc[curr] = 0;
-        acc[curr] += totalWithInvestments;
+        acc[curr] += ongoingBalance;
       }
     }
     return acc;
@@ -157,13 +155,23 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
       const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
       const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
       const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
-      const totalWithInvestments = ongoingBalance + (account.stocks_investments || 0);
       
-      if (totalWithInvestments !== 0) {
+      if (ongoingBalance !== 0) {
         const curr = account.currency || 'USD';
         if (!acc[curr]) acc[curr] = 0;
-        acc[curr] += totalWithInvestments;
+        acc[curr] += ongoingBalance;
       }
+    }
+    return acc;
+  }, {});
+
+  // Calculate total investments by currency (separate from cash balance)
+  const investmentsByCurrency = bankAccounts.reduce((acc, account) => {
+    const investments = account.stocks_investments || 0;
+    if (investments !== 0) {
+      const curr = account.currency || 'USD';
+      if (!acc[curr]) acc[curr] = 0;
+      acc[curr] += investments;
     }
     return acc;
   }, {});
@@ -335,6 +343,17 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                         <div className="text-xs text-slate-500">
                           <span>Savings: </span>
                           {Object.entries(savingsBalanceByCurrency).map(([currency, amount], idx) => (
+                            <span key={currency}>
+                              {idx > 0 && ' + '}
+                              {formatCurrency(amount, currency)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {Object.keys(investmentsByCurrency).length > 0 && (
+                        <div className="text-xs text-emerald-600">
+                          <span>Investments: </span>
+                          {Object.entries(investmentsByCurrency).map(([currency, amount], idx) => (
                             <span key={currency}>
                               {idx > 0 && ' + '}
                               {formatCurrency(amount, currency)}

@@ -16,6 +16,7 @@ import AddCardForm from '@/components/cards/AddCardForm';
 import BankAccountList from '@/components/bankaccounts/BankAccountList';
 import RecurringBillList from '@/components/bills/RecurringBillList';
 import MortgageLoanList from '@/components/mortgages/MortgageLoanList';
+import BankTransferList from '@/components/transfers/BankTransferList';
 import PaymentCalendar from '@/components/calendar/PaymentCalendar';
 import QuickAddMenu from '@/components/quickadd/QuickAddMenu';
 import MultiPaymentSimulator from '@/components/simulator/MultiPaymentSimulator';
@@ -25,7 +26,7 @@ import SyncManager from '@/components/sync/SyncManager';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'loans', 'pricing', 'privacy']);
+  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'transfers', 'loans', 'pricing', 'privacy']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(false);
@@ -67,6 +68,14 @@ export default function Dashboard() {
     queryFn: async () => {
       const loans = await base44.entities.MortgageLoan.filter({ is_active: true });
       return loans.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    }
+  });
+
+  const { data: bankTransfers = [] } = useQuery({
+    queryKey: ['bank-transfers'],
+    queryFn: async () => {
+      const transfers = await base44.entities.BankTransfer.filter({ is_active: true });
+      return transfers.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
     }
   });
 
@@ -184,6 +193,16 @@ export default function Dashboard() {
 
           if (!newOrder.includes('privacy')) {
             newOrder.push('privacy');
+            updated = true;
+          }
+
+          if (!newOrder.includes('transfers')) {
+            const billsIndex = newOrder.indexOf('bills');
+            if (billsIndex >= 0) {
+              newOrder.splice(billsIndex + 1, 0, 'transfers');
+            } else {
+              newOrder.push('transfers');
+            }
             updated = true;
           }
 
@@ -579,6 +598,7 @@ export default function Dashboard() {
                             )}
                             {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
+                            {section === 'transfers' && <BankTransferList transfers={bankTransfers} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'pricing' && (
                               <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">

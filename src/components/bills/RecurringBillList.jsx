@@ -347,7 +347,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
                         </span>
                       )}
                     </h3>
-                  <div className="grid gap-3">
+                    <div className="grid gap-3">
                     {groupBills.map((bill) => {
                       const account = bankAccounts.find(a => a.id === bill.bank_account_id);
                       return (

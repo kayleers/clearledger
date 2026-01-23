@@ -425,9 +425,10 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
                         </Card>
                       );
                     })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

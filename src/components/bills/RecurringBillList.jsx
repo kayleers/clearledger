@@ -149,6 +149,20 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
     return { 'All Bills': sorted };
   };
 
+  const getTotalsByViewMode = () => {
+    if (viewMode === 'by-currency') {
+      const totals = {};
+      bills.forEach(bill => {
+        const curr = bill.currency || 'USD';
+        totals[curr] = (totals[curr] || 0) + bill.amount;
+      });
+      return totals;
+    }
+    return null;
+  };
+
+  const totalsByCurrency = getTotalsByViewMode();
+
   return (
     <div className="space-y-4">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
@@ -161,7 +175,18 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
                 </div>
               )}
               <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                <h2 className="text-xl font-bold text-emerald-400">Recurring Bills</h2>
+                <div>
+                  <h2 className="text-xl font-bold text-emerald-400">Recurring Bills</h2>
+                  {totalsByCurrency && Object.keys(totalsByCurrency).length > 0 && (
+                    <div className="flex gap-2 mt-1">
+                      {Object.entries(totalsByCurrency).map(([curr, total]) => (
+                        <span key={curr} className="text-xs text-slate-400">
+                          {formatCurrency(total, curr)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {isExpanded ? (
                   <ChevronUp className="w-5 h-5 text-slate-500" />
                 ) : (
@@ -311,12 +336,20 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
             </DragDropContext>
           ) : (
             <div className="space-y-6">
-              {Object.entries(groupedBills()).map(([groupName, groupBills]) => (
-                <div key={groupName}>
-                  <h3 className="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wide">
-                    {groupName}
-                    {viewMode === 'by-currency' && ` (${groupBills.reduce((sum, b) => sum + b.amount, 0).toFixed(2)})`}
-                  </h3>
+              {Object.entries(groupedBills()).map(([groupName, groupBills]) => {
+                const total = groupBills.reduce((sum, b) => sum + b.amount, 0);
+                const currency = viewMode === 'by-currency' ? groupName : (groupBills[0]?.currency || 'USD');
+                
+                return (
+                  <div key={groupName}>
+                    <h3 className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wide">
+                      {groupName}
+                      {(viewMode === 'by-currency' || viewMode === 'by-account') && (
+                        <span className="ml-2 text-slate-500">
+                          ({formatCurrency(total, currency)})
+                        </span>
+                      )}
+                    </h3>
                   <div className="grid gap-3">
                     {groupBills.map((bill) => {
                       const account = bankAccounts.find(a => a.id === bill.bank_account_id);

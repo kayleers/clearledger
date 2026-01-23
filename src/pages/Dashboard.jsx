@@ -21,6 +21,7 @@ import QuickAddMenu from '@/components/quickadd/QuickAddMenu';
 import MultiPaymentSimulator from '@/components/simulator/MultiPaymentSimulator';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
+import SyncManager from '@/components/sync/SyncManager';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
@@ -368,15 +369,23 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800">
         <div className="max-w-lg mx-auto px-4 py-6 pb-24 relative z-0">
         {/* Header */}
-        <header className="mb-6 flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-emerald-400 drop-shadow-lg">ClearLedger</h1>
-            <p className="text-white">Private bill & balance tracking. Smarter payment planning.</p>
+        <header className="mb-6">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h1 className="text-3xl font-bold text-emerald-400 drop-shadow-lg">ClearLedger</h1>
+              <p className="text-white">Private bill & balance tracking. Smarter payment planning.</p>
+            </div>
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/7335a5ce2_WhatsAppImage2026-01-08at73945PM.jpeg" 
+              alt="ClearLedger Logo" 
+              className="w-16 h-16 rounded-xl shadow-lg"
+            />
           </div>
-          <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/7335a5ce2_WhatsAppImage2026-01-08at73945PM.jpeg" 
-            alt="ClearLedger Logo" 
-            className="w-16 h-16 rounded-xl shadow-lg"
+          <SyncManager 
+            cards={cards} 
+            bankAccounts={bankAccounts} 
+            bills={recurringBills}
+            loans={mortgageLoans}
           />
         </header>
 

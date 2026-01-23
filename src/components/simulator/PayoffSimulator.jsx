@@ -38,6 +38,7 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
   );
   const [defaultMonthlyPayment, setDefaultMonthlyPayment] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [showFuturePurchases, setShowFuturePurchases] = useState(false);
   const [futurePurchases, setFuturePurchases] = useState(
@@ -241,7 +242,16 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <Label className="text-xs text-slate-500">Year:</Label>
+                <Label className="text-xs text-slate-500">Starting:</Label>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                  className="h-8 text-sm border rounded px-2"
+                >
+                  {monthNames.map((name, idx) => (
+                    <option key={idx} value={idx}>{name}</option>
+                  ))}
+                </select>
                 <Input
                   type="number"
                   min="2020"
@@ -256,7 +266,8 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
             <div className="space-y-2">
               <Label className="text-sm font-medium text-slate-700">Override Specific Months (Optional)</Label>
               <div className="grid grid-cols-2 gap-3">
-                {variablePayments.map((payment, index) => {
+                {variablePayments.slice(selectedMonth).concat(variablePayments.slice(0, selectedMonth)).map((payment, displayIndex) => {
+                  const index = (selectedMonth + displayIndex) % 12;
                   const defaultPayment = parseFloat(defaultMonthlyPayment) || 0;
                   const effectivePayment = parseFloat(payment.amount) || defaultPayment;
                   

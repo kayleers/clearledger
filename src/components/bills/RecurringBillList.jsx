@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Receipt, Plus, Edit2, Trash2, Calendar, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { Receipt, Plus, Edit2, Trash2, Calendar, GripVertical, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { formatCurrency } from '@/components/utils/calculations';
@@ -263,7 +264,14 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
                     <div>
                       <p className="font-semibold text-slate-800">{bill.name}</p>
                       <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <span>{formatCurrency(bill.amount, bill.currency || 'USD')}</span>
+                        {bill.amount_type === 'variable' ? (
+                          <span className="flex items-center gap-1">
+                            <TrendingUp className="w-3 h-3" />
+                            {formatCurrency(bill.min_amount || 0, bill.currency || 'USD')} - {formatCurrency(bill.max_amount || 0, bill.currency || 'USD')}
+                          </span>
+                        ) : (
+                          <span>{formatCurrency(bill.amount, bill.currency || 'USD')}</span>
+                        )}
                         <span>•</span>
                         <span>{frequencyLabels[bill.frequency]}</span>
                         {bill.frequency === 'weekly' && bill.day_of_week !== undefined && (
@@ -361,7 +369,14 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
                                 <div>
                                   <p className="font-semibold text-slate-800">{bill.name}</p>
                                   <div className="flex items-center gap-2 text-sm text-slate-500">
-                                    <span>{formatCurrency(bill.amount, bill.currency || 'USD')}</span>
+                                    {bill.amount_type === 'variable' ? (
+                                      <span className="flex items-center gap-1">
+                                        <TrendingUp className="w-3 h-3" />
+                                        {formatCurrency(bill.min_amount || 0, bill.currency || 'USD')} - {formatCurrency(bill.max_amount || 0, bill.currency || 'USD')}
+                                      </span>
+                                    ) : (
+                                      <span>{formatCurrency(bill.amount, bill.currency || 'USD')}</span>
+                                    )}
                                     <span>•</span>
                                     <span>{frequencyLabels[bill.frequency]}</span>
                                     {(bill.frequency === 'monthly' || bill.frequency === 'quarterly') && bill.due_date && (
@@ -470,7 +485,10 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
 function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
   const [formData, setFormData] = useState({
     name: bill?.name || '',
+    amount_type: bill?.amount_type || 'fixed',
     amount: bill?.amount?.toString() || '',
+    min_amount: bill?.min_amount?.toString() || '',
+    max_amount: bill?.max_amount?.toString() || '',
     currency: bill?.currency || 'USD',
     frequency: bill?.frequency || 'monthly',
     due_date: bill?.due_date?.toString() || '',
@@ -483,6 +501,10 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
   });
 
   const [isRecurring, setIsRecurring] = useState(bill?.frequency !== 'one_time');
+  const [rangeValues, setRangeValues] = useState([
+    parseFloat(bill?.min_amount || '0'),
+    parseFloat(bill?.max_amount || '100')
+  ]);
 
   const getCurrencySymbol = (currencyCode) => {
     try {
@@ -501,12 +523,21 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
     e.preventDefault();
     const submitData = {
       name: formData.name,
-      amount: parseFloat(formData.amount) || 0,
+      amount_type: formData.amount_type,
       currency: formData.currency,
       frequency: isRecurring ? formData.frequency : 'one_time',
       bank_account_id: formData.bank_account_id,
       category: formData.category
     };
+
+    // Add amount fields based on type
+    if (formData.amount_type === 'variable') {
+      submitData.min_amount = parseFloat(formData.min_amount) || 0;
+      submitData.max_amount = parseFloat(formData.max_amount) || 0;
+      submitData.amount = (submitData.min_amount + submitData.max_amount) / 2; // Average for calculations
+    } else {
+      submitData.amount = parseFloat(formData.amount) || 0;
+    }
 
     // Add date fields based on frequency
     if (isRecurring) {
@@ -544,20 +575,100 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="billAmount">Amount</Label>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(formData.currency)}</span>
-          <Input
-            id="billAmount"
-            type="number"
-            step="0.01"
-            value={formData.amount}
-            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-            className="pl-7"
-            required
-          />
-        </div>
+        <Label htmlFor="amountType">Amount Type</Label>
+        <select
+          id="amountType"
+          value={formData.amount_type}
+          onChange={(e) => setFormData({ ...formData, amount_type: e.target.value })}
+          className="w-full h-10 px-3 rounded-md border border-slate-200"
+        >
+          <option value="fixed">Fixed Amount</option>
+          <option value="variable">Variable Amount (Range)</option>
+        </select>
       </div>
+
+      {formData.amount_type === 'fixed' ? (
+        <div className="space-y-2">
+          <Label htmlFor="billAmount">Amount</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(formData.currency)}</span>
+            <Input
+              id="billAmount"
+              type="number"
+              step="0.01"
+              value={formData.amount}
+              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+              className="pl-7"
+              required
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <Label>Estimated Amount Range</Label>
+          <div className="px-2 pt-2">
+            <Slider
+              min={0}
+              max={1000}
+              step={5}
+              value={rangeValues}
+              onValueChange={(values) => {
+                setRangeValues(values);
+                setFormData({
+                  ...formData,
+                  min_amount: values[0].toString(),
+                  max_amount: values[1].toString()
+                });
+              }}
+              className="w-full"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="minAmount">Min Amount</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(formData.currency)}</span>
+                <Input
+                  id="minAmount"
+                  type="number"
+                  step="0.01"
+                  value={formData.min_amount}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    setFormData({ ...formData, min_amount: e.target.value });
+                    setRangeValues([val, rangeValues[1]]);
+                  }}
+                  className="pl-7"
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="maxAmount">Max Amount</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(formData.currency)}</span>
+                <Input
+                  id="maxAmount"
+                  type="number"
+                  step="0.01"
+                  value={formData.max_amount}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    setFormData({ ...formData, max_amount: e.target.value });
+                    setRangeValues([rangeValues[0], val]);
+                  }}
+                  className="pl-7"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-slate-500">
+            Estimated average: {getCurrencySymbol(formData.currency)}
+            {((parseFloat(formData.min_amount) || 0) + (parseFloat(formData.max_amount) || 0)) / 2}
+          </p>
+        </div>
+      )}
       <div className="space-y-2">
         <Label htmlFor="billCurrency">Currency</Label>
         <CurrencySelector

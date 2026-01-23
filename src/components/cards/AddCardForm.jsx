@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { X, CreditCard, HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -27,7 +28,8 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading }) {
     min_payment: card?.min_payment?.toString() || '',
     statement_date: card?.statement_date?.toString() || '',
     due_date: card?.due_date?.toString() || '',
-    color: card?.color || 'blue'
+    color: card?.color || 'blue',
+    is_active: card?.is_active !== undefined ? card.is_active : true
   });
 
   const handleSubmit = (e) => {
@@ -40,7 +42,7 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading }) {
       min_payment: parseFloat(formData.min_payment) || 0,
       statement_date: parseInt(formData.statement_date) || null,
       due_date: parseInt(formData.due_date) || null,
-      is_active: true
+      is_active: formData.is_active
     });
   };
 
@@ -219,6 +221,19 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading }) {
                 />
               ))}
             </div>
+          </div>
+
+          {/* Active Status */}
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="space-y-0.5">
+              <Label htmlFor="is_active">Card is Active</Label>
+              <p className="text-xs text-slate-500">Inactive cards are hidden from most views</p>
+            </div>
+            <Switch
+              id="is_active"
+              checked={formData.is_active}
+              onCheckedChange={(checked) => updateField('is_active', checked)}
+            />
           </div>
 
           {/* Submit */}

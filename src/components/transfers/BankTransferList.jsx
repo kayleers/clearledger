@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowRightLeft, Plus, Edit2, Trash2, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowRightLeft, Plus, Edit2, Trash2, GripVertical, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { formatCurrency } from '@/components/utils/calculations';
 import { format } from 'date-fns';
 import CurrencySelector from '@/components/currency/CurrencySelector';
+import { Slider } from '@/components/ui/slider';
 
 const frequencyLabels = {
   one_time: 'One-Time',
@@ -251,7 +252,14 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
                                     <div>
                                       <p className="font-semibold text-slate-800">{transfer.name}</p>
                                       <div className="flex items-center gap-2 text-sm text-slate-500">
-                                        <span>{formatCurrency(transfer.amount, transfer.currency || 'USD')}</span>
+                                        {transfer.amount_type === 'variable' ? (
+                                          <>
+                                            <TrendingUp className="w-4 h-4 text-slate-400" />
+                                            <span>{formatCurrency(transfer.min_amount, transfer.currency || 'USD')} - {formatCurrency(transfer.max_amount, transfer.currency || 'USD')}</span>
+                                          </>
+                                        ) : (
+                                          <span>{formatCurrency(transfer.amount, transfer.currency || 'USD')}</span>
+                                        )}
                                         <span>•</span>
                                         <span>{frequencyLabels[transfer.frequency]}</span>
                                         {(transfer.frequency === 'monthly' || transfer.frequency === 'quarterly') && transfer.transfer_date && (
@@ -338,7 +346,14 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
                                   <div>
                                     <p className="font-semibold text-slate-800">{transfer.name}</p>
                                     <div className="flex items-center gap-2 text-sm text-slate-500">
-                                      <span>{formatCurrency(transfer.amount, transfer.currency || 'USD')}</span>
+                                      {transfer.amount_type === 'variable' ? (
+                                        <>
+                                          <TrendingUp className="w-4 h-4 text-slate-400" />
+                                          <span>{formatCurrency(transfer.min_amount, transfer.currency || 'USD')} - {formatCurrency(transfer.max_amount, transfer.currency || 'USD')}</span>
+                                        </>
+                                      ) : (
+                                        <span>{formatCurrency(transfer.amount, transfer.currency || 'USD')}</span>
+                                      )}
                                       <span>•</span>
                                       <span>{frequencyLabels[transfer.frequency]}</span>
                                       {(transfer.frequency === 'monthly' || transfer.frequency === 'quarterly') && transfer.transfer_date && (
@@ -442,7 +457,10 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
 function BankTransferForm({ transfer, bankAccounts, onSubmit, isLoading }) {
   const [formData, setFormData] = useState({
     name: transfer?.name || '',
+    amount_type: transfer?.amount_type || 'fixed',
     amount: transfer?.amount?.toString() || '',
+    min_amount: transfer?.min_amount?.toString() || '',
+    max_amount: transfer?.max_amount?.toString() || '',
     currency: transfer?.currency || 'USD',
     from_account_id: transfer?.from_account_id || '',
     to_account_id: transfer?.to_account_id || '',
@@ -455,6 +473,7 @@ function BankTransferForm({ transfer, bankAccounts, onSubmit, isLoading }) {
   });
 
   const [isRecurring, setIsRecurring] = useState(transfer?.frequency !== 'one_time');
+  const [sliderAmount, setSliderAmount] = useState(parseFloat(transfer?.amount) || 100);
 
   const getCurrencySymbol = (currencyCode) => {
     try {
@@ -473,12 +492,20 @@ function BankTransferForm({ transfer, bankAccounts, onSubmit, isLoading }) {
     e.preventDefault();
     const submitData = {
       name: formData.name,
-      amount: parseFloat(formData.amount) || 0,
+      amount_type: formData.amount_type,
       currency: formData.currency,
       from_account_id: formData.from_account_id,
       to_account_id: formData.to_account_id,
       frequency: isRecurring ? formData.frequency : 'one_time'
     };
+
+    if (formData.amount_type === 'fixed') {
+      submitData.amount = parseFloat(formData.amount) || 0;
+    } else {
+      submitData.min_amount = parseFloat(formData.min_amount) || 0;
+      submitData.max_amount = parseFloat(formData.max_amount) || 0;
+      submitData.amount = sliderAmount;
+    }
 
     if (isRecurring) {
       if (formData.frequency === 'weekly') {
@@ -514,20 +541,110 @@ function BankTransferForm({ transfer, bankAccounts, onSubmit, isLoading }) {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="transferAmount">Amount</Label>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(formData.currency)}</span>
-          <Input
-            id="transferAmount"
-            type="number"
-            step="0.01"
-            value={formData.amount}
-            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-            className="pl-7"
-            required
-          />
+        <Label>Amount Type</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant={formData.amount_type === 'fixed' ? 'default' : 'outline'}
+            onClick={() => setFormData({ ...formData, amount_type: 'fixed' })}
+          >
+            Fixed
+          </Button>
+          <Button
+            type="button"
+            variant={formData.amount_type === 'variable' ? 'default' : 'outline'}
+            onClick={() => setFormData({ ...formData, amount_type: 'variable' })}
+          >
+            Variable
+          </Button>
         </div>
       </div>
+
+      {formData.amount_type === 'fixed' ? (
+        <div className="space-y-2">
+          <Label htmlFor="transferAmount">Amount</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(formData.currency)}</span>
+            <Input
+              id="transferAmount"
+              type="number"
+              step="0.01"
+              value={formData.amount}
+              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+              className="pl-7"
+              required
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="minAmount">Minimum Amount</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(formData.currency)}</span>
+                <Input
+                  id="minAmount"
+                  type="number"
+                  step="0.01"
+                  value={formData.min_amount}
+                  onChange={(e) => {
+                    setFormData({ ...formData, min_amount: e.target.value });
+                    const min = parseFloat(e.target.value) || 0;
+                    const max = parseFloat(formData.max_amount) || 0;
+                    if (sliderAmount < min) setSliderAmount(min);
+                    if (sliderAmount > max && max > 0) setSliderAmount(max);
+                  }}
+                  className="pl-7"
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="maxAmount">Maximum Amount</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{getCurrencySymbol(formData.currency)}</span>
+                <Input
+                  id="maxAmount"
+                  type="number"
+                  step="0.01"
+                  value={formData.max_amount}
+                  onChange={(e) => {
+                    setFormData({ ...formData, max_amount: e.target.value });
+                    const max = parseFloat(e.target.value) || 0;
+                    const min = parseFloat(formData.min_amount) || 0;
+                    if (sliderAmount > max && max > 0) setSliderAmount(max);
+                    if (sliderAmount < min) setSliderAmount(min);
+                  }}
+                  className="pl-7"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+          {formData.min_amount && formData.max_amount && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label>Estimated Amount</Label>
+                <span className="text-sm font-medium text-slate-700">
+                  {formatCurrency(sliderAmount, formData.currency)}
+                </span>
+              </div>
+              <Slider
+                value={[sliderAmount]}
+                onValueChange={(value) => setSliderAmount(value[0])}
+                min={parseFloat(formData.min_amount) || 0}
+                max={parseFloat(formData.max_amount) || 100}
+                step={1}
+                className="w-full"
+              />
+              <p className="text-xs text-slate-500">
+                Use the slider to estimate typical transfer amount
+              </p>
+            </div>
+          )}
+        </div>
+      )}
       <div className="space-y-2">
         <Label htmlFor="transferCurrency">Currency</Label>
         <CurrencySelector

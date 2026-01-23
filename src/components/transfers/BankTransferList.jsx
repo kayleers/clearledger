@@ -75,7 +75,7 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
   };
 
   const getSortedTransfers = () => {
-    let sorted = [...transfers];
+    let sorted = [...transfers].filter(t => t.frequency !== 'one_time');
     
     if (viewMode === 'by-account') {
       sorted.sort((a, b) => {
@@ -129,7 +129,7 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
 
   const getTotalsByCurrency = () => {
     const totals = {};
-    transfers.forEach(transfer => {
+    transfers.filter(t => t.frequency !== 'one_time').forEach(transfer => {
       const curr = transfer.currency || 'USD';
       totals[curr] = (totals[curr] || 0) + transfer.amount;
     });
@@ -161,7 +161,7 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
               )}
               <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
                 <div>
-                  <h2 className="text-xl font-bold text-emerald-400">Bank Transfers</h2>
+                  <h2 className="text-xl font-bold text-emerald-400">Recurring Bank Transfers</h2>
                   {totalsByCurrency && Object.keys(totalsByCurrency).length > 0 && (
                     <div className="flex gap-2 mt-1">
                       {Object.entries(totalsByCurrency).map(([curr, total]) => (
@@ -409,11 +409,11 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
             </div>
           )}
 
-          {transfers.length === 0 && (
+          {transfers.filter(t => t.frequency !== 'one_time').length === 0 && (
             <Card className="border-dashed">
               <CardContent className="p-8 text-center">
                 <ArrowRightLeft className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 mb-4">No bank transfers yet</p>
+                <p className="text-slate-500 mb-4">No recurring bank transfers yet</p>
                 <Button onClick={() => setShowAddTransfer(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Your First Transfer
@@ -427,7 +427,7 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
       <Dialog open={showAddTransfer} onOpenChange={setShowAddTransfer}>
         <DialogContent className="max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
           <DialogHeader className="p-6 pb-4 flex-shrink-0">
-            <DialogTitle>Add Bank Transfer</DialogTitle>
+            <DialogTitle>Add Recurring Bank Transfer</DialogTitle>
           </DialogHeader>
           <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
             <BankTransferForm
@@ -442,7 +442,7 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
       <Dialog open={!!editingTransfer} onOpenChange={() => setEditingTransfer(null)}>
         <DialogContent className="max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
           <DialogHeader className="p-6 pb-4 flex-shrink-0">
-            <DialogTitle>Edit Bank Transfer</DialogTitle>
+            <DialogTitle>Edit Recurring Bank Transfer</DialogTitle>
           </DialogHeader>
           <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
             <BankTransferForm

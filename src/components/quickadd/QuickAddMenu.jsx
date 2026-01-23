@@ -5,9 +5,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreditCard, Building2, Receipt, Landmark, ShoppingBag, DollarSign } from 'lucide-react';
+import { CreditCard, Building2, Receipt, Landmark, ShoppingBag, DollarSign, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';
+import { Slider } from '@/components/ui/slider';
 
 const TRANSACTION_TYPES = [
   { id: 'card_purchase', label: 'Credit Card Purchase', icon: ShoppingBag, color: 'purple' },
@@ -187,18 +188,60 @@ export default function QuickAddMenu({
 function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading, bankAccounts }) {
   const [formData, setFormData] = useState({
     amount: '',
+    amount_type: 'fixed',
+    min_amount: '',
+    max_amount: '',
     date: new Date().toISOString().split('T')[0],
     description: '',
-    bank_account_id: target.bank_account_id || ''
+    bank_account_id: target.bank_account_id || '',
+    is_recurring: false,
+    frequency: 'monthly',
+    deposit_date: '',
+    start_date: '',
+    end_date: ''
   });
+  const [sliderAmount, setSliderAmount] = useState(100);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({
-      ...formData,
-      amount: parseFloat(formData.amount),
-      targetId: target.id
-    });
+    const submitData = {
+      targetId: target.id,
+      date: formData.date,
+      description: formData.description,
+      bank_account_id: formData.bank_account_id
+    };
+
+    if (type === 'bank_deposit' && formData.is_recurring) {
+      // Create recurring deposit
+      const recurringData = {
+        bank_account_id: target.id,
+        name: formData.description || 'Recurring Deposit',
+        amount_type: formData.amount_type,
+        frequency: formData.frequency,
+        category: 'other',
+        start_date: formData.start_date || formData.date,
+        end_date: formData.end_date || null
+      };
+
+      if (formData.amount_type === 'fixed') {
+        recurringData.amount = parseFloat(formData.amount);
+      } else {
+        recurringData.min_amount = parseFloat(formData.min_amount);
+        recurringData.max_amount = parseFloat(formData.max_amount);
+        recurringData.amount = sliderAmount;
+      }
+
+      if (formData.frequency === 'monthly' || formData.frequency === 'quarterly' || formData.frequency === 'yearly') {
+        recurringData.deposit_date = formData.deposit_date ? parseInt(formData.deposit_date) : new Date(formData.date).getDate();
+      }
+
+      submitData.recurringDeposit = recurringData;
+      submitData.amount = recurringData.amount;
+    } else {
+      submitData.amount = parseFloat(formData.amount);
+    }
+
+    onSubmit(submitData);
   };
 
   const getTitle = () => {
@@ -238,42 +281,200 @@ function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading, bankAcc
         <p className="text-sm text-slate-500 mb-4">{getTitle()}</p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label>Amount</Label>
-            <Input
-              type="number"
-              step="0.01"
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              placeholder="0.00"
-              required
-            />
-            {quickAmounts.length > 0 && (
-              <div className="flex gap-2 mt-2">
-                {quickAmounts.map((qa, idx) => (
-                  <Button
-                    key={idx}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setFormData({ ...formData, amount: qa.amount.toString() })}
-                  >
-                    {qa.label}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
+          {type === 'bank_deposit' && (
+            <div className="flex items-center space-x-2 py-2 border-b">
+              <input
+                type="checkbox"
+                id="isRecurring"
+                checked={formData.is_recurring}
+                onChange={(e) => setFormData({ ...formData, is_recurring: e.target.checked })}
+                className="w-4 h-4 rounded border-slate-300"
+              />
+              <Label htmlFor="isRecurring" className="cursor-pointer">
+                Make this a recurring deposit
+              </Label>
+            </div>
+          )}
 
-          <div>
-            <Label>Date</Label>
-            <Input
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              required
-            />
-          </div>
+          {type === 'bank_deposit' && formData.is_recurring && (
+            <>
+              <div className="space-y-2">
+                <Label>Amount Type</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={formData.amount_type === 'fixed' ? 'default' : 'outline'}
+                    onClick={() => setFormData({ ...formData, amount_type: 'fixed' })}
+                  >
+                    Fixed
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={formData.amount_type === 'variable' ? 'default' : 'outline'}
+                    onClick={() => setFormData({ ...formData, amount_type: 'variable' })}
+                  >
+                    Variable
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {type === 'bank_deposit' && formData.is_recurring && formData.amount_type === 'variable' ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="minAmount">Minimum Amount</Label>
+                  <Input
+                    id="minAmount"
+                    type="number"
+                    step="0.01"
+                    value={formData.min_amount}
+                    onChange={(e) => {
+                      setFormData({ ...formData, min_amount: e.target.value });
+                      const min = parseFloat(e.target.value) || 0;
+                      const max = parseFloat(formData.max_amount) || 0;
+                      if (sliderAmount < min) setSliderAmount(min);
+                      if (sliderAmount > max && max > 0) setSliderAmount(max);
+                    }}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="maxAmount">Maximum Amount</Label>
+                  <Input
+                    id="maxAmount"
+                    type="number"
+                    step="0.01"
+                    value={formData.max_amount}
+                    onChange={(e) => {
+                      setFormData({ ...formData, max_amount: e.target.value });
+                      const max = parseFloat(e.target.value) || 0;
+                      const min = parseFloat(formData.min_amount) || 0;
+                      if (sliderAmount > max && max > 0) setSliderAmount(max);
+                      if (sliderAmount < min) setSliderAmount(min);
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+              {formData.min_amount && formData.max_amount && (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label>Estimated Amount</Label>
+                    <span className="text-sm font-medium text-slate-700">
+                      {formatCurrency(sliderAmount, target.currency)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[sliderAmount]}
+                    onValueChange={(value) => setSliderAmount(value[0])}
+                    min={parseFloat(formData.min_amount) || 0}
+                    max={parseFloat(formData.max_amount) || 100}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div>
+              <Label>Amount</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                placeholder="0.00"
+                required
+              />
+              {quickAmounts.length > 0 && (
+                <div className="flex gap-2 mt-2">
+                  {quickAmounts.map((qa, idx) => (
+                    <Button
+                      key={idx}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, amount: qa.amount.toString() })}
+                    >
+                      {qa.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+
+
+          {type === 'bank_deposit' && formData.is_recurring && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="frequency">Frequency</Label>
+                <select
+                  id="frequency"
+                  value={formData.frequency}
+                  onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                  className="w-full h-10 px-3 rounded-md border border-slate-200"
+                >
+                  <option value="weekly">Weekly</option>
+                  <option value="bi_weekly">Bi-Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+
+              {(formData.frequency === 'monthly' || formData.frequency === 'quarterly' || formData.frequency === 'yearly') && (
+                <div className="space-y-2">
+                  <Label htmlFor="depositDate">Deposit Date (Day of Month)</Label>
+                  <Input
+                    id="depositDate"
+                    type="number"
+                    min="1"
+                    max="31"
+                    placeholder="e.g., 15"
+                    value={formData.deposit_date}
+                    onChange={(e) => setFormData({ ...formData, deposit_date: e.target.value })}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Start Date</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endDate">End Date (Optional)</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                />
+                <p className="text-xs text-slate-500">Leave empty for indefinite recurring</p>
+              </div>
+            </>
+          )}
+
+          {!formData.is_recurring && (
+            <div>
+              <Label>Date</Label>
+              <Input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                required
+              />
+            </div>
+          )}
 
           {(type === 'bank_deposit' || type === 'bank_payment') && (
             <div>

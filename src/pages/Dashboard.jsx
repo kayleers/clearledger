@@ -252,7 +252,12 @@ export default function Dashboard() {
   });
 
   const createBankDepositMutation = useMutation({
-    mutationFn: async ({ amount, date, description, targetId }) => {
+    mutationFn: async ({ amount, date, description, targetId, recurringDeposit }) => {
+      if (recurringDeposit) {
+        // Create recurring deposit
+        await base44.entities.RecurringDeposit.create(recurringDeposit);
+      }
+      // Also create the one-time deposit record
       await base44.entities.Deposit.create({
         bank_account_id: targetId,
         amount,
@@ -265,6 +270,7 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['deposits'] });
       queryClient.invalidateQueries({ queryKey: ['all-deposits'] });
       queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['recurring-deposits'] });
       setShowQuickAdd(false);
     }
   });

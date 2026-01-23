@@ -19,7 +19,7 @@ const cardColors = [
   { value: 'pink', label: 'Pink', class: 'bg-pink-500' }
 ];
 
-export default function AddCardForm({ card, onSubmit, onCancel, isLoading }) {
+export default function AddCardForm({ card, bankAccounts = [], onSubmit, onCancel, isLoading }) {
   const [formData, setFormData] = useState({
     name: card?.name || '',
     balance: card?.balance?.toString() || '',
@@ -29,12 +29,16 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading }) {
     statement_date: card?.statement_date?.toString() || '',
     due_date: card?.due_date?.toString() || '',
     color: card?.color || 'blue',
-    is_active: card?.is_active !== undefined ? card.is_active : true
+    is_active: card?.is_active !== undefined ? card.is_active : true,
+    bank_account_id: card?.bank_account_id || '',
+    additional_payment_enabled: card?.additional_payment_enabled || false,
+    additional_payment_amount: card?.additional_payment_amount?.toString() || '',
+    additional_payment_bank_account_id: card?.additional_payment_bank_account_id || ''
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({
+    const submitData = {
       ...formData,
       balance: parseFloat(formData.balance) || 0,
       credit_limit: parseFloat(formData.credit_limit) || 0,
@@ -42,8 +46,17 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading }) {
       min_payment: parseFloat(formData.min_payment) || 0,
       statement_date: parseInt(formData.statement_date) || null,
       due_date: parseInt(formData.due_date) || null,
-      is_active: formData.is_active
-    });
+      is_active: formData.is_active,
+      bank_account_id: formData.bank_account_id || null,
+      additional_payment_enabled: formData.additional_payment_enabled,
+      additional_payment_amount: formData.additional_payment_enabled && formData.additional_payment_amount 
+        ? parseFloat(formData.additional_payment_amount) 
+        : null,
+      additional_payment_bank_account_id: formData.additional_payment_enabled && formData.additional_payment_bank_account_id 
+        ? formData.additional_payment_bank_account_id 
+        : null
+    };
+    onSubmit(submitData);
   };
 
   const updateField = (field, value) => {
@@ -234,6 +247,79 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading }) {
               checked={formData.is_active}
               onCheckedChange={(checked) => updateField('is_active', checked)}
             />
+          </div>
+
+          {/* Primary Payment Bank Account */}
+          <div className="space-y-2">
+            <Label htmlFor="bank_account_id">Primary Payment Bank Account (Optional)</Label>
+            <select
+              id="bank_account_id"
+              value={formData.bank_account_id}
+              onChange={(e) => updateField('bank_account_id', e.target.value)}
+              className="w-full h-12 px-3 rounded-md border border-slate-200"
+            >
+              <option value="">No bank account selected</option>
+              {bankAccounts.map(account => (
+                <option key={account.id} value={account.id}>
+                  {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-500">Select which bank account will be used for regular payments</p>
+          </div>
+
+          {/* Additional Payment */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="additional_payment_enabled">Enable Additional Payment</Label>
+                <p className="text-xs text-slate-500">Set up extra payments beyond minimum</p>
+              </div>
+              <Switch
+                id="additional_payment_enabled"
+                checked={formData.additional_payment_enabled}
+                onCheckedChange={(checked) => updateField('additional_payment_enabled', checked)}
+              />
+            </div>
+
+            {formData.additional_payment_enabled && (
+              <div className="space-y-4 pt-4 border-t">
+                <div className="space-y-2">
+                  <Label htmlFor="additional_payment_amount">Additional Payment Amount</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                    <Input
+                      id="additional_payment_amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={formData.additional_payment_amount}
+                      onChange={(e) => updateField('additional_payment_amount', e.target.value)}
+                      className="pl-7 h-12"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="additional_payment_bank_account_id">Additional Payment Bank Account (Optional)</Label>
+                  <select
+                    id="additional_payment_bank_account_id"
+                    value={formData.additional_payment_bank_account_id}
+                    onChange={(e) => updateField('additional_payment_bank_account_id', e.target.value)}
+                    className="w-full h-12 px-3 rounded-md border border-slate-200"
+                  >
+                    <option value="">No bank account selected</option>
+                    {bankAccounts.map(account => (
+                      <option key={account.id} value={account.id}>
+                        {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-slate-500">Select which bank account will be used for additional payments</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Submit */}

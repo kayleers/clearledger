@@ -313,7 +313,7 @@ function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading, bankAcc
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? 'Adding...' : 'Add Payment'}
+              {isLoading ? 'Adding...' : type === 'bank_deposit' ? 'Add Deposit' : 'Add Payment'}
             </Button>
           </div>
         </form>

@@ -641,7 +641,7 @@ export default function Dashboard() {
                               </Collapsible>
                             )}
                             {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
-                            {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
+                            {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} creditCards={cards} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'deposits' && <RecurringDepositList deposits={recurringDeposits} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'transfers' && <BankTransferList transfers={bankTransfers} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}

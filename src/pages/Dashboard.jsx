@@ -148,15 +148,15 @@ export default function Dashboard() {
     
     // Handle section reordering
     if (result.type === 'section') {
-      // Get only the draggable sections (excluding 'summary')
-      const draggableSections = sectionOrder.filter(s => s !== 'summary');
+      // Get only the draggable sections (excluding 'summary' and 'projections')
+      const draggableSections = sectionOrder.filter(s => s !== 'summary' && s !== 'projections');
       
       // Reorder the draggable sections
       const [reorderedItem] = draggableSections.splice(result.source.index, 1);
       draggableSections.splice(result.destination.index, 0, reorderedItem);
 
-      // Reconstruct the full order with 'summary' always first
-      const newOrder = ['summary', ...draggableSections];
+      // Reconstruct the full order with 'summary' and 'projections' always first
+      const newOrder = ['summary', 'projections', ...draggableSections];
 
       setSectionOrder(newOrder);
       reorderSectionsMutation.mutate(newOrder);
@@ -496,6 +496,30 @@ export default function Dashboard() {
               />
             </div>
 
+            {/* Monthly Projections - Always Below Overview */}
+            <div className="mb-6">
+              <Collapsible open={projectionsExpanded} onOpenChange={setProjectionsExpanded}>
+                <div className="flex items-center justify-between mb-4">
+                  <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                    <h2 className="text-xl font-bold text-emerald-400">Monthly Projections</h2>
+                    {projectionsExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-slate-500" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-slate-500" />
+                    )}
+                  </CollapsibleTrigger>
+                </div>
+                <CollapsibleContent>
+                  <MonthlyProjections 
+                    cards={cards}
+                    bankAccounts={bankAccounts}
+                    recurringBills={recurringBills}
+                    mortgageLoans={mortgageLoans}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
             {/* Empty State Message */}
             {cards.length === 0 && bankAccounts.length === 0 && recurringBills.length === 0 && mortgageLoans.length === 0 && (
               <div className="mb-6 text-center py-8 bg-white/10 rounded-lg border border-white/20">
@@ -510,7 +534,7 @@ export default function Dashboard() {
               <Droppable droppableId="sections" type="section">
                 {(provided) => (
                   <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {sectionOrder.filter(s => s !== 'summary').map((section, index) => (
+                    {sectionOrder.filter(s => s !== 'summary' && s !== 'projections').map((section, index) => (
                       <Draggable key={section} draggableId={section} index={index} type="section">
                         {(provided, snapshot) => (
                           <div
@@ -522,33 +546,6 @@ export default function Dashboard() {
                               opacity: snapshot.isDragging ? 0.8 : 1,
                             }}
                           >
-                            {section === 'projections' && (
-                              <Collapsible open={projectionsExpanded} onOpenChange={setProjectionsExpanded}>
-                                <div className="flex items-center justify-between mb-4">
-                                  <div className="flex items-center gap-2">
-                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                      <GripVertical className="w-5 h-5 text-slate-400" />
-                                    </div>
-                                    <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                      <h2 className="text-xl font-bold text-emerald-400">Monthly Projections</h2>
-                                      {projectionsExpanded ? (
-                                        <ChevronUp className="w-5 h-5 text-slate-500" />
-                                      ) : (
-                                        <ChevronDown className="w-5 h-5 text-slate-500" />
-                                      )}
-                                    </CollapsibleTrigger>
-                                  </div>
-                                </div>
-                                <CollapsibleContent>
-                                  <MonthlyProjections 
-                                    cards={cards}
-                                    bankAccounts={bankAccounts}
-                                    recurringBills={recurringBills}
-                                    mortgageLoans={mortgageLoans}
-                                  />
-                                </CollapsibleContent>
-                              </Collapsible>
-                            )}
                             {section === 'cards' && (
                               <Collapsible open={cardsExpanded} onOpenChange={setCardsExpanded}>
                                 <div className="flex items-center justify-between mb-4">

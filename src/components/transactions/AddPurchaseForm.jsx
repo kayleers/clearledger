@@ -8,10 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { X, ShoppingBag, Save, Upload } from 'lucide-react';
+import { X, ShoppingBag, Save } from 'lucide-react';
 import TemplateManager from '@/components/templates/TemplateManager';
-import CSVImport from '@/components/import/CSVImport';
-import ReceiptScanner from '@/components/import/ReceiptScanner';
 
 const categories = [
   { value: 'groceries', label: '🛒 Groceries', icon: '🛒' },
@@ -34,7 +32,6 @@ export default function AddPurchaseForm({ onSubmit, onCancel, isLoading, cardId 
   });
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [templateName, setTemplateName] = useState('');
-  const [showImportOptions, setShowImportOptions] = useState(false);
   const queryClient = useQueryClient();
 
   const saveTemplateMutation = useMutation({
@@ -138,48 +135,9 @@ export default function AddPurchaseForm({ onSubmit, onCancel, isLoading, cardId 
             <ShoppingBag className="w-5 h-5 text-purple-600" />
             Add Purchase
           </CardTitle>
-          <div className="flex gap-2">
-            <Dialog open={showImportOptions} onOpenChange={setShowImportOptions}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Upload className="w-4 h-4 mr-1" />
-                  Import
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Import Transactions</DialogTitle>
-                </DialogHeader>
-                <Tabs defaultValue="csv">
-                  <TabsList className="grid grid-cols-2 w-full">
-                    <TabsTrigger value="csv">CSV File</TabsTrigger>
-                    <TabsTrigger value="receipt">Receipt</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="csv">
-                    <CSVImport 
-                      cardId={cardId}
-                      onSuccess={() => {
-                        setShowImportOptions(false);
-                        onCancel();
-                      }}
-                    />
-                  </TabsContent>
-                  <TabsContent value="receipt">
-                    <ReceiptScanner 
-                      cardId={cardId}
-                      onSuccess={() => {
-                        setShowImportOptions(false);
-                        onCancel();
-                      }}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </DialogContent>
-            </Dialog>
-            <Button variant="ghost" size="icon" onClick={onCancel}>
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
+          <Button variant="ghost" size="icon" onClick={onCancel}>
+            <X className="w-5 h-5" />
+          </Button>
         </div>
       </CardHeader>
       <CardContent>

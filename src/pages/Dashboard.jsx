@@ -12,7 +12,6 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import TotalDebtCard from '@/components/dashboard/TotalDebtCard';
-import MonthlyProjections from '@/components/dashboard/MonthlyProjections';
 import CreditCardItem from '@/components/cards/CreditCardItem';
 import AddCardForm from '@/components/cards/AddCardForm';
 import BankAccountList from '@/components/bankaccounts/BankAccountList';
@@ -29,13 +28,12 @@ import SyncManager from '@/components/sync/SyncManager';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['summary', 'projections', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'deposits', 'transfers', 'loans', 'pricing', 'privacy']);
+  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'deposits', 'transfers', 'loans', 'pricing', 'privacy']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(false);
   const [simulatorExpanded, setSimulatorExpanded] = useState(false);
   const [cardsExpanded, setCardsExpanded] = useState(false);
-  const [projectionsExpanded, setProjectionsExpanded] = useState(true);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [upgradeContext, setUpgradeContext] = useState('general');
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
@@ -148,15 +146,15 @@ export default function Dashboard() {
     
     // Handle section reordering
     if (result.type === 'section') {
-      // Get only the draggable sections (excluding 'summary' and 'projections')
-      const draggableSections = sectionOrder.filter(s => s !== 'summary' && s !== 'projections');
+      // Get only the draggable sections (excluding 'summary')
+      const draggableSections = sectionOrder.filter(s => s !== 'summary');
       
       // Reorder the draggable sections
       const [reorderedItem] = draggableSections.splice(result.source.index, 1);
       draggableSections.splice(result.destination.index, 0, reorderedItem);
 
-      // Reconstruct the full order with 'summary' and 'projections' always first
-      const newOrder = ['summary', 'projections', ...draggableSections];
+      // Reconstruct the full order with 'summary' always first
+      const newOrder = ['summary', ...draggableSections];
 
       setSectionOrder(newOrder);
       reorderSectionsMutation.mutate(newOrder);
@@ -182,20 +180,15 @@ export default function Dashboard() {
             updated = true;
           }
 
-          if (!newOrder.includes('projections')) {
+          if (!newOrder.includes('cards')) {
             const summaryIndex = newOrder.indexOf('summary');
-            newOrder.splice(summaryIndex + 1, 0, 'projections');
+            newOrder.splice(summaryIndex + 1, 0, 'cards');
             updated = true;
           }
-
-          if (!newOrder.includes('cards')) {
-            const projectionsIndex = newOrder.indexOf('projections');
-            if (projectionsIndex >= 0) {
-              newOrder.splice(projectionsIndex + 1, 0, 'cards');
-            } else {
-              const summaryIndex = newOrder.indexOf('summary');
-              newOrder.splice(summaryIndex + 1, 0, 'cards');
-            }
+          
+          // Remove projections if it exists (now part of summary)
+          if (newOrder.includes('projections')) {
+            newOrder = newOrder.filter(s => s !== 'projections');
             updated = true;
           }
 
@@ -496,30 +489,6 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* Monthly Projections - Always Below Overview */}
-            <div className="mb-6">
-              <Collapsible open={projectionsExpanded} onOpenChange={setProjectionsExpanded}>
-                <div className="flex items-center justify-between mb-4">
-                  <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                    <h2 className="text-xl font-bold text-emerald-400">Monthly Projections</h2>
-                    {projectionsExpanded ? (
-                      <ChevronUp className="w-5 h-5 text-slate-500" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-slate-500" />
-                    )}
-                  </CollapsibleTrigger>
-                </div>
-                <CollapsibleContent>
-                  <MonthlyProjections 
-                    cards={cards}
-                    bankAccounts={bankAccounts}
-                    recurringBills={recurringBills}
-                    mortgageLoans={mortgageLoans}
-                  />
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-
             {/* Empty State Message */}
             {cards.length === 0 && bankAccounts.length === 0 && recurringBills.length === 0 && mortgageLoans.length === 0 && (
               <div className="mb-6 text-center py-8 bg-white/10 rounded-lg border border-white/20">
@@ -534,7 +503,7 @@ export default function Dashboard() {
               <Droppable droppableId="sections" type="section">
                 {(provided) => (
                   <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {sectionOrder.filter(s => s !== 'summary' && s !== 'projections').map((section, index) => (
+                    {sectionOrder.filter(s => s !== 'summary').map((section, index) => (
                       <Draggable key={section} draggableId={section} index={index} type="section">
                         {(provided, snapshot) => (
                           <div

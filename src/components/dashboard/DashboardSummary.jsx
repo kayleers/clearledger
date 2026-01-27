@@ -19,8 +19,11 @@ import {
   Building2,
   Receipt,
   Landmark,
-  GripVertical
+  GripVertical,
+  TrendingUp,
+  Calendar
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { 
   formatCurrency, 
   calculateUtilization,
@@ -47,7 +50,7 @@ const BILL_CATEGORY_ICONS = {
   other: '📄'
 };
 
-const DEFAULT_SECTION_ORDER = ['banks', 'bills', 'cards', 'loans'];
+const DEFAULT_SECTION_ORDER = ['projections', 'banks', 'bills', 'cards', 'loans'];
 
 export default function DashboardSummary({ cards, bankAccounts = [], recurringBills = [], mortgageLoans = [] }) {
   const [overviewExpanded, setOverviewExpanded] = useState(true);
@@ -55,6 +58,7 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
   const [expandedBills, setExpandedBills] = useState(false);
   const [expandedLoans, setExpandedLoans] = useState(false);
   const [expandedBanks, setExpandedBanks] = useState(false);
+  const [expandedProjections, setExpandedProjections] = useState(true);
   
   // Load section order from localStorage
   const [sectionOrder, setSectionOrder] = useState(() => {
@@ -72,6 +76,30 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
     queryKey: ['all-deposits'],
     queryFn: () => base44.entities.Deposit.list(),
     enabled: bankAccounts.length > 0
+  });
+
+  const { data: recurringDeposits = [] } = useQuery({
+    queryKey: ['recurring-deposits'],
+    queryFn: async () => {
+      const deposits = await base44.entities.RecurringDeposit.filter({ is_active: true });
+      return deposits;
+    }
+  });
+
+  const { data: recurringWithdrawals = [] } = useQuery({
+    queryKey: ['recurring-withdrawals'],
+    queryFn: async () => {
+      const withdrawals = await base44.entities.RecurringWithdrawal.filter({ is_active: true });
+      return withdrawals;
+    }
+  });
+
+  const { data: bankTransfers = [] } = useQuery({
+    queryKey: ['bank-transfers'],
+    queryFn: async () => {
+      const transfers = await base44.entities.BankTransfer.list();
+      return transfers.filter(t => t.is_active !== false);
+    }
   });
 
   // Group by currency
@@ -190,6 +218,117 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
   const utilizationMessage = getUtilizationMessage();
   const Icon = utilizationMessage.icon;
 
+  // Calculate monthly projections
+  const calculateMonthlyProjections = () => {
+    const projectionsByCurrency = {};
+
+    const initCurrency = (currency) => {
+      if (!projectionsByCurrency[currency]) {
+        projectionsByCurrency[currency] = {
+          income: 0,
+          outgoing: 0,
+          toSavings: 0
+        };
+      }
+    };
+
+    const accountsByCurrency = {};
+    bankAccounts.forEach(acc => {
+      const curr = acc.currency || 'USD';
+      if (!accountsByCurrency[curr]) {
+        accountsByCurrency[curr] = { checking: [], savings: [] };
+      }
+      if (acc.account_type === 'checking') {
+        accountsByCurrency[curr].checking.push(acc);
+      } else if (acc.account_type === 'savings') {
+        accountsByCurrency[curr].savings.push(acc);
+      }
+    });
+
+    Object.entries(accountsByCurrency).forEach(([currency, accounts]) => {
+      initCurrency(currency);
+      
+      accounts.checking.forEach(acc => {
+        const depositsForAccount = recurringDeposits.filter(d => d.bank_account_id === acc.id);
+        depositsForAccount.forEach(deposit => {
+          if (deposit.frequency === 'monthly' || deposit.frequency === 'bi_weekly' || deposit.frequency === 'weekly') {
+            const amount = deposit.amount || 0;
+            if (deposit.frequency === 'weekly') {
+              projectionsByCurrency[currency].income += amount * 4;
+            } else if (deposit.frequency === 'bi_weekly') {
+              projectionsByCurrency[currency].income += amount * 2;
+            } else {
+              projectionsByCurrency[currency].income += amount;
+            }
+          }
+        });
+      });
+
+      accounts.checking.forEach(acc => {
+        const billsForAccount = recurringBills.filter(b => b.bank_account_id === acc.id);
+        billsForAccount.forEach(bill => {
+          if (bill.frequency === 'monthly' || bill.frequency === 'weekly') {
+            const amount = bill.amount || 0;
+            if (bill.frequency === 'weekly') {
+              projectionsByCurrency[currency].outgoing += amount * 4;
+            } else {
+              projectionsByCurrency[currency].outgoing += amount;
+            }
+          }
+        });
+
+        const withdrawalsForAccount = recurringWithdrawals.filter(w => w.bank_account_id === acc.id);
+        withdrawalsForAccount.forEach(withdrawal => {
+          if (withdrawal.frequency === 'monthly' || withdrawal.frequency === 'weekly' || withdrawal.frequency === 'bi_weekly') {
+            const amount = withdrawal.amount || 0;
+            if (withdrawal.frequency === 'weekly') {
+              projectionsByCurrency[currency].outgoing += amount * 4;
+            } else if (withdrawal.frequency === 'bi_weekly') {
+              projectionsByCurrency[currency].outgoing += amount * 2;
+            } else {
+              projectionsByCurrency[currency].outgoing += amount;
+            }
+          }
+        });
+
+        const cardsForAccount = cards.filter(c => c.bank_account_id === acc.id && c.payment_method === 'autopay');
+        cardsForAccount.forEach(card => {
+          const amount = card.autopay_amount_type === 'minimum' ? card.min_payment :
+                        card.autopay_amount_type === 'full_balance' ? card.balance :
+                        card.autopay_custom_amount || 0;
+          projectionsByCurrency[currency].outgoing += amount;
+        });
+
+        const loansForAccount = mortgageLoans.filter(l => l.bank_account_id === acc.id);
+        loansForAccount.forEach(loan => {
+          projectionsByCurrency[currency].outgoing += loan.monthly_payment || 0;
+        });
+      });
+
+      bankTransfers.forEach(transfer => {
+        const fromAccount = bankAccounts.find(a => a.id === transfer.from_account_id);
+        const toAccount = bankAccounts.find(a => a.id === transfer.to_account_id);
+        
+        if (fromAccount && toAccount && fromAccount.currency === currency) {
+          if (fromAccount.account_type === 'checking' && toAccount.account_type === 'savings') {
+            if (transfer.frequency === 'monthly' || transfer.frequency === 'weekly') {
+              const amount = transfer.amount || 0;
+              if (transfer.frequency === 'weekly') {
+                projectionsByCurrency[currency].toSavings += amount * 4;
+              } else {
+                projectionsByCurrency[currency].toSavings += amount;
+              }
+            }
+          }
+        }
+      });
+    });
+
+    return projectionsByCurrency;
+  };
+
+  const monthlyProjections = calculateMonthlyProjections();
+
   // Handle drag end
   const handleDragEnd = (result) => {
     if (!result.destination) return;
@@ -204,6 +343,123 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
 
   // Section components
   const sections = {
+    projections: Object.keys(monthlyProjections).length > 0 && (
+      <Collapsible open={expandedProjections} onOpenChange={setExpandedProjections}>
+        <Card className="border-cyan-200">
+          <CollapsibleTrigger className="w-full">
+            <CardContent className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <GripVertical className="w-5 h-5 text-slate-400" />
+                <div className="p-2 bg-cyan-100 rounded-lg">
+                  <Calendar className="w-5 h-5 text-cyan-600" />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold text-slate-900">Monthly Projections</p>
+                  {Object.keys(monthlyProjections).length === 1 ? (
+                    <p className="text-sm text-blue-600 font-medium">
+                      Net: {(() => {
+                        const [currency, data] = Object.entries(monthlyProjections)[0];
+                        const net = data.income - data.outgoing - data.toSavings;
+                        return (net >= 0 ? '+' : '') + formatCurrency(net, currency);
+                      })()}
+                    </p>
+                  ) : (
+                    <div className="text-sm text-blue-600 font-medium">
+                      Net: {Object.entries(monthlyProjections).map(([currency, data], idx) => {
+                        const net = data.income - data.outgoing - data.toSavings;
+                        return (
+                          <span key={currency}>
+                            {idx > 0 && ', '}
+                            {(net >= 0 ? '+' : '') + formatCurrency(net, currency)}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+              {expandedProjections ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+            </CardContent>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="px-4 pb-4 space-y-3">
+              {Object.entries(monthlyProjections).map(([currency, data]) => {
+                const projectedLeftover = data.income - data.outgoing - data.toSavings;
+                const checkingBalance = bankAccounts
+                  .filter(acc => acc.currency === currency && acc.account_type === 'checking')
+                  .reduce((sum, acc) => {
+                    const accountDeposits = allDeposits.filter(d => d.bank_account_id === acc.id);
+                    const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
+                    const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
+                    return sum + ((acc.balance || 0) + totalDeposits - totalWithdrawals);
+                  }, 0);
+                const finalBalance = checkingBalance + projectedLeftover;
+
+                return (
+                  <div key={currency} className="p-3 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-200 mb-2">
+                      <Badge variant="outline" className="text-sm">{currency}</Badge>
+                      <p className="text-xs text-slate-500">Current Month</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <TrendingUp className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-slate-500">Income</p>
+                          <p className="font-semibold text-emerald-600 truncate">
+                            {formatCurrency(data.income, currency)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <TrendingDown className="w-3.5 h-3.5 text-red-600 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-slate-500">Outgoing</p>
+                          <p className="font-semibold text-red-600 truncate">
+                            {formatCurrency(data.outgoing, currency)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <TrendingUp className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-slate-500">To Savings</p>
+                          <p className="font-semibold text-blue-600 truncate">
+                            {formatCurrency(data.toSavings, currency)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-slate-500">Net Change</p>
+                          <p className={`font-semibold truncate ${projectedLeftover >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                            {projectedLeftover >= 0 ? '+' : ''}{formatCurrency(projectedLeftover, currency)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-200">
+                      <div className="flex items-center justify-between text-xs">
+                        <p className="text-slate-500">Projected Checking</p>
+                        <p className="font-bold text-slate-900">
+                          {formatCurrency(finalBalance, currency)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+    ),
     cards: cards.length > 0 && (
       <Collapsible open={expandedCards} onOpenChange={setExpandedCards}>
         <Card className="border-blue-200">

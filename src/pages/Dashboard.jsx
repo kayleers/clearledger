@@ -833,53 +833,61 @@ export default function Dashboard() {
             </DialogHeader>
             <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="prose prose-sm max-w-none text-slate-700 space-y-4">
-              <p className="text-sm text-slate-500">Last updated: January 6, 2026</p>
+              <p className="text-sm text-slate-500">Last updated: January 27, 2026</p>
               
               <p>ClearLedger ("the app") is a manual financial planning tool designed to give users full control over their financial data and help users track bills, loans, credit cards, bank accounts, and payment schedules across multiple currencies. We are committed to protecting your privacy and being transparent about how your information is handled.</p>
               
-              <h3 className="font-bold text-slate-900 mt-6">Information We Collect</h3>
-              <p>ClearLedger does not collect, transmit, or store personal or financial information on external servers.</p>
+              <h3 className="font-bold text-slate-900 mt-6">How We Store Your Data</h3>
+              <p>ClearLedger stores your financial data securely in the cloud through Base44's infrastructure. This allows you to:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Access your data from any device (phone, tablet, computer) by logging in</li>
+                <li>Keep your data synchronized across all your devices</li>
+                <li>Ensure your data is backed up and not lost if you lose your device</li>
+              </ul>
               
               <p>All data you enter into the app — including balances, transactions, bills, loans, and payment simulations — is:</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Entered manually by you</li>
-                <li>Stored locally on your device</li>
+                <li>Stored securely in the cloud with encryption</li>
+                <li>Private to your account only</li>
                 <li>Never shared with third parties</li>
-                <li>Never synced to online accounts</li>
+                <li>Not sold or used for advertising</li>
               </ul>
               
-              <p>We do not connect to banks, credit bureaus, or financial institutions.</p>
+              <p>We do not connect to banks, credit bureaus, or financial institutions to pull your data automatically.</p>
+              
+              <h3 className="font-bold text-slate-900 mt-6">Information We Collect</h3>
+              <p>ClearLedger collects only the information necessary to provide you with the service:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Account information (email address for login)</li>
+                <li>Financial data you manually enter (balances, transactions, bills, loans)</li>
+                <li>App preferences and settings</li>
+              </ul>
               
               <h3 className="font-bold text-slate-900 mt-6">Information We Do Not Collect</h3>
               <p>ClearLedger does not collect:</p>
               <ul className="list-disc pl-5 space-y-1">
-                <li>Names, addresses, or government identifiers</li>
+                <li>Physical addresses or government identifiers</li>
                 <li>Bank login credentials</li>
-                <li>Credit card numbers</li>
+                <li>Actual credit card numbers</li>
                 <li>Transaction data from financial institutions</li>
                 <li>Contacts, photos, or files</li>
                 <li>Location data</li>
                 <li>Advertising identifiers</li>
               </ul>
               
-              <h3 className="font-bold text-slate-900 mt-6">In-App Purchases and Subscriptions</h3>
-              <p>ClearLedger offers optional in-app purchases, including:</p>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Subscription tiers that unlock additional features</li>
-                <li>One-time purchases that expand access to app functionality</li>
-              </ul>
+              <h3 className="font-bold text-slate-900 mt-6">Subscriptions and Payments</h3>
+              <p>ClearLedger offers optional subscription tiers that unlock additional features. All payments are processed securely through Stripe. ClearLedger does not receive or store your payment information.</p>
               
-              <p>All payments are processed securely through Google Play Billing. ClearLedger does not receive or store your payment information.</p>
-              
-              <p>Google may collect payment-related information as part of the billing process. Please refer to Google's Privacy Policy for details on how Google handles this data.</p>
+              <p>Stripe may collect payment-related information as part of the billing process. Please refer to Stripe's Privacy Policy for details on how Stripe handles this data.</p>
               
               <h3 className="font-bold text-slate-900 mt-6">Ads and Tracking</h3>
-              <p>ClearLedger does not display ads and does not use third-party advertising or tracking SDKs.</p>
+              <p>ClearLedger does not display ads and does not use third-party advertising or tracking technologies.</p>
               <p>We do not track user behavior across apps or websites.</p>
               
               <h3 className="font-bold text-slate-900 mt-6">Data Storage and Security</h3>
-              <p>All user-entered data remains on your device unless you manually remove it. ClearLedger does not upload, back up, or transmit your data to any external servers.</p>
-              <p>Because data is stored locally, deleting the app will remove all stored information.</p>
+              <p>Your data is stored on secure cloud servers provided by Base44. We use industry-standard security measures to protect your information.</p>
+              <p>You can delete your account and all associated data at any time through the app settings.</p>
               
               <h3 className="font-bold text-slate-900 mt-6">Financial Disclaimer</h3>
               <p>ClearLedger is a planning and organizational tool only. It does not provide financial, legal, or investment advice. Any simulations or projections are estimates based on the information you manually enter.</p>

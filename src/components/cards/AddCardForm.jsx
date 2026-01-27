@@ -22,6 +22,7 @@ const cardColors = [
 export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankAccounts = [] }) {
   const [formData, setFormData] = useState({
     name: card?.name || '',
+    card_last_four: card?.card_last_four || '',
     balance: card?.balance?.toString() || '',
     credit_limit: card?.credit_limit?.toString() || '',
     apr: card?.apr ? (card.apr * 100).toString() : '',
@@ -41,6 +42,7 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
     e.preventDefault();
     const submitData = {
       name: formData.name,
+      card_last_four: formData.card_last_four || null,
       balance: parseFloat(formData.balance) || 0,
       credit_limit: parseFloat(formData.credit_limit) || 0,
       apr: parseFloat(formData.apr) / 100 || 0,
@@ -88,6 +90,20 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
               value={formData.name}
               onChange={(e) => updateField('name', e.target.value)}
               required
+              className="h-12"
+            />
+          </div>
+
+          {/* Last 4 Digits */}
+          <div className="space-y-2">
+            <Label htmlFor="card_last_four">Last 4 Digits (Optional)</Label>
+            <Input
+              id="card_last_four"
+              type="text"
+              maxLength="4"
+              placeholder="1234"
+              value={formData.card_last_four}
+              onChange={(e) => updateField('card_last_four', e.target.value.replace(/\D/g, ''))}
               className="h-12"
             />
           </div>

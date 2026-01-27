@@ -86,6 +86,19 @@ export default function BankAccountDetail() {
     }
   });
 
+  const { data: allBankAccounts = [] } = useQuery({
+    queryKey: ['all-bank-accounts'],
+    queryFn: () => base44.entities.BankAccount.list()
+  });
+
+  const { data: bankTransfers = [] } = useQuery({
+    queryKey: ['bank-transfers', accountId],
+    queryFn: async () => {
+      const allTransfers = await base44.entities.BankTransfer.list();
+      return allTransfers.filter(t => t.is_active !== false);
+    }
+  });
+
   const createDepositMutation = useMutation({
     mutationFn: (data) => base44.entities.Deposit.create(data),
     onSuccess: () => {

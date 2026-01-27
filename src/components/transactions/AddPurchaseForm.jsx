@@ -50,6 +50,7 @@ export default function AddPurchaseForm({ onSubmit, onCancel, isLoading, cardId 
     e.preventDefault();
     onSubmit({
       ...formData,
+      card_id: cardId,
       amount: parseFloat(formData.amount) || 0
     });
   };

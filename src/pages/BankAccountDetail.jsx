@@ -331,6 +331,84 @@ export default function BankAccountDetail() {
           </CardContent>
         </Card>
 
+        {/* Monthly Projections Overview */}
+        {Object.keys(monthlyProjections).length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg">This Month's Projection</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {Object.entries(monthlyProjections).map(([currency, data]) => {
+                const projectedLeftover = data.income - data.outgoing - data.toSavings;
+                const checkingBalance = allBankAccounts
+                  .filter(acc => acc.currency === currency && acc.account_type === 'checking')
+                  .reduce((sum, acc) => sum + (acc.balance || 0), 0);
+                const finalBalance = checkingBalance + projectedLeftover;
+
+                return (
+                  <div key={currency} className="space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b">
+                      <Badge variant="outline" className="text-sm">{currency}</Badge>
+                      <p className="text-xs text-slate-500">Current Month</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-emerald-600" />
+                        <div>
+                          <p className="text-slate-500 text-xs">Income</p>
+                          <p className="font-semibold text-emerald-600">
+                            {formatCurrency(data.income, currency)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <TrendingDown className="w-4 h-4 text-red-600" />
+                        <div>
+                          <p className="text-slate-500 text-xs">Outgoing</p>
+                          <p className="font-semibold text-red-600">
+                            {formatCurrency(data.outgoing, currency)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-blue-600" />
+                        <div>
+                          <p className="text-slate-500 text-xs">To Savings</p>
+                          <p className="font-semibold text-blue-600">
+                            {formatCurrency(data.toSavings, currency)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-slate-600" />
+                        <div>
+                          <p className="text-slate-500 text-xs">Net Change</p>
+                          <p className={`font-semibold ${projectedLeftover >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                            {projectedLeftover >= 0 ? '+' : ''}{formatCurrency(projectedLeftover, currency)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-slate-500">Projected Checking Balance</p>
+                        <p className="font-bold text-slate-900">
+                          {formatCurrency(finalBalance, currency)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs defaultValue="deposits" className="space-y-4">
           <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="deposits">Deposits</TabsTrigger>

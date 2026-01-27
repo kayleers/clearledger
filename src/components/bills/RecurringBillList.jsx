@@ -33,7 +33,7 @@ const frequencyLabels = {
   yearly: 'Yearly'
 };
 
-export default function RecurringBillList({ bills = [], bankAccounts = [], dragHandleProps }) {
+export default function RecurringBillList({ bills = [], bankAccounts = [], creditCards = [], dragHandleProps }) {
   const [showAddBill, setShowAddBill] = useState(false);
   const [editingBill, setEditingBill] = useState(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
@@ -243,8 +243,10 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
                 {(provided) => (
                   <div className="grid gap-3" {...provided.droppableProps} ref={provided.innerRef}>
                     {bills.map((bill, index) => {
-                const account = bankAccounts.find(a => a.id === bill.bank_account_id);
-                return (
+                    const account = bankAccounts.find(a => a.id === bill.bank_account_id);
+                    const card = creditCards.find(c => c.id === bill.credit_card_id);
+                    const paymentSource = account || card;
+                    return (
                   <Draggable key={bill.id} draggableId={bill.id} index={index}>
                     {(provided) => (
                       <Card
@@ -293,9 +295,9 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
                           </>
                         )}
                       </div>
-                      {account && (
+                      {paymentSource && (
                         <p className="text-xs text-slate-400 mt-1">
-                          From: {account.name}
+                          From: {paymentSource.name} {card ? '(Card)' : ''}
                         </p>
                       )}
                       {bill.end_date && (
@@ -358,6 +360,8 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
                     <div className="grid gap-3">
                      {groupBills.map((bill) => {
                       const account = bankAccounts.find(a => a.id === bill.bank_account_id);
+                      const card = creditCards.find(c => c.id === bill.credit_card_id);
+                      const paymentSource = account || card;
                       return (
                         <Card key={bill.id} className="border-l-4 border-l-purple-500">
                           <CardContent className="p-4">
@@ -386,9 +390,9 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
                                       </>
                                     )}
                                   </div>
-                                  {account && (
+                                  {paymentSource && (
                                     <p className="text-xs text-slate-400 mt-1">
-                                      From: {account.name}
+                                      From: {paymentSource.name} {card ? '(Card)' : ''}
                                     </p>
                                   )}
                                   {bill.end_date && (
@@ -455,6 +459,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
           <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
             <RecurringBillForm
             bankAccounts={bankAccounts}
+            creditCards={creditCards}
             onSubmit={(data) => createBillMutation.mutate(data)}
             isLoading={createBillMutation.isPending}
           />
@@ -471,6 +476,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
             <RecurringBillForm
             bill={editingBill}
             bankAccounts={bankAccounts}
+            creditCards={creditCards}
             onSubmit={(data) => updateBillMutation.mutate({ id: editingBill.id, data })}
             isLoading={updateBillMutation.isPending}
           />
@@ -487,7 +493,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], dragH
   );
 }
 
-function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
+function RecurringBillForm({ bill, bankAccounts, creditCards = [], onSubmit, isLoading }) {
   const [formData, setFormData] = useState({
     name: bill?.name || '',
     amount_type: bill?.amount_type || 'fixed',
@@ -500,6 +506,8 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
     day_of_week: bill?.day_of_week?.toString() || '1',
     due_month: bill?.due_month?.toString() || '1',
     bank_account_id: bill?.bank_account_id || '',
+    credit_card_id: bill?.credit_card_id || '',
+    payment_source_type: bill?.credit_card_id ? 'card' : (bill?.bank_account_id ? 'account' : ''),
     category: bill?.category || 'other',
     start_date: bill?.start_date || '',
     end_date: bill?.end_date || ''
@@ -531,9 +539,17 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
       amount_type: formData.amount_type,
       currency: formData.currency,
       frequency: isRecurring ? formData.frequency : 'one_time',
-      bank_account_id: formData.bank_account_id,
       category: formData.category
     };
+
+    // Set payment source based on type
+    if (formData.payment_source_type === 'card') {
+      submitData.credit_card_id = formData.credit_card_id;
+      submitData.bank_account_id = null;
+    } else if (formData.payment_source_type === 'account') {
+      submitData.bank_account_id = formData.bank_account_id;
+      submitData.credit_card_id = null;
+    }
 
     // Add amount fields based on type
     if (formData.amount_type === 'variable') {
@@ -810,19 +826,38 @@ function RecurringBillForm({ bill, bankAccounts, onSubmit, isLoading }) {
         </div>
       )}
       <div className="space-y-2">
-        <Label htmlFor="billAccount">Bank Account (Optional)</Label>
+        <Label htmlFor="paymentSource">Payment Source (Optional)</Label>
         <select
-          id="billAccount"
-          value={formData.bank_account_id}
-          onChange={(e) => setFormData({ ...formData, bank_account_id: e.target.value })}
+          id="paymentSource"
+          value={formData.payment_source_type === 'card' ? formData.credit_card_id : formData.bank_account_id}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (!value) {
+              setFormData({ ...formData, payment_source_type: '', bank_account_id: '', credit_card_id: '' });
+            } else if (value.startsWith('card_')) {
+              const cardId = value.substring(5);
+              setFormData({ ...formData, payment_source_type: 'card', credit_card_id: cardId, bank_account_id: '' });
+            } else {
+              setFormData({ ...formData, payment_source_type: 'account', bank_account_id: value, credit_card_id: '' });
+            }
+          }}
           className="w-full h-10 px-3 rounded-md border border-slate-200"
         >
-          <option value="">Select account</option>
-          {bankAccounts.map(account => (
-            <option key={account.id} value={account.id}>
-              {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
-            </option>
-          ))}
+          <option value="">Select payment source</option>
+          <optgroup label="Bank Accounts">
+            {bankAccounts.map(account => (
+              <option key={account.id} value={account.id}>
+                {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="Credit Cards">
+            {creditCards.filter(c => c.is_active !== false).map(card => (
+              <option key={card.id} value={`card_${card.id}`}>
+                {card.name} - {card.currency}
+              </option>
+            ))}
+          </optgroup>
         </select>
       </div>
       <div className="space-y-2">

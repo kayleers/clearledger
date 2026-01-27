@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { CreditCard, ChevronRight, GripVertical, Zap, Calendar, Pencil, Trash2 } from 'lucide-react';
 import { 
   calculateUtilization, 
@@ -46,7 +47,14 @@ export default function CreditCardItem({ card, isDragging, onEdit, onDelete }) {
                 <CreditCard className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">{card.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-lg">{card.name}</h3>
+                  {card.is_active === false && (
+                    <Badge variant="outline" className="bg-white/20 text-white border-white/40 text-xs">
+                      Inactive
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-white/70 text-sm">
                   {(card.apr * 100)}% APR
                 </p>

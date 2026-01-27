@@ -20,7 +20,8 @@ Deno.serve(async (req) => {
 
     const doc = new jsPDF();
     let yPos = 20;
-    const margin = 20;
+    const margin = 15;
+    const pageWidth = doc.internal.pageSize.getWidth();
 
     const formatCurrency = (amount, currency = 'USD') => {
       return new Intl.NumberFormat('en-US', {
@@ -102,50 +103,63 @@ Deno.serve(async (req) => {
       paymentsByDate[payment.date].push(payment);
     });
 
-    // Render payments
+    // PAGE 1: LIST VIEW
+    doc.setFontSize(14);
+    doc.setTextColor(16, 185, 129);
+    doc.text('Transaction List', margin, yPos);
+    yPos += 8;
+
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+
     Object.entries(paymentsByDate).forEach(([date, items]) => {
-      if (yPos > 260) {
+      if (yPos > 250) {
         doc.addPage();
         yPos = 20;
       }
 
-      doc.setFontSize(14);
-      doc.setTextColor(16, 185, 129);
+      doc.setFontSize(11);
+      doc.setTextColor(80, 80, 80);
+      doc.setFont(undefined, 'bold');
       doc.text(`Day ${date}`, margin, yPos);
-      yPos += 8;
+      yPos += 6;
 
+      doc.setFont(undefined, 'normal');
       items.forEach(item => {
         if (yPos > 270) {
           doc.addPage();
           yPos = 20;
         }
 
-        doc.setFontSize(11);
+        doc.setFontSize(9);
         doc.setTextColor(0);
-        doc.text(`${item.name} (${item.type})`, margin + 5, yPos);
-        doc.text(formatCurrency(item.amount, item.currency), 150, yPos);
-        yPos += 7;
+        doc.text(`• ${item.name}`, margin + 3, yPos);
+        doc.text(`(${item.type})`, margin + 60, yPos);
+        doc.text(formatCurrency(item.amount, item.currency), pageWidth - margin - 30, yPos);
+        yPos += 5;
       });
 
-      yPos += 5;
+      yPos += 3;
     });
 
-    // Summary
-    if (yPos > 240) {
+    // Add summary on same page if room
+    if (yPos > 220) {
       doc.addPage();
       yPos = 20;
     }
 
-    yPos += 10;
-    doc.setFontSize(16);
-    doc.setTextColor(16, 185, 129);
-    doc.text('Summary', margin, yPos);
-    yPos += 10;
-
+    yPos += 5;
     doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text(`Total Payments: ${payments.length}`, margin, yPos);
+    doc.setTextColor(16, 185, 129);
+    doc.setFont(undefined, 'bold');
+    doc.text('Summary', margin, yPos);
     yPos += 7;
+
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Total Payments: ${payments.length}`, margin, yPos);
+    yPos += 5;
 
     const totalByCurrency = {};
     payments.forEach(p => {
@@ -154,8 +168,97 @@ Deno.serve(async (req) => {
 
     Object.entries(totalByCurrency).forEach(([currency, total]) => {
       doc.text(`Total (${currency}): ${formatCurrency(total, currency)}`, margin, yPos);
-      yPos += 7;
+      yPos += 5;
     });
+
+    // PAGE 2+: CALENDAR VIEW
+    doc.addPage();
+    yPos = 20;
+
+    doc.setFontSize(14);
+    doc.setTextColor(16, 185, 129);
+    doc.text('Calendar View', margin, yPos);
+    yPos += 10;
+
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Draw calendar header
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const cellWidth = (pageWidth - margin * 2) / 7;
+    const cellHeight = 25;
+
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(100, 100, 100);
+
+    dayNames.forEach((day, idx) => {
+      const x = margin + idx * cellWidth;
+      doc.text(day, x + cellWidth / 2, yPos, { align: 'center' });
+    });
+
+    yPos += 8;
+
+    // Draw calendar grid
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(8);
+    let dayCounter = 1;
+
+    for (let week = 0; week < 6 && dayCounter <= daysInMonth; week++) {
+      for (let day = 0; day < 7; day++) {
+        const x = margin + day * cellWidth;
+        const y = yPos + week * cellHeight;
+
+        // Draw cell border
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(x, y, cellWidth, cellHeight);
+
+        if (week === 0 && day < firstDay) {
+          continue;
+        }
+
+        if (dayCounter > daysInMonth) {
+          break;
+        }
+
+        const dayPayments = paymentsByDate[dayCounter] || [];
+        
+        // Highlight cells with payments
+        if (dayPayments.length > 0) {
+          doc.setFillColor(16, 185, 129);
+          doc.rect(x, y, cellWidth, cellHeight, 'F');
+          doc.setTextColor(255, 255, 255);
+        } else {
+          doc.setTextColor(50, 50, 50);
+        }
+
+        // Day number
+        doc.setFont(undefined, 'bold');
+        doc.text(dayCounter.toString(), x + 2, y + 4);
+
+        // Payments in cell
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7);
+        let cellYPos = y + 8;
+
+        dayPayments.forEach((payment, idx) => {
+          if (idx >= 2) {
+            doc.text('+' + (dayPayments.length - 2).toString(), x + 2, cellYPos);
+            return;
+          }
+          const shortName = payment.name.substring(0, 12);
+          doc.text(shortName, x + 2, cellYPos);
+          cellYPos += 4;
+        });
+
+        dayCounter++;
+      }
+
+      if (dayCounter > daysInMonth) {
+        break;
+      }
+    }
 
     const pdfBytes = doc.output('arraybuffer');
 

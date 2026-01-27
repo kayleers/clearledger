@@ -506,7 +506,7 @@ export default function Dashboard() {
                 className="bg-white/10 border-white/20 text-white hover:bg-white/20"
               >
                 <Download className="w-4 h-4 mr-1" />
-                Export
+                Export PDF
               </Button>
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/7335a5ce2_WhatsAppImage2026-01-08at73945PM.jpeg" 
@@ -605,14 +605,39 @@ export default function Dashboard() {
                                     </CollapsibleTrigger>
                                   </div>
                                   {!showAddCard && (
-                                    <Button
-                                      size="sm"
-                                      onClick={handleAddCardClick}
-                                      className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
-                                    >
-                                      <Plus className="w-4 h-4 mr-1" />
-                                      Add Card
-                                    </Button>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={async () => {
+                                          try {
+                                            const response = await base44.functions.invoke('exportCreditCards', {});
+                                            const blob = new Blob([response.data], { type: 'application/pdf' });
+                                            const url = window.URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = `Credit_Cards_${new Date().toISOString().split('T')[0]}.pdf`;
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            window.URL.revokeObjectURL(url);
+                                            a.remove();
+                                          } catch (error) {
+                                            console.error('Export failed:', error);
+                                          }
+                                        }}
+                                      >
+                                        <Download className="w-4 h-4 mr-1" />
+                                        Export PDF
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        onClick={handleAddCardClick}
+                                        className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
+                                      >
+                                        <Plus className="w-4 h-4 mr-1" />
+                                        Add Card
+                                      </Button>
+                                    </div>
                                   )}
                                 </div>
                                 <CollapsibleContent>

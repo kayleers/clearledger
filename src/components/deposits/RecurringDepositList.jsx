@@ -201,7 +201,7 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
                 }}
               >
                 <Download className="w-4 h-4 mr-1" />
-                Export
+                Export PDF
               </Button>
               <Button
                 size="sm"

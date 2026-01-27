@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreditCard, Building2, Receipt, Landmark, ShoppingBag, DollarSign, TrendingUp } from 'lucide-react';
+import { CreditCard, Building2, Receipt, Landmark, ShoppingBag, DollarSign, TrendingUp, GripVertical } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';
 import { Slider } from '@/components/ui/slider';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { base44 } from '@/api/base44Client';
 
 const TRANSACTION_TYPES = [
   { id: 'card_purchase', label: 'Credit Card Purchase', icon: ShoppingBag, color: 'purple' },
@@ -38,6 +40,41 @@ export default function QuickAddMenu({
 }) {
   const [selectedType, setSelectedType] = useState(null);
   const [selectedTargetId, setSelectedTargetId] = useState(null);
+  const [transactionTypesOrder, setTransactionTypesOrder] = useState(TRANSACTION_TYPES.map(t => t.id));
+
+  useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        const user = await base44.auth.me();
+        if (user.quick_add_order) {
+          setTransactionTypesOrder(user.quick_add_order);
+        }
+      } catch (error) {
+        console.error('Error fetching quick add order:', error);
+      }
+    };
+    fetchOrder();
+  }, []);
+
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+
+    const newOrder = Array.from(transactionTypesOrder);
+    const [reorderedItem] = newOrder.splice(result.source.index, 1);
+    newOrder.splice(result.destination.index, 0, reorderedItem);
+
+    setTransactionTypesOrder(newOrder);
+
+    try {
+      await base44.auth.updateMe({ quick_add_order: newOrder });
+    } catch (error) {
+      console.error('Error saving quick add order:', error);
+    }
+  };
+
+  const orderedTransactionTypes = transactionTypesOrder
+    .map(id => TRANSACTION_TYPES.find(t => t.id === id))
+    .filter(Boolean);
 
   const handleReset = () => {
     setSelectedType(null);
@@ -46,23 +83,51 @@ export default function QuickAddMenu({
 
   const renderTypeSelection = () => (
     <div className="space-y-2">
-      <p className="text-sm text-slate-600 mb-3">What would you like to add?</p>
-      {TRANSACTION_TYPES.map(type => {
-        const Icon = type.icon;
-        return (
-          <Button
-            key={type.id}
-            variant="outline"
-            className="w-full justify-start h-auto py-3"
-            onClick={() => setSelectedType(type.id)}
-          >
-            <div className={`p-2 bg-${type.color}-100 rounded-lg mr-3`}>
-              <Icon className={`w-5 h-5 text-${type.color}-600`} />
+      <p className="text-sm text-slate-600 mb-3">What would you like to add? (Drag to reorder)</p>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="quick-add-types">
+          {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+              {orderedTransactionTypes.map((type, index) => {
+                const Icon = type.icon;
+                return (
+                  <Draggable key={type.id} draggableId={type.id} index={index}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        style={{
+                          ...provided.draggableProps.style,
+                          opacity: snapshot.isDragging ? 0.8 : 1,
+                        }}
+                      >
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start h-auto py-3 relative"
+                          onClick={() => setSelectedType(type.id)}
+                        >
+                          <div
+                            {...provided.dragHandleProps}
+                            className="absolute left-2 cursor-grab active:cursor-grabbing"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <GripVertical className="w-4 h-4 text-slate-400" />
+                          </div>
+                          <div className={`p-2 bg-${type.color}-100 rounded-lg ml-6 mr-3`}>
+                            <Icon className={`w-5 h-5 text-${type.color}-600`} />
+                          </div>
+                          <span className="font-medium">{type.label}</span>
+                        </Button>
+                      </div>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {provided.placeholder}
             </div>
-            <span className="font-medium">{type.label}</span>
-          </Button>
-        );
-      })}
+          )}
+        </Droppable>
+      </DragDropContext>
     </div>
   );
 

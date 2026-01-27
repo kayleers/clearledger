@@ -366,27 +366,18 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-slate-900">Monthly Projections</p>
-                  {Object.keys(monthlyProjections).length === 1 ? (
-                    <p className="text-sm text-blue-600 font-medium">
-                      Net: {(() => {
-                        const [currency, data] = Object.entries(monthlyProjections)[0];
-                        const net = data.income - data.outgoing - data.toSavings;
-                        return (net >= 0 ? '+' : '') + formatCurrency(net, currency);
-                      })()}
-                    </p>
-                  ) : (
-                    <div className="text-sm text-blue-600 font-medium">
-                      Net: {Object.entries(monthlyProjections).map(([currency, data], idx) => {
-                        const net = data.income - data.outgoing - data.toSavings;
-                        return (
-                          <span key={currency}>
-                            {idx > 0 && ', '}
-                            {(net >= 0 ? '+' : '') + formatCurrency(net, currency)}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <div className="text-sm text-blue-600 font-medium">
+                    <span>Net: </span>
+                    {Object.entries(monthlyProjections).map(([currency, data], idx) => {
+                      const net = data.income - data.outgoing - data.toSavings;
+                      return (
+                        <span key={currency}>
+                          {idx > 0 && ', '}
+                          {(net >= 0 ? '+' : '') + formatCurrency(net, currency)}
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
               {expandedProjections ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}

@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
       doc.setFontSize(11);
       doc.setTextColor(80, 80, 80);
       doc.setFont(undefined, 'bold');
-      doc.text(`Day ${date}`, margin, yPos);
+      doc.text('Day ' + date, margin, yPos);
       yPos += 6;
 
       doc.setFont(undefined, 'normal');
@@ -133,13 +133,19 @@ Deno.serve(async (req) => {
 
         doc.setFontSize(9);
         doc.setTextColor(0);
-        doc.text(`• ${item.name}`, margin + 3, yPos);
-        doc.text(`(${item.type})`, margin + 60, yPos);
-        doc.text(formatCurrency(item.amount, item.currency), pageWidth - margin - 30, yPos);
-        yPos += 5;
+        
+        const nameText = item.name.substring(0, 35);
+        const typeText = '(' + item.type + ')';
+        const amountText = formatCurrency(item.amount, item.currency);
+        
+        doc.text(nameText, margin + 3, yPos);
+        doc.text(typeText, margin + 3, yPos + 4);
+        doc.text(amountText, pageWidth - margin - 35, yPos + 1, { align: 'right' });
+        
+        yPos += 10;
       });
 
-      yPos += 3;
+      yPos += 2;
     });
 
     // Add summary on same page if room

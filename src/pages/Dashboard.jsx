@@ -677,7 +677,7 @@ export default function Dashboard() {
                             {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} creditCards={cards} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'deposits' && <RecurringDepositList deposits={recurringDeposits} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'transfers' && <BankTransferList transfers={bankTransfers} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
-                            {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
+                            {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} creditCards={cards} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'pricing' && (
                               <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                                 <div className="flex items-center gap-2 p-4">
@@ -780,6 +780,7 @@ export default function Dashboard() {
             <AddCardForm
               card={editingCard}
               bankAccounts={bankAccounts}
+              creditCards={cards}
               onSubmit={(data) => {
                 if (editingCard) {
                   updateCardMutation.mutate({ id: editingCard.id, data });

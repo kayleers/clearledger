@@ -829,7 +829,7 @@ function RecurringBillForm({ bill, bankAccounts, creditCards = [], onSubmit, isL
         <Label htmlFor="paymentSource">Payment Source (Optional)</Label>
         <select
           id="paymentSource"
-          value={formData.payment_source_type === 'card' ? formData.credit_card_id : formData.bank_account_id}
+          value={formData.payment_source_type === 'card' ? `card_${formData.credit_card_id}` : formData.bank_account_id}
           onChange={(e) => {
             const value = e.target.value;
             if (!value) {
@@ -845,16 +845,16 @@ function RecurringBillForm({ bill, bankAccounts, creditCards = [], onSubmit, isL
         >
           <option value="">Select payment source</option>
           <optgroup label="Bank Accounts">
-            {bankAccounts.map(account => (
+            {bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => (
               <option key={account.id} value={account.id}>
                 {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
               </option>
             ))}
           </optgroup>
           <optgroup label="Credit Cards">
-            {creditCards.filter(c => c.is_active !== false).map(card => (
+            {creditCards.filter(c => c.is_active !== false).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(card => (
               <option key={card.id} value={`card_${card.id}`}>
-                {card.name} - {card.currency}
+                {card.name} {card.card_last_four ? `(••••${card.card_last_four})` : ''} - {card.currency}
               </option>
             ))}
           </optgroup>

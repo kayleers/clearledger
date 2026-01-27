@@ -34,7 +34,7 @@ const loanTypeLabels = {
   other: 'Other Loan'
 };
 
-export default function MortgageLoanList({ loans = [], bankAccounts = [], dragHandleProps }) {
+export default function MortgageLoanList({ loans = [], bankAccounts = [], creditCards = [], dragHandleProps }) {
   const [showAddLoan, setShowAddLoan] = useState(false);
   const [editingLoan, setEditingLoan] = useState(null);
   const [editingProjected, setEditingProjected] = useState(null);
@@ -309,6 +309,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], dragHa
           <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
             <MortgageLoanForm
             bankAccounts={bankAccounts}
+            creditCards={[]}
             onSubmit={(data) => createLoanMutation.mutate(data)}
             isLoading={createLoanMutation.isPending}
           />
@@ -325,6 +326,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], dragHa
             <MortgageLoanForm
             loan={editingLoan}
             bankAccounts={bankAccounts}
+            creditCards={[]}
             onSubmit={(data) => updateLoanMutation.mutate({ id: editingLoan.id, data })}
             isLoading={updateLoanMutation.isPending}
           />
@@ -384,7 +386,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], dragHa
   );
 }
 
-function MortgageLoanForm({ loan, bankAccounts, onSubmit, isLoading }) {
+function MortgageLoanForm({ loan, bankAccounts, creditCards = [], onSubmit, isLoading }) {
   const [formData, setFormData] = useState({
     name: loan?.name || '',
     loan_amount: loan?.loan_amount?.toString() || '',
@@ -570,7 +572,7 @@ function MortgageLoanForm({ loan, bankAccounts, onSubmit, isLoading }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="bankAccount">Bank Account (Optional)</Label>
+        <Label htmlFor="bankAccount">Payment Source (Optional)</Label>
         <select
           id="bankAccount"
           value={formData.bank_account_id}
@@ -578,11 +580,20 @@ function MortgageLoanForm({ loan, bankAccounts, onSubmit, isLoading }) {
           className="w-full h-10 px-3 rounded-md border border-slate-200"
         >
           <option value="">None</option>
-          {bankAccounts.map(account => (
-            <option key={account.id} value={account.id}>
-              {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
-            </option>
-          ))}
+          <optgroup label="Bank Accounts">
+            {bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => (
+              <option key={account.id} value={account.id}>
+                {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="Credit Cards">
+            {creditCards.filter(c => c.is_active !== false).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(card => (
+              <option key={card.id} value={card.id}>
+                {card.name} {card.card_last_four ? `(••••${card.card_last_four})` : ''} - {card.currency}
+              </option>
+            ))}
+          </optgroup>
         </select>
       </div>
 

@@ -19,7 +19,7 @@ const cardColors = [
   { value: 'pink', label: 'Pink', class: 'bg-pink-500' }
 ];
 
-export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankAccounts = [] }) {
+export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankAccounts = [], creditCards = [] }) {
   const [formData, setFormData] = useState({
     name: card?.name || '',
     card_last_four: card?.card_last_four || '',
@@ -258,21 +258,30 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
             </div>
           </div>
 
-          {/* Primary Payment Bank Account */}
+          {/* Primary Payment Source */}
           <div className="space-y-2">
-            <Label htmlFor="bank_account">Primary Payment Bank Account (Optional)</Label>
+            <Label htmlFor="bank_account">Primary Payment Source (Optional)</Label>
             <select
               id="bank_account"
               value={formData.bank_account_id}
               onChange={(e) => updateField('bank_account_id', e.target.value)}
               className="w-full h-12 px-3 rounded-md border border-slate-200"
             >
-              <option value="">No account selected</option>
-              {bankAccounts.map(account => (
-                <option key={account.id} value={account.id}>
-                  {account.name} {account.account_number ? `(${account.account_number})` : ''}
-                </option>
-              ))}
+              <option value="">No payment source selected</option>
+              <optgroup label="Bank Accounts">
+                {bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => (
+                  <option key={account.id} value={account.id}>
+                    {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Credit Cards">
+                {creditCards.filter(c => c.is_active !== false && c.id !== card?.id).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(cc => (
+                  <option key={cc.id} value={cc.id}>
+                    {cc.name} {cc.card_last_four ? `(••••${cc.card_last_four})` : ''} - {cc.currency}
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </div>
 
@@ -325,19 +334,28 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="additional_bank_account">Bank Account for Additional Payment</Label>
+                  <Label htmlFor="additional_bank_account">Payment Source for Additional Payment</Label>
                   <select
                     id="additional_bank_account"
                     value={formData.additional_payment_bank_account_id}
                     onChange={(e) => updateField('additional_payment_bank_account_id', e.target.value)}
                     className="w-full h-12 px-3 rounded-md border border-slate-200"
                   >
-                    <option value="">No account selected</option>
-                    {bankAccounts.map(account => (
-                      <option key={account.id} value={account.id}>
-                        {account.name} {account.account_number ? `(${account.account_number})` : ''}
-                      </option>
-                    ))}
+                    <option value="">No payment source selected</option>
+                    <optgroup label="Bank Accounts">
+                      {bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => (
+                        <option key={account.id} value={account.id}>
+                          {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Credit Cards">
+                      {creditCards.filter(c => c.is_active !== false && c.id !== card?.id).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(cc => (
+                        <option key={cc.id} value={cc.id}>
+                          {cc.name} {cc.card_last_four ? `(••••${cc.card_last_four})` : ''} - {cc.currency}
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
                 </div>
               </div>

@@ -35,6 +35,7 @@ export default function Dashboard() {
   const [calendarExpanded, setCalendarExpanded] = useState(false);
   const [simulatorExpanded, setSimulatorExpanded] = useState(false);
   const [cardsExpanded, setCardsExpanded] = useState(false);
+  const [projectionsExpanded, setProjectionsExpanded] = useState(true);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [upgradeContext, setUpgradeContext] = useState('general');
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
@@ -522,22 +523,31 @@ export default function Dashboard() {
                             }}
                           >
                             {section === 'projections' && (
-                              <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                                <div className="flex items-center gap-2 p-4 border-b">
-                                  <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                    <GripVertical className="w-5 h-5 text-slate-400" />
+                              <Collapsible open={projectionsExpanded} onOpenChange={setProjectionsExpanded}>
+                                <div className="flex items-center justify-between mb-4">
+                                  <div className="flex items-center gap-2">
+                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                                      <GripVertical className="w-5 h-5 text-slate-400" />
+                                    </div>
+                                    <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                                      <h2 className="text-xl font-bold text-emerald-400">Monthly Projections</h2>
+                                      {projectionsExpanded ? (
+                                        <ChevronUp className="w-5 h-5 text-slate-500" />
+                                      ) : (
+                                        <ChevronDown className="w-5 h-5 text-slate-500" />
+                                      )}
+                                    </CollapsibleTrigger>
                                   </div>
-                                  <h2 className="text-xl font-bold text-slate-800">Monthly Projections</h2>
                                 </div>
-                                <div className="p-4">
+                                <CollapsibleContent>
                                   <MonthlyProjections 
                                     cards={cards}
                                     bankAccounts={bankAccounts}
                                     recurringBills={recurringBills}
                                     mortgageLoans={mortgageLoans}
                                   />
-                                </div>
-                              </div>
+                                </CollapsibleContent>
+                              </Collapsible>
                             )}
                             {section === 'cards' && (
                               <Collapsible open={cardsExpanded} onOpenChange={setCardsExpanded}>

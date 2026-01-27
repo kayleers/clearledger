@@ -394,18 +394,24 @@ export default function PaymentCalendar() {
 
       const hasPaidItems = items.some(item => item.type !== 'deposit' && isPaid(item.type, item.id, currentMonth.getFullYear(), currentMonth.getMonth(), day));
       
+      // Check if date is in the past
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const dayDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+      const isPastDate = dayDate < today;
+      
       days.push(
-        <div key={day} className={`border border-slate-200 p-2 min-h-28 ${hasPaidItems ? 'bg-emerald-50' : 'bg-white'}`}>
-          <div className="font-bold text-base mb-1.5 text-slate-900">{day}</div>
+        <div key={day} className={`border border-slate-200 p-2 min-h-28 ${hasPaidItems ? 'bg-emerald-50' : isPastDate ? 'bg-slate-50' : 'bg-white'}`}>
+          <div className={`font-bold text-base mb-1.5 ${isPastDate ? 'text-slate-400' : 'text-slate-900'}`}>{day}</div>
           {items.length > 0 && (
             <div className="space-y-1">
               {Object.entries(paymentsByCurrency).map(([currency, amount]) => (
-                <div key={`payment-${currency}`} className="text-[10px] text-red-600 font-semibold">
+                <div key={`payment-${currency}`} className={`text-[10px] font-semibold ${isPastDate ? 'text-slate-400' : 'text-red-600'}`}>
                   -{formatCurrency(amount, currency)}
                 </div>
               ))}
               {Object.entries(depositsByCurrency).map(([currency, amount]) => (
-                <div key={`deposit-${currency}`} className="text-[10px] text-green-600 font-semibold">
+                <div key={`deposit-${currency}`} className={`text-[10px] font-semibold ${isPastDate ? 'text-slate-400' : 'text-green-600'}`}>
                   +{formatCurrency(amount, currency)}
                 </div>
               ))}
@@ -416,7 +422,7 @@ export default function PaymentCalendar() {
                     return (
                       <Tooltip key={idx}>
                         <TooltipTrigger asChild>
-                          <div className={`text-[11px] truncate cursor-help px-1.5 py-0.5 rounded ${paid ? 'bg-emerald-100 text-emerald-700 line-through' : 'bg-slate-100 text-slate-700'}`}>
+                          <div className={`text-[11px] truncate cursor-help px-1.5 py-0.5 rounded ${paid ? 'bg-emerald-100 text-emerald-700 line-through' : isPastDate ? 'bg-slate-200 text-slate-500' : 'bg-slate-100 text-slate-700'}`}>
                             {paid && '✓ '}{item.name}
                           </div>
                         </TooltipTrigger>
@@ -475,6 +481,12 @@ export default function PaymentCalendar() {
           const dayKey = `${year}-${month}-${day}`;
           const isDayExpanded = expandedItems[dayKey];
           
+          // Check if date is in the past
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const dayDate = new Date(year, month, day);
+          const isPastDate = dayDate < today;
+          
           // Calculate totals for the day
           const paymentsByCurrency = items.filter(i => i.type !== 'deposit').reduce((acc, i) => {
             const curr = i.currency || 'USD';
@@ -490,12 +502,12 @@ export default function PaymentCalendar() {
 
           return (
             <Collapsible key={dayKey} open={isDayExpanded} onOpenChange={() => toggleExpanded(dayKey)}>
-              <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+              <div className={`border border-slate-200 rounded-lg overflow-hidden ${isPastDate ? 'bg-slate-50' : 'bg-white'}`}>
                 <CollapsibleTrigger className="w-full">
-                  <div className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center justify-between p-4 hover:bg-slate-100 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="text-left">
-                        <div className="font-semibold text-base text-slate-900">
+                        <div className={`font-semibold text-base ${isPastDate ? 'text-slate-500' : 'text-slate-900'}`}>
                           {monthNames[month]} {day}{listPeriod === 'year' && `, ${year}`}
                         </div>
                         <div className="text-xs text-slate-500 mt-0.5">
@@ -506,12 +518,12 @@ export default function PaymentCalendar() {
                     <div className="flex items-center gap-3">
                       <div className="text-right space-y-0.5">
                         {Object.entries(paymentsByCurrency).map(([currency, amount]) => (
-                          <div key={`pay-${currency}`} className="text-sm font-semibold text-red-600">
+                          <div key={`pay-${currency}`} className={`text-sm font-semibold ${isPastDate ? 'text-slate-400' : 'text-red-600'}`}>
                             -{formatCurrency(amount, currency)}
                           </div>
                         ))}
                         {Object.entries(depositsByCurrency).map(([currency, amount]) => (
-                          <div key={`dep-${currency}`} className="text-sm font-semibold text-green-600">
+                          <div key={`dep-${currency}`} className={`text-sm font-semibold ${isPastDate ? 'text-slate-400' : 'text-green-600'}`}>
                             +{formatCurrency(amount, currency)}
                           </div>
                         ))}

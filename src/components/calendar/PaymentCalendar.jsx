@@ -387,44 +387,47 @@ export default function PaymentCalendar() {
       const hasPaidItems = items.some(item => item.type !== 'deposit' && isPaid(item.type, item.id, currentMonth.getFullYear(), currentMonth.getMonth(), day));
       
       days.push(
-        <div key={day} className={`border border-slate-200 p-2 min-h-24 ${hasPaidItems ? 'bg-emerald-50' : 'bg-white'}`}>
-          <div className="font-semibold text-sm mb-1">{day}</div>
+        <div key={day} className={`border border-slate-200 p-2 min-h-28 ${hasPaidItems ? 'bg-emerald-50' : 'bg-white'}`}>
+          <div className="font-bold text-base mb-1.5 text-slate-900">{day}</div>
           {items.length > 0 && (
             <div className="space-y-1">
               {Object.entries(paymentsByCurrency).map(([currency, amount]) => (
-                <div key={`payment-${currency}`} className="text-[9px] text-red-600 font-medium">
+                <div key={`payment-${currency}`} className="text-[10px] text-red-600 font-semibold">
                   -{formatCurrency(amount, currency)}
                 </div>
               ))}
               {Object.entries(depositsByCurrency).map(([currency, amount]) => (
-                <div key={`deposit-${currency}`} className="text-[9px] text-green-600 font-medium">
+                <div key={`deposit-${currency}`} className="text-[10px] text-green-600 font-semibold">
                   +{formatCurrency(amount, currency)}
                 </div>
               ))}
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 mt-1.5">
                 <TooltipProvider>
-                  {items.slice(0, 3).map((item, idx) => {
+                  {items.slice(0, 2).map((item, idx) => {
                     const paid = item.type !== 'deposit' && isPaid(item.type, item.id, currentMonth.getFullYear(), currentMonth.getMonth(), day);
                     return (
                       <Tooltip key={idx}>
                         <TooltipTrigger asChild>
-                          <div className={`text-[10px] truncate cursor-help ${paid ? 'text-emerald-700 line-through' : 'text-slate-600'}`}>
+                          <div className={`text-[11px] truncate cursor-help px-1.5 py-0.5 rounded ${paid ? 'bg-emerald-100 text-emerald-700 line-through' : 'bg-slate-100 text-slate-700'}`}>
                             {paid && '✓ '}{item.name}
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="font-medium">{item.name}</p>
-                          <p className={item.type === 'deposit' ? 'text-green-600' : 'text-red-600'}>
+                        <TooltipContent className="max-w-xs">
+                          <p className="font-semibold text-sm">{item.name}</p>
+                          <p className={`text-sm font-medium ${item.type === 'deposit' ? 'text-green-600' : 'text-red-600'}`}>
                             {item.type === 'deposit' ? '+' : '-'}{formatCurrency(item.amount, item.currency)}
                           </p>
-                          {paid && <p className="text-xs text-emerald-600 mt-1">✓ Paid</p>}
+                          {item.accountName && (
+                            <p className="text-xs text-slate-500 mt-1">{item.accountName}</p>
+                          )}
+                          {paid && <p className="text-xs text-emerald-600 mt-1 font-medium">✓ Paid</p>}
                         </TooltipContent>
                       </Tooltip>
                     );
                   })}
                 </TooltipProvider>
-                {items.length > 3 && (
-                  <div className="text-[10px] text-slate-400">+{items.length - 3} more</div>
+                {items.length > 2 && (
+                  <div className="text-[10px] text-slate-500 font-medium mt-1">+{items.length - 2} more</div>
                 )}
               </div>
             </div>
@@ -459,85 +462,143 @@ export default function PaymentCalendar() {
     }
 
     return (
-      <div className="space-y-3">
-        {allItems.map(({ day, month, year, items }, index) => (
-          <Card key={`${year}-${month}-${day}`}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">
-                {monthNames[month]} {day}{listPeriod === 'year' && `, ${year}`}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {items.map((item, idx) => {
-                const key = `${year}-${month}-${day}-${item.type}-${item.id}`;
-                const isExpanded = expandedItems[key];
-                const paidStatus = item.type !== 'deposit' ? isPaid(item.type, item.id, year, month, day) : null;
-                const paid = !!paidStatus;
+      <div className="space-y-2">
+        {allItems.map(({ day, month, year, items }, index) => {
+          const dayKey = `${year}-${month}-${day}`;
+          const isDayExpanded = expandedItems[dayKey];
+          
+          // Calculate totals for the day
+          const paymentsByCurrency = items.filter(i => i.type !== 'deposit').reduce((acc, i) => {
+            const curr = i.currency || 'USD';
+            acc[curr] = (acc[curr] || 0) + i.amount;
+            return acc;
+          }, {});
+          
+          const depositsByCurrency = items.filter(i => i.type === 'deposit').reduce((acc, i) => {
+            const curr = i.currency || 'USD';
+            acc[curr] = (acc[curr] || 0) + i.amount;
+            return acc;
+          }, {});
 
-                return (
-                  <Collapsible key={idx} open={isExpanded} onOpenChange={() => toggleExpanded(key)}>
-                    <CollapsibleTrigger className="w-full">
-                      <div className={`flex items-center justify-between p-3 rounded-lg hover:bg-slate-100 cursor-pointer ${paid ? 'bg-emerald-50' : 'bg-slate-50'}`}>
-                        <div className="flex items-center gap-2 flex-1">
-                          {item.type !== 'deposit' && (
-                            <Checkbox
-                              checked={paid}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setPaymentDialog({ item, year, month, day });
-                                  setSelectedAccountId(item.accountId || '');
-                                } else if (paidStatus) {
-                                  unmarkAsPaidMutation.mutate({ statusId: paidStatus.id });
-                                }
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                          )}
-                          <span className="text-lg">
-                           {item.type === 'deposit' ? DEPOSIT_CATEGORY_ICONS[item.category] : 
-                            item.type === 'bill' ? BILL_CATEGORY_ICONS[item.category] : 
-                            item.type === 'transfer' ? '🔄' : '💳'}
-                          </span>
-                          <div className="text-left">
-                            <p className={`font-medium text-sm ${paid ? 'line-through text-emerald-700' : ''}`}>
-                              {paid && '✓ '}{item.name}
-                            </p>
-                            <Badge variant="outline" className="text-xs">
-                              {item.type === 'deposit' ? 'Deposit' :
-                               item.type === 'bill' ? 'Bill' :
-                               item.type === 'transfer' ? 'Transfer' :
-                               item.type === 'card_payment' ? 'Card Payment' : 'Loan Payment'}
-                            </Badge>
+          return (
+            <Collapsible key={dayKey} open={isDayExpanded} onOpenChange={() => toggleExpanded(dayKey)}>
+              <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+                <CollapsibleTrigger className="w-full">
+                  <div className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="text-left">
+                        <div className="font-semibold text-base text-slate-900">
+                          {monthNames[month]} {day}{listPeriod === 'year' && `, ${year}`}
+                        </div>
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          {items.length} {items.length === 1 ? 'item' : 'items'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right space-y-0.5">
+                        {Object.entries(paymentsByCurrency).map(([currency, amount]) => (
+                          <div key={`pay-${currency}`} className="text-sm font-semibold text-red-600">
+                            -{formatCurrency(amount, currency)}
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`font-semibold ${item.type === 'deposit' ? 'text-green-600' : paid ? 'text-emerald-600' : 'text-red-600'}`}>
-                            {item.type === 'deposit' ? '+' : '-'}{formatCurrency(item.amount, item.currency)}
-                          </span>
-                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        </div>
+                        ))}
+                        {Object.entries(depositsByCurrency).map(([currency, amount]) => (
+                          <div key={`dep-${currency}`} className="text-sm font-semibold text-green-600">
+                            +{formatCurrency(amount, currency)}
+                          </div>
+                        ))}
                       </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="pl-12 pr-3 py-2 text-sm text-slate-600">
-                        {item.type === 'transfer' ? (
-                          <p><strong>From:</strong> {item.fromAccountName} <strong>To:</strong> {item.toAccountName}</p>
-                        ) : (
-                          <p><strong>Account:</strong> {item.accountName || 'Not specified'}</p>
-                        )}
-                        {item.type === 'card_payment' && <p className="text-xs text-slate-500 mt-1">Projected payment</p>}
-                        {item.type === 'loan_payment' && <p className="text-xs text-slate-500 mt-1">Projected payment</p>}
-                        {paid && paidStatus && (
-                          <p className="text-xs text-emerald-600 mt-1">✓ Paid on {paidStatus.paid_date}</p>
-                        )}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                );
-              })}
-            </CardContent>
-          </Card>
-        ))}
+                      {isDayExpanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                    </div>
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="border-t border-slate-200 bg-slate-50 divide-y divide-slate-200">
+                    {items.map((item, idx) => {
+                      const itemKey = `${dayKey}-${item.type}-${item.id}`;
+                      const isItemExpanded = expandedItems[itemKey];
+                      const paidStatus = item.type !== 'deposit' ? isPaid(item.type, item.id, year, month, day) : null;
+                      const paid = !!paidStatus;
+
+                      return (
+                        <Collapsible key={idx} open={isItemExpanded} onOpenChange={() => toggleExpanded(itemKey)}>
+                          <div className={`${paid ? 'bg-emerald-50/50' : 'bg-white'}`}>
+                            <CollapsibleTrigger className="w-full">
+                              <div className="flex items-center justify-between p-3 hover:bg-slate-100/50 transition-colors">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                  {item.type !== 'deposit' && (
+                                    <Checkbox
+                                      checked={paid}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setPaymentDialog({ item, year, month, day });
+                                          setSelectedAccountId(item.accountId || '');
+                                        } else if (paidStatus) {
+                                          unmarkAsPaidMutation.mutate({ statusId: paidStatus.id });
+                                        }
+                                      }}
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                  )}
+                                  <span className="text-xl flex-shrink-0">
+                                   {item.type === 'deposit' ? DEPOSIT_CATEGORY_ICONS[item.category] : 
+                                    item.type === 'bill' ? BILL_CATEGORY_ICONS[item.category] : 
+                                    item.type === 'transfer' ? '🔄' : '💳'}
+                                  </span>
+                                  <div className="text-left min-w-0 flex-1">
+                                    <p className={`font-medium text-sm truncate ${paid ? 'line-through text-emerald-700' : 'text-slate-900'}`}>
+                                      {paid && '✓ '}{item.name}
+                                    </p>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                        {item.type === 'deposit' ? 'Deposit' :
+                                         item.type === 'bill' ? 'Bill' :
+                                         item.type === 'transfer' ? 'Transfer' :
+                                         item.type === 'card_payment' ? 'Card' : 'Loan'}
+                                      </Badge>
+                                      {item.accountName && (
+                                        <span className="text-xs text-slate-500 truncate">
+                                          {item.accountName}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                                  <span className={`font-semibold text-sm ${item.type === 'deposit' ? 'text-green-600' : paid ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    {item.type === 'deposit' ? '+' : '-'}{formatCurrency(item.amount, item.currency)}
+                                  </span>
+                                  {isItemExpanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                                </div>
+                              </div>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <div className="px-3 pb-3 pl-14 text-xs space-y-1.5 text-slate-600">
+                                {item.type === 'transfer' ? (
+                                  <>
+                                    <div><span className="font-medium">From:</span> {item.fromAccountName}</div>
+                                    <div><span className="font-medium">To:</span> {item.toAccountName}</div>
+                                  </>
+                                ) : (
+                                  <div><span className="font-medium">Account:</span> {item.accountName || 'Not specified'}</div>
+                                )}
+                                {item.type === 'card_payment' && <div className="text-slate-500">Projected payment</div>}
+                                {item.type === 'loan_payment' && <div className="text-slate-500">Projected payment</div>}
+                                {paid && paidStatus && (
+                                  <div className="text-emerald-600 font-medium">✓ Paid on {paidStatus.paid_date}</div>
+                                )}
+                              </div>
+                            </CollapsibleContent>
+                          </div>
+                        </Collapsible>
+                      );
+                    })}
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+          );
+        })}
       </div>
     );
   };

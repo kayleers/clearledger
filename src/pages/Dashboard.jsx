@@ -19,6 +19,7 @@ import RecurringBillList from '@/components/bills/RecurringBillList';
 import MortgageLoanList from '@/components/mortgages/MortgageLoanList';
 import BankTransferList from '@/components/transfers/BankTransferList';
 import RecurringDepositList from '@/components/deposits/RecurringDepositList';
+import CurrencyConversionList from '@/components/conversions/CurrencyConversionList';
 import PaymentCalendar from '@/components/calendar/PaymentCalendar';
 import QuickAddMenu from '@/components/quickadd/QuickAddMenu';
 import MultiPaymentSimulator from '@/components/simulator/MultiPaymentSimulator';
@@ -243,6 +244,16 @@ export default function Dashboard() {
               newOrder.splice(depositsIndex + 1, 0, 'transfers');
             } else {
               newOrder.push('transfers');
+            }
+            updated = true;
+          }
+
+          if (!newOrder.includes('conversions')) {
+            const transfersIndex = newOrder.indexOf('transfers');
+            if (transfersIndex >= 0) {
+              newOrder.splice(transfersIndex + 1, 0, 'conversions');
+            } else {
+              newOrder.push('conversions');
             }
             updated = true;
           }
@@ -692,6 +703,7 @@ export default function Dashboard() {
                             {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} creditCards={cards} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'deposits' && <RecurringDepositList deposits={recurringDeposits} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'transfers' && <BankTransferList transfers={bankTransfers} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
+                            {section === 'conversions' && <CurrencyConversionList dragHandleProps={provided.dragHandleProps} />}
                             {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} creditCards={cards} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'pricing' && (
                               <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">

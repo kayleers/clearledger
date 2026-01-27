@@ -208,8 +208,15 @@ export default function PaymentCalendar() {
     // Credit card payments
     cards.forEach(card => {
       if (card.due_date === day) {
-        const projectedPayment = card.projected_monthly_payment || card.min_payment || 0;
-        const paymentAmount = Math.min(projectedPayment, card.balance);
+        let paymentAmount;
+        if (card.pay_full_balance_monthly && card.balance > 0) {
+          // Pay full balance when option is enabled and balance exists
+          paymentAmount = card.balance;
+        } else {
+          // Otherwise use projected or minimum payment
+          const projectedPayment = card.projected_monthly_payment || card.min_payment || 0;
+          paymentAmount = Math.min(projectedPayment, card.balance);
+        }
         items.push({
           type: 'card_payment',
           id: card.id,
@@ -217,7 +224,8 @@ export default function PaymentCalendar() {
           amount: paymentAmount,
           currency: card.currency,
           accountId: card.bank_account_id,
-          accountName: getBankAccountName(card.bank_account_id)
+          accountName: getBankAccountName(card.bank_account_id),
+          isFullBalance: card.pay_full_balance_monthly && card.balance > 0
         });
       }
     });
@@ -582,7 +590,11 @@ export default function PaymentCalendar() {
                                 ) : (
                                   <div><span className="font-medium">Account:</span> {item.accountName || 'Not specified'}</div>
                                 )}
-                                {item.type === 'card_payment' && <div className="text-slate-500">Projected payment</div>}
+                                {item.type === 'card_payment' && (
+                                  <div className="text-slate-500">
+                                    {item.isFullBalance ? 'Full balance payment' : 'Projected payment'}
+                                  </div>
+                                )}
                                 {item.type === 'loan_payment' && <div className="text-slate-500">Projected payment</div>}
                                 {paid && paidStatus && (
                                   <div className="text-emerald-600 font-medium">✓ Paid on {paidStatus.paid_date}</div>

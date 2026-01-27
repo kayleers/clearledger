@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { TrendingUp, Plus, Edit2, Trash2, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingUp, Plus, Edit2, Trash2, GripVertical, ChevronDown, ChevronUp, Download } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { formatCurrency } from '@/components/utils/calculations';
@@ -179,14 +179,39 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
                 )}
               </CollapsibleTrigger>
             </div>
-            <Button
-              size="sm"
-              onClick={() => setShowAddDeposit(true)}
-              className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Add Deposit
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    const response = await base44.functions.invoke('exportRecurringDeposits', {});
+                    const blob = new Blob([response.data], { type: 'application/pdf' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Recurring_Deposits_${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                  } catch (error) {
+                    console.error('Export failed:', error);
+                  }
+                }}
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Export
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setShowAddDeposit(true)}
+                className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add Deposit
+              </Button>
+            </div>
           </div>
           
           {isExpanded && deposits.length > 0 && (

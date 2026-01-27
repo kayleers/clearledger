@@ -176,6 +176,120 @@ export default function BankAccountDetail() {
   const totalWithdrawals = Math.abs(deposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
   const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
 
+  // Calculate monthly projections by currency
+  const calculateMonthlyProjections = () => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    const projectionsByCurrency = {};
+
+    // Helper to initialize currency if not exists
+    const initCurrency = (currency) => {
+      if (!projectionsByCurrency[currency]) {
+        projectionsByCurrency[currency] = {
+          income: 0,
+          outgoing: 0,
+          toSavings: 0
+        };
+      }
+    };
+
+    // Get all accounts for this currency and type
+    const accountsInSameCurrency = allBankAccounts.filter(acc => acc.currency === account.currency);
+    const checkingAccounts = accountsInSameCurrency.filter(acc => acc.account_type === 'checking');
+    const savingsAccounts = accountsInSameCurrency.filter(acc => acc.account_type === 'savings');
+    
+    initCurrency(account.currency);
+
+    // Calculate recurring deposits (income) for checking accounts only
+    checkingAccounts.forEach(acc => {
+      const depositsForAccount = recurringDeposits.filter(d => d.bank_account_id === acc.id);
+      depositsForAccount.forEach(deposit => {
+        if (deposit.frequency === 'monthly' || deposit.frequency === 'bi_weekly' || deposit.frequency === 'weekly') {
+          const amount = deposit.amount || 0;
+          if (deposit.frequency === 'weekly') {
+            projectionsByCurrency[account.currency].income += amount * 4;
+          } else if (deposit.frequency === 'bi_weekly') {
+            projectionsByCurrency[account.currency].income += amount * 2;
+          } else {
+            projectionsByCurrency[account.currency].income += amount;
+          }
+        }
+      });
+    });
+
+    // Calculate outgoing (bills, withdrawals, card payments, loan payments)
+    checkingAccounts.forEach(acc => {
+      // Bills
+      const billsForAccount = recurringBills.filter(b => b.bank_account_id === acc.id);
+      billsForAccount.forEach(bill => {
+        if (bill.frequency === 'monthly' || bill.frequency === 'weekly') {
+          const amount = bill.amount || 0;
+          if (bill.frequency === 'weekly') {
+            projectionsByCurrency[account.currency].outgoing += amount * 4;
+          } else {
+            projectionsByCurrency[account.currency].outgoing += amount;
+          }
+        }
+      });
+
+      // Recurring withdrawals
+      const withdrawalsForAccount = recurringWithdrawals.filter(w => w.bank_account_id === acc.id);
+      withdrawalsForAccount.forEach(withdrawal => {
+        if (withdrawal.frequency === 'monthly' || withdrawal.frequency === 'weekly' || withdrawal.frequency === 'bi_weekly') {
+          const amount = withdrawal.amount || 0;
+          if (withdrawal.frequency === 'weekly') {
+            projectionsByCurrency[account.currency].outgoing += amount * 4;
+          } else if (withdrawal.frequency === 'bi_weekly') {
+            projectionsByCurrency[account.currency].outgoing += amount * 2;
+          } else {
+            projectionsByCurrency[account.currency].outgoing += amount;
+          }
+        }
+      });
+
+      // Credit card autopay
+      const cardsForAccount = creditCards.filter(c => c.bank_account_id === acc.id);
+      cardsForAccount.forEach(card => {
+        const amount = card.autopay_amount_type === 'minimum' ? card.min_payment :
+                      card.autopay_amount_type === 'full_balance' ? card.balance :
+                      card.autopay_custom_amount || 0;
+        projectionsByCurrency[account.currency].outgoing += amount;
+      });
+
+      // Loan payments
+      const loansForAccount = loans.filter(l => l.bank_account_id === acc.id);
+      loansForAccount.forEach(loan => {
+        projectionsByCurrency[account.currency].outgoing += loan.monthly_payment || 0;
+      });
+    });
+
+    // Calculate transfers to savings
+    bankTransfers.forEach(transfer => {
+      const fromAccount = allBankAccounts.find(a => a.id === transfer.from_account_id);
+      const toAccount = allBankAccounts.find(a => a.id === transfer.to_account_id);
+      
+      if (fromAccount && toAccount && fromAccount.currency === account.currency) {
+        // Only count transfers from checking to savings
+        if (fromAccount.account_type === 'checking' && toAccount.account_type === 'savings') {
+          if (transfer.frequency === 'monthly' || transfer.frequency === 'weekly') {
+            const amount = transfer.amount || 0;
+            if (transfer.frequency === 'weekly') {
+              projectionsByCurrency[account.currency].toSavings += amount * 4;
+            } else {
+              projectionsByCurrency[account.currency].toSavings += amount;
+            }
+          }
+        }
+      }
+    });
+
+    return projectionsByCurrency;
+  };
+
+  const monthlyProjections = calculateMonthlyProjections();
+
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <div className="max-w-lg mx-auto p-6">

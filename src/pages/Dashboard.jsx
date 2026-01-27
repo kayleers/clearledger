@@ -400,6 +400,33 @@ export default function Dashboard() {
     }
   });
 
+  const updateBankBalanceMutation = useMutation({
+    mutationFn: async ({ amount, targetId }) => {
+      await base44.entities.BankAccount.update(targetId, {
+        balance: parseFloat(amount),
+        last_balance_override: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
+      setShowQuickAdd(false);
+    }
+  });
+
+  const updateCardBalanceMutation = useMutation({
+    mutationFn: async ({ amount, targetId }) => {
+      await base44.entities.CreditCard.update(targetId, {
+        balance: parseFloat(amount),
+        last_balance_override: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card'] });
+      setShowQuickAdd(false);
+    }
+  });
+
   const handleQuickAdd = () => {
     if (cards.length === 1) {
       setQuickAddCardId(cards[0].id);
@@ -722,9 +749,12 @@ export default function Dashboard() {
                   onCardPayment={(data) => createCardPaymentMutation.mutate(data)}
                   onBillPayment={(data) => createBillPaymentMutation.mutate(data)}
                   onLoanPayment={(data) => createLoanPaymentMutation.mutate(data)}
+                  onBankBalanceUpdate={(data) => updateBankBalanceMutation.mutate(data)}
+                  onCardBalanceUpdate={(data) => updateCardBalanceMutation.mutate(data)}
                   isLoading={createPurchaseMutation.isPending || createBankDepositMutation.isPending ||
                              createBankPaymentMutation.isPending || createCardPaymentMutation.isPending || 
-                             createBillPaymentMutation.isPending || createLoanPaymentMutation.isPending}
+                             createBillPaymentMutation.isPending || createLoanPaymentMutation.isPending ||
+                             updateBankBalanceMutation.isPending || updateCardBalanceMutation.isPending}
                 />
                 </div>
               </DialogContent>

@@ -139,7 +139,7 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
                   placeholder="0.00"
                   value={formData.credit_limit}
                   onChange={(e) => updateField('credit_limit', e.target.value)}
-                  required
+                  required={formData.is_active}
                   className="pl-7 h-12"
                 />
               </div>

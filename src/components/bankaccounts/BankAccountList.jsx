@@ -353,7 +353,7 @@ function BankAccountForm({ account, onSubmit, isLoading }) {
           step="0.01"
           placeholder="0.00"
           value={formData.balance}
-          onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
+          onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
         />
       </div>
       <div className="space-y-2">

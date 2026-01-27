@@ -120,7 +120,6 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
                   id="balance"
                   type="number"
                   step="0.01"
-                  min="0"
                   placeholder="0.00"
                   value={formData.balance}
                   onChange={(e) => updateField('balance', e.target.value)}
@@ -137,7 +136,6 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
                   id="credit_limit"
                   type="number"
                   step="0.01"
-                  min="0"
                   placeholder="0.00"
                   value={formData.credit_limit}
                   onChange={(e) => updateField('credit_limit', e.target.value)}

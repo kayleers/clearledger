@@ -43,10 +43,22 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], credi
   const accessControl = useAccessControl();
 
   const createBillMutation = useMutation({
-    mutationFn: (data) => base44.entities.RecurringBill.create(data),
+    mutationFn: async (data) => {
+      // Check limit one more time before creating
+      if (!accessControl.canAddRecurringBill(bills.length)) {
+        throw new Error('Recurring bill limit reached');
+      }
+      return await base44.entities.RecurringBill.create(data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-bills'] });
       setShowAddBill(false);
+    },
+    onError: (error) => {
+      if (error.message === 'Recurring bill limit reached') {
+        setShowUpgradeDialog(true);
+        setShowAddBill(false);
+      }
     }
   });
 

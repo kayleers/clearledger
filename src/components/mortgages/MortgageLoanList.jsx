@@ -45,10 +45,22 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
   const accessControl = useAccessControl();
 
   const createLoanMutation = useMutation({
-    mutationFn: (data) => base44.entities.MortgageLoan.create(data),
+    mutationFn: async (data) => {
+      // Check limit one more time before creating
+      if (!accessControl.canAddLoan(loans.length)) {
+        throw new Error('Loan limit reached');
+      }
+      return await base44.entities.MortgageLoan.create(data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mortgage-loans'] });
       setShowAddLoan(false);
+    },
+    onError: (error) => {
+      if (error.message === 'Loan limit reached') {
+        setShowUpgradeDialog(true);
+        setShowAddLoan(false);
+      }
     }
   });
 

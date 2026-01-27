@@ -38,10 +38,22 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
   };
 
   const createAccountMutation = useMutation({
-    mutationFn: (data) => base44.entities.BankAccount.create(data),
+    mutationFn: async (data) => {
+      // Check limit one more time before creating
+      if (!accessControl.canAddBankAccount(bankAccounts.length)) {
+        throw new Error('Bank account limit reached');
+      }
+      return await base44.entities.BankAccount.create(data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
       setShowAddAccount(false);
+    },
+    onError: (error) => {
+      if (error.message === 'Bank account limit reached') {
+        setShowUpgradeDialog(true);
+        setShowAddAccount(false);
+      }
     }
   });
 

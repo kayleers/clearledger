@@ -140,6 +140,12 @@ export default function CreditCardItem({ card, isDragging, onEdit, onDelete }) {
 
           {/* Payment Info */}
           <div className="pt-2 space-y-1.5">
+            {card.statement_date && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                <Calendar className="w-3 h-3" />
+                <span>Statement: {card.statement_date}{getOrdinalSuffix(card.statement_date)} of month</span>
+              </div>
+            )}
             {card.due_date && (
               <div className="flex items-center gap-1.5 text-xs text-slate-600">
                 <Calendar className="w-3 h-3" />

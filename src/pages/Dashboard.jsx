@@ -12,6 +12,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import TotalDebtCard from '@/components/dashboard/TotalDebtCard';
+import MonthlyProjections from '@/components/dashboard/MonthlyProjections';
 import CreditCardItem from '@/components/cards/CreditCardItem';
 import AddCardForm from '@/components/cards/AddCardForm';
 import BankAccountList from '@/components/bankaccounts/BankAccountList';
@@ -28,7 +29,7 @@ import SyncManager from '@/components/sync/SyncManager';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'deposits', 'transfers', 'loans', 'pricing', 'privacy']);
+  const [sectionOrder, setSectionOrder] = useState(['summary', 'projections', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'deposits', 'transfers', 'loans', 'pricing', 'privacy']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(false);
@@ -146,15 +147,15 @@ export default function Dashboard() {
     
     // Handle section reordering
     if (result.type === 'section') {
-      // Get only the draggable sections (excluding 'summary')
-      const draggableSections = sectionOrder.filter(s => s !== 'summary');
+      // Get only the draggable sections (excluding 'summary' and 'projections')
+      const draggableSections = sectionOrder.filter(s => s !== 'summary' && s !== 'projections');
       
       // Reorder the draggable sections
       const [reorderedItem] = draggableSections.splice(result.source.index, 1);
       draggableSections.splice(result.destination.index, 0, reorderedItem);
 
-      // Reconstruct the full order with 'summary' always first
-      const newOrder = ['summary', ...draggableSections];
+      // Reconstruct the full order with 'summary' and 'projections' always first
+      const newOrder = ['summary', 'projections', ...draggableSections];
 
       setSectionOrder(newOrder);
       reorderSectionsMutation.mutate(newOrder);
@@ -180,9 +181,20 @@ export default function Dashboard() {
             updated = true;
           }
 
-          if (!newOrder.includes('cards')) {
+          if (!newOrder.includes('projections')) {
             const summaryIndex = newOrder.indexOf('summary');
-            newOrder.splice(summaryIndex + 1, 0, 'cards');
+            newOrder.splice(summaryIndex + 1, 0, 'projections');
+            updated = true;
+          }
+
+          if (!newOrder.includes('cards')) {
+            const projectionsIndex = newOrder.indexOf('projections');
+            if (projectionsIndex >= 0) {
+              newOrder.splice(projectionsIndex + 1, 0, 'cards');
+            } else {
+              const summaryIndex = newOrder.indexOf('summary');
+              newOrder.splice(summaryIndex + 1, 0, 'cards');
+            }
             updated = true;
           }
 
@@ -483,6 +495,16 @@ export default function Dashboard() {
               />
             </div>
 
+            {/* Monthly Projections - Always Second */}
+            <div className="mb-6">
+              <MonthlyProjections 
+                cards={cards}
+                bankAccounts={bankAccounts}
+                recurringBills={recurringBills}
+                mortgageLoans={mortgageLoans}
+              />
+            </div>
+
             {/* Empty State Message */}
             {cards.length === 0 && bankAccounts.length === 0 && recurringBills.length === 0 && mortgageLoans.length === 0 && (
               <div className="mb-6 text-center py-8 bg-white/10 rounded-lg border border-white/20">
@@ -497,7 +519,7 @@ export default function Dashboard() {
               <Droppable droppableId="sections" type="section">
                 {(provided) => (
                   <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {sectionOrder.filter(s => s !== 'summary').map((section, index) => (
+                    {sectionOrder.filter(s => s !== 'summary' && s !== 'projections').map((section, index) => (
                       <Draggable key={section} draggableId={section} index={index} type="section">
                         {(provided, snapshot) => (
                           <div

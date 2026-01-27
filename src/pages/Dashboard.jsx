@@ -90,10 +90,25 @@ export default function Dashboard() {
   });
 
   const createCardMutation = useMutation({
-    mutationFn: (cardData) => base44.entities.CreditCard.create(cardData),
+    mutationFn: async (cardData) => {
+      // Check limit one more time before creating
+      if (!accessControl.canAddCreditCard(cards.length)) {
+        throw new Error('Credit card limit reached');
+      }
+      return await base44.entities.CreditCard.create(cardData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       setShowAddCard(false);
+      setEditingCard(null);
+    },
+    onError: (error) => {
+      if (error.message === 'Credit card limit reached') {
+        setUpgradeContext('creditCards');
+        setShowUpgradeDialog(true);
+        setShowAddCard(false);
+        setEditingCard(null);
+      }
     }
   });
 

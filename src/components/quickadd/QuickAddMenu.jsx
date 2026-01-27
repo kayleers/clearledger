@@ -16,7 +16,9 @@ const TRANSACTION_TYPES = [
   { id: 'bank_payment', label: 'Bank Account Withdraw/Purchase', icon: Building2, color: 'emerald' },
   { id: 'card_payment', label: 'Credit Card Payment', icon: CreditCard, color: 'blue' },
   { id: 'bill_payment', label: 'Bill Payment', icon: Receipt, color: 'amber' },
-  { id: 'loan_payment', label: 'Loan Payment', icon: Landmark, color: 'orange' }
+  { id: 'loan_payment', label: 'Loan Payment', icon: Landmark, color: 'orange' },
+  { id: 'bank_balance_update', label: 'Update Bank Account Balance', icon: TrendingUp, color: 'teal' },
+  { id: 'card_balance_update', label: 'Update Credit Card Balance', icon: TrendingUp, color: 'violet' }
 ];
 
 export default function QuickAddMenu({ 
@@ -30,6 +32,8 @@ export default function QuickAddMenu({
   onCardPayment,
   onBillPayment,
   onLoanPayment,
+  onBankBalanceUpdate,
+  onCardBalanceUpdate,
   isLoading
 }) {
   const [selectedType, setSelectedType] = useState(null);
@@ -106,6 +110,12 @@ export default function QuickAddMenu({
     } else if (selectedType === 'loan_payment') {
       targets = loans;
       title = 'Select loan to pay:';
+    } else if (selectedType === 'bank_balance_update') {
+      targets = bankAccounts;
+      title = 'Select bank account to update:';
+    } else if (selectedType === 'card_balance_update') {
+      targets = cards;
+      title = 'Select credit card to update:';
     }
 
     return (
@@ -124,6 +134,8 @@ export default function QuickAddMenu({
             {selectedType === 'card_payment' && <CreditCard className="w-4 h-4 mr-2" />}
             {selectedType === 'bill_payment' && <Receipt className="w-4 h-4 mr-2" />}
             {selectedType === 'loan_payment' && <Landmark className="w-4 h-4 mr-2" />}
+            {selectedType === 'bank_balance_update' && <TrendingUp className="w-4 h-4 mr-2" />}
+            {selectedType === 'card_balance_update' && <TrendingUp className="w-4 h-4 mr-2" />}
             <div className="flex-1 text-left">
               <div className="font-medium">{target.name}</div>
               {target.balance && (
@@ -168,6 +180,8 @@ export default function QuickAddMenu({
             else if (selectedType === 'card_payment') onCardPayment(data);
             else if (selectedType === 'bill_payment') onBillPayment(data);
             else if (selectedType === 'loan_payment') onLoanPayment(data);
+            else if (selectedType === 'bank_balance_update') onBankBalanceUpdate(data);
+            else if (selectedType === 'card_balance_update') onCardBalanceUpdate(data);
           }}
           onCancel={handleReset}
           isLoading={isLoading}
@@ -250,6 +264,8 @@ function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading, bankAcc
     if (type === 'card_payment') return 'Card Payment';
     if (type === 'bill_payment') return 'Bill Payment';
     if (type === 'loan_payment') return 'Loan Payment';
+    if (type === 'bank_balance_update') return 'Update Balance';
+    if (type === 'card_balance_update') return 'Update Balance';
     return 'Payment';
   };
 
@@ -278,7 +294,19 @@ function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading, bankAcc
     <Card>
       <CardContent className="p-4">
         <h3 className="font-semibold mb-1">{target.name}</h3>
-        <p className="text-sm text-slate-500 mb-4">{getTitle()}</p>
+        <p className="text-sm text-slate-500 mb-1">{getTitle()}</p>
+        {(type === 'bank_balance_update' || type === 'card_balance_update') && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-xs text-slate-600">
+              Current Balance: <span className="font-semibold">{formatCurrency(target.balance, target.currency)}</span>
+            </p>
+            {target.last_balance_override && (
+              <p className="text-xs text-slate-500 mt-1">
+                Last updated: {new Date(target.last_balance_override).toLocaleString()}
+              </p>
+            )}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
           {type === 'bank_deposit' && (
@@ -318,6 +346,15 @@ function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading, bankAcc
                 </div>
               </div>
             </>
+          )}
+
+          {(type === 'bank_balance_update' || type === 'card_balance_update') && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-xs text-yellow-800 font-medium mb-1">⚠️ Balance Override</p>
+              <p className="text-xs text-yellow-700">
+                This will replace the current balance with your new value. Transaction history remains unchanged.
+              </p>
+            </div>
           )}
 
           {type === 'bank_deposit' && formData.is_recurring && formData.amount_type === 'variable' ? (
@@ -514,7 +551,10 @@ function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading, bankAcc
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? 'Adding...' : type === 'bank_deposit' ? 'Add Deposit' : 'Add Payment'}
+              {isLoading ? 'Updating...' : 
+                type === 'bank_balance_update' ? 'Update Balance' :
+                type === 'card_balance_update' ? 'Update Balance' :
+                type === 'bank_deposit' ? 'Add Deposit' : 'Add Payment'}
             </Button>
           </div>
         </form>

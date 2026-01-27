@@ -163,10 +163,10 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
                 <div>
                   <h2 className="text-xl font-bold text-emerald-400">Recurring Bank Transfers</h2>
                   {totalsByCurrency && Object.keys(totalsByCurrency).length > 0 && (
-                    <div className="flex gap-2 mt-1">
+                    <div className="flex flex-wrap gap-2 mt-1">
                       {Object.entries(totalsByCurrency).map(([curr, total]) => (
-                        <span key={curr} className="text-xs text-slate-400">
-                          {formatCurrency(total, curr)}
+                        <span key={curr} className="text-xs text-slate-400 font-medium">
+                          {curr}: {formatCurrency(total, curr)}
                         </span>
                       ))}
                     </div>

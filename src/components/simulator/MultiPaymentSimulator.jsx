@@ -834,6 +834,18 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
           }
 
 function CardFixedInput({ card, payment, onPaymentChange }) {
+  // Calculate additional payment scenario if enabled
+  const hasAdditionalPayment = card.additional_payment_enabled && card.additional_payment_amount;
+  const minPlusAdditional = hasAdditionalPayment ? card.min_payment + card.additional_payment_amount : null;
+  const minPlusAdditionalScenario = minPlusAdditional ? calculatePayoffTimeline(card.balance, card.apr, minPlusAdditional) : null;
+  
+  // Calculate 3-year payoff
+  const threeYearPayment = calculateRequiredPayment(card.balance, card.apr, 36);
+  const threeYearScenario = calculatePayoffTimeline(card.balance, card.apr, threeYearPayment);
+  
+  // Calculate minimum payment only
+  const minOnlyScenario = calculatePayoffTimeline(card.balance, card.apr, card.min_payment);
+
   return (
     <div className="bg-white rounded-lg p-3 border border-slate-200">
       <div className="mb-2">
@@ -864,12 +876,44 @@ function CardFixedInput({ card, payment, onPaymentChange }) {
             Min
           </Button>
         </div>
+        
+        {/* Payoff Rate Estimates */}
+        <div className="mt-3 pt-3 border-t space-y-2">
+          <p className="text-xs font-medium text-slate-600">Payoff Rate Estimates:</p>
+          
+          {/* Minimum Payment Only */}
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-slate-500">Min Only ({formatCurrency(card.min_payment, card.currency)}):</span>
+            <span className="font-medium text-slate-700">{formatMonthsToYears(minOnlyScenario.months)}</span>
+          </div>
+          
+          {/* Min + Additional Payment (if enabled) */}
+          {hasAdditionalPayment && minPlusAdditionalScenario && (
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-slate-500">Min + Additional ({formatCurrency(minPlusAdditional, card.currency)}):</span>
+              <span className="font-medium text-blue-700">{formatMonthsToYears(minPlusAdditionalScenario.months)}</span>
+            </div>
+          )}
+          
+          {/* 3-Year Payoff */}
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-slate-500">3-Year Payoff ({formatCurrency(threeYearPayment, card.currency)}):</span>
+            <span className="font-medium text-emerald-700">3 years</span>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
 function LoanFixedInput({ loan, payment, onPaymentChange }) {
+  // Calculate 3-year payoff
+  const threeYearPayment = calculateRequiredPayment(loan.current_balance, loan.interest_rate, 36);
+  const threeYearScenario = calculatePayoffTimeline(loan.current_balance, loan.interest_rate, threeYearPayment);
+  
+  // Calculate regular payment only
+  const regularOnlyScenario = calculatePayoffTimeline(loan.current_balance, loan.interest_rate, loan.monthly_payment);
+
   return (
     <div className="bg-white rounded-lg p-3 border border-slate-200">
       <div className="mb-2">
@@ -899,6 +943,23 @@ function LoanFixedInput({ loan, payment, onPaymentChange }) {
           >
             Regular
           </Button>
+        </div>
+        
+        {/* Payoff Rate Estimates */}
+        <div className="mt-3 pt-3 border-t space-y-2">
+          <p className="text-xs font-medium text-slate-600">Payoff Rate Estimates:</p>
+          
+          {/* Regular Payment Only */}
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-slate-500">Regular Only ({formatCurrency(loan.monthly_payment, loan.currency)}):</span>
+            <span className="font-medium text-slate-700">{formatMonthsToYears(regularOnlyScenario.months)}</span>
+          </div>
+          
+          {/* 3-Year Payoff */}
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-slate-500">3-Year Payoff ({formatCurrency(threeYearPayment, loan.currency)}):</span>
+            <span className="font-medium text-emerald-700">3 years</span>
+          </div>
         </div>
       </div>
     </div>

@@ -342,7 +342,12 @@ export default function BankAccountDetail() {
                 const projectedLeftover = data.income - data.outgoing - data.toSavings;
                 const checkingBalance = allBankAccounts
                   .filter(acc => acc.currency === currency && acc.account_type === 'checking')
-                  .reduce((sum, acc) => sum + (acc.balance || 0), 0);
+                  .reduce((sum, acc) => {
+                    const accountDeposits = deposits.filter(d => d.bank_account_id === acc.id);
+                    const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
+                    const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
+                    return sum + ((acc.balance || 0) + totalDeposits - totalWithdrawals);
+                  }, 0);
                 const finalBalance = checkingBalance + projectedLeftover;
 
                 return (

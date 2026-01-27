@@ -385,6 +385,8 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
             <div className="px-4 pb-4 space-y-3">
               {Object.entries(monthlyProjections).map(([currency, data]) => {
                 const projectedLeftover = data.income - data.outgoing - data.toSavings;
+                
+                // Get checking balance using ongoing balance calculation
                 const checkingBalance = bankAccounts
                   .filter(acc => acc.currency === currency && acc.account_type === 'checking')
                   .reduce((sum, acc) => {
@@ -393,6 +395,7 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
                     const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
                     return sum + ((acc.balance || 0) + totalDeposits - totalWithdrawals);
                   }, 0);
+                
                 const finalBalance = checkingBalance + projectedLeftover;
 
                 return (

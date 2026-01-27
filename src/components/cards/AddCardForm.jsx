@@ -33,7 +33,8 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
     bank_account_id: card?.bank_account_id || '',
     additional_payment_enabled: card?.additional_payment_enabled || false,
     additional_payment_amount: card?.additional_payment_amount?.toString() || '',
-    additional_payment_bank_account_id: card?.additional_payment_bank_account_id || ''
+    additional_payment_bank_account_id: card?.additional_payment_bank_account_id || '',
+    pay_full_balance_monthly: card?.pay_full_balance_monthly || false
   });
 
   const handleSubmit = (e) => {
@@ -57,6 +58,8 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
     } else {
       submitData.additional_payment_enabled = false;
     }
+
+    submitData.pay_full_balance_monthly = formData.pay_full_balance_monthly;
 
     onSubmit(submitData);
   };
@@ -254,6 +257,21 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Pay Full Balance Monthly */}
+          <div className="space-y-3 p-4 border rounded-lg bg-emerald-50 border-emerald-200">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="pay_full_balance_monthly" className="text-emerald-900">Pay Full Balance Monthly</Label>
+                <p className="text-xs text-emerald-700">Automatically pay entire balance each month when present</p>
+              </div>
+              <Switch
+                id="pay_full_balance_monthly"
+                checked={formData.pay_full_balance_monthly}
+                onCheckedChange={(checked) => updateField('pay_full_balance_monthly', checked)}
+              />
+            </div>
           </div>
 
           {/* Additional Payment */}

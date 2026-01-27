@@ -55,9 +55,17 @@ export default function CreditCardItem({ card, isDragging, onEdit, onDelete }) {
                     </Badge>
                   )}
                 </div>
-                <p className="text-white/70 text-sm">
-                  {(card.apr * 100)}% APR
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-white/70 text-sm">
+                    {(card.apr * 100)}% APR
+                  </p>
+                  {card.card_last_four && (
+                    <>
+                      <span className="text-white/50 text-sm">•</span>
+                      <p className="text-white/70 text-sm">••••{card.card_last_four}</p>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">

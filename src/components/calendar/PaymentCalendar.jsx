@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List, Lock } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List, Lock, Download } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
@@ -646,16 +646,44 @@ export default function PaymentCalendar() {
             <Calendar className="w-5 h-5" />
             Payment Schedule
           </CardTitle>
-          <Tabs value={view} onValueChange={setView}>
-            <TabsList>
-              <TabsTrigger value="calendar">
-                <Calendar className="w-4 h-4" />
-              </TabsTrigger>
-              <TabsTrigger value="list">
-                <List className="w-4 h-4" />
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                try {
+                  const response = await base44.functions.invoke('exportPaymentCalendar', {
+                    month: currentMonth.getMonth(),
+                    year: currentMonth.getFullYear()
+                  });
+                  const blob = new Blob([response.data], { type: 'application/pdf' });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `Payment_Schedule_${currentMonth.toLocaleString('default', { month: 'long' })}_${currentMonth.getFullYear()}.pdf`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  a.remove();
+                } catch (error) {
+                  console.error('Export failed:', error);
+                }
+              }}
+            >
+              <Download className="w-4 h-4 mr-1" />
+              Export
+            </Button>
+            <Tabs value={view} onValueChange={setView}>
+              <TabsList>
+                <TabsTrigger value="calendar">
+                  <Calendar className="w-4 h-4" />
+                </TabsTrigger>
+                <TabsTrigger value="list">
+                  <List className="w-4 h-4" />
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
         <div className="flex items-center justify-between mt-4">
           <Button variant="outline" size="sm" onClick={() => navigateMonth(-1)} disabled={!canNavigate}>

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Home, Plus, Edit2, Trash2, TrendingDown, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { Home, Plus, Edit2, Trash2, TrendingDown, GripVertical, ChevronDown, ChevronUp, Download } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatCurrency } from '@/components/utils/calculations';
 import CurrencySelector from '@/components/currency/CurrencySelector';
@@ -198,6 +198,31 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
                     </div>
                   </div>
                   <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          try {
+                            const response = await base44.functions.invoke('exportLoan', { loanId: loan.id });
+                            const blob = new Blob([response.data], { type: 'application/pdf' });
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `Loan_${loan.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            a.remove();
+                          } catch (error) {
+                            console.error('Export failed:', error);
+                          }
+                        }}
+                        title="Export to PDF"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"

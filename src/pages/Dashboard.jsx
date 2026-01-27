@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
+import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Download } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -469,6 +469,24 @@ export default function Dashboard() {
     }
   };
 
+  const handleExportData = async () => {
+    try {
+      const response = await base44.functions.invoke('exportAllData', {});
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ClearLedger_Export_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export data. Please try again.');
+    }
+  };
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800">
@@ -476,15 +494,26 @@ export default function Dashboard() {
         {/* Header */}
         <header className="mb-6">
           <div className="flex items-start justify-between mb-3">
-            <div>
+            <div className="flex-1">
               <h1 className="text-3xl font-bold text-emerald-400 drop-shadow-lg">ClearLedger</h1>
               <p className="text-white">Private bill & balance tracking. Smarter payment planning.</p>
             </div>
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/7335a5ce2_WhatsAppImage2026-01-08at73945PM.jpeg" 
-              alt="ClearLedger Logo" 
-              className="w-16 h-16 rounded-xl shadow-lg object-cover scale-110"
-            />
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleExportData}
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Export
+              </Button>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/7335a5ce2_WhatsAppImage2026-01-08at73945PM.jpeg" 
+                alt="ClearLedger Logo" 
+                className="w-16 h-16 rounded-xl shadow-lg object-cover scale-110"
+              />
+            </div>
           </div>
           <SyncManager 
             cards={cards} 

@@ -57,7 +57,7 @@ export default function CreditCardItem({ card, isDragging, onEdit, onDelete }) {
                 </div>
                 <div className="flex items-center gap-2">
                   <p className="text-white/70 text-sm">
-                    {(card.apr * 100)}% APR
+                    {(card.apr * 100).toFixed(2)}% {card.apr_is_variable ? 'Variable ' : ''}APR
                   </p>
                   {card.card_last_four && (
                     <>

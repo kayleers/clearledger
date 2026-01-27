@@ -26,6 +26,7 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
     balance: card?.balance?.toString() || '',
     credit_limit: card?.credit_limit?.toString() || '',
     apr: card?.apr ? (card.apr * 100).toString() : '',
+    apr_is_variable: card?.apr_is_variable || false,
     min_payment: card?.min_payment?.toString() || '',
     statement_date: card?.statement_date?.toString() || '',
     due_date: card?.due_date?.toString() || '',
@@ -46,6 +47,7 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
       balance: parseFloat(formData.balance) || 0,
       credit_limit: parseFloat(formData.credit_limit) || 0,
       apr: parseFloat(formData.apr) / 100 || 0,
+      apr_is_variable: formData.apr_is_variable,
       min_payment: parseFloat(formData.min_payment) || 0,
       statement_date: parseInt(formData.statement_date) || null,
       due_date: parseInt(formData.due_date) || null,
@@ -175,6 +177,18 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
                 className="pr-7 h-12"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">%</span>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="checkbox"
+                id="apr_is_variable"
+                checked={formData.apr_is_variable}
+                onChange={(e) => updateField('apr_is_variable', e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300"
+              />
+              <Label htmlFor="apr_is_variable" className="cursor-pointer text-sm text-slate-600">
+                This is a variable APR (rate can change)
+              </Label>
             </div>
           </div>
 

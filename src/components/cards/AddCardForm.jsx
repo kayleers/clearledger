@@ -40,13 +40,14 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
   const handleSubmit = (e) => {
     e.preventDefault();
     const submitData = {
-      ...formData,
+      name: formData.name,
       balance: parseFloat(formData.balance) || 0,
       credit_limit: parseFloat(formData.credit_limit) || 0,
       apr: parseFloat(formData.apr) / 100 || 0,
       min_payment: parseFloat(formData.min_payment) || 0,
       statement_date: parseInt(formData.statement_date) || null,
       due_date: parseInt(formData.due_date) || null,
+      color: formData.color,
       is_active: formData.is_active,
       bank_account_id: formData.bank_account_id || null
     };

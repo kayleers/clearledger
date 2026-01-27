@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Plus, ArrowRightLeft, Trash2, Play, RefreshCw } from 'lucide-react';
+import { Plus, ArrowRightLeft, Trash2, Play, RefreshCw, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatCurrency } from '@/components/utils/calculations';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useAccessControl } from '@/components/access/useAccessControl';
@@ -20,10 +21,11 @@ const FREQUENCY_LABELS = {
   monthly: 'Monthly'
 };
 
-export default function CurrencyConversionList() {
+export default function CurrencyConversionList({ dragHandleProps }) {
   const [showForm, setShowForm] = useState(false);
   const [editingConversion, setEditingConversion] = useState(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
 
@@ -138,110 +140,129 @@ export default function CurrencyConversionList() {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <ArrowRightLeft className="w-5 h-5" />
-              Currency Conversions
-            </CardTitle>
-            <Button onClick={() => setShowForm(true)} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Conversion
-            </Button>
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            {dragHandleProps && (
+              <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                <GripVertical className="w-5 h-5 text-slate-400" />
+              </div>
+            )}
+            <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+              <h2 className="text-xl font-bold text-emerald-400">Currency Conversions</h2>
+              {isExpanded ? (
+                <ChevronUp className="w-5 h-5 text-slate-500" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-slate-500" />
+              )}
+            </CollapsibleTrigger>
           </div>
-        </CardHeader>
-        <CardContent>
-          {conversions.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">
-              <ArrowRightLeft className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No currency conversions yet</p>
-            </div>
-          ) : (
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="conversions">
-                {(provided) => (
-                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
-                    {conversions.map((conversion, index) => (
-                      <Draggable key={conversion.id} draggableId={conversion.id} index={index}>
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className="bg-white border border-slate-200 rounded-lg p-4"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h3 className="font-semibold text-slate-900">{conversion.name}</h3>
-                                  <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
-                                    {FREQUENCY_LABELS[conversion.frequency]}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-3 text-sm text-slate-600">
-                                  <span className="font-medium">{getAccountName(conversion.from_account_id)}</span>
-                                  <ArrowRightLeft className="w-4 h-4 text-slate-400" />
-                                  <span className="font-medium">{getAccountName(conversion.to_account_id)}</span>
-                                </div>
-                                <div className="mt-2 text-sm">
-                                  <span className="font-semibold text-slate-900">
-                                    {formatCurrency(conversion.amount, conversion.from_currency)}
-                                  </span>
-                                  <span className="text-slate-500 mx-2">→</span>
-                                  <span className="font-semibold text-slate-900">{conversion.to_currency}</span>
-                                  <span className="text-xs text-slate-500 ml-2">
-                                    ({conversion.use_live_rate ? 'Live rate' : `Rate: ${conversion.manual_rate}`})
-                                  </span>
-                                </div>
-                                {conversion.frequency !== 'one_time' && (
-                                  <div className="text-xs text-slate-500 mt-1">
-                                    {conversion.frequency === 'monthly' && `On day ${conversion.conversion_date}`}
-                                    {(conversion.frequency === 'weekly' || conversion.frequency === 'bi_weekly') && 
-                                      `On ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][conversion.day_of_week]}`}
+          <Button 
+            onClick={() => setShowForm(true)} 
+            size="sm"
+            className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Conversion
+          </Button>
+        </div>
+        <CollapsibleContent>
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden p-4">
+            {conversions.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">
+                <ArrowRightLeft className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No currency conversions yet</p>
+                <Button onClick={() => setShowForm(true)} size="sm" variant="outline" className="mt-4">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add First Conversion
+                </Button>
+              </div>
+            ) : (
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="conversions">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+                      {conversions.map((conversion, index) => (
+                        <Draggable key={conversion.id} draggableId={conversion.id} index={index}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className="bg-slate-50 border border-slate-200 rounded-lg p-4"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <h3 className="font-semibold text-slate-900">{conversion.name}</h3>
+                                    <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
+                                      {FREQUENCY_LABELS[conversion.frequency]}
+                                    </span>
                                   </div>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => executeConversionMutation.mutate(conversion)}
-                                  disabled={executeConversionMutation.isPending}
-                                >
-                                  <Play className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setEditingConversion(conversion);
-                                    setShowForm(true);
-                                  }}
-                                >
-                                  Edit
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => deleteMutation.mutate(conversion.id)}
-                                >
-                                  <Trash2 className="w-4 h-4 text-red-500" />
-                                </Button>
+                                  <div className="flex items-center gap-3 text-sm text-slate-600">
+                                    <span className="font-medium">{getAccountName(conversion.from_account_id)}</span>
+                                    <ArrowRightLeft className="w-4 h-4 text-slate-400" />
+                                    <span className="font-medium">{getAccountName(conversion.to_account_id)}</span>
+                                  </div>
+                                  <div className="mt-2 text-sm">
+                                    <span className="font-semibold text-slate-900">
+                                      {formatCurrency(conversion.amount, conversion.from_currency)}
+                                    </span>
+                                    <span className="text-slate-500 mx-2">→</span>
+                                    <span className="font-semibold text-slate-900">{conversion.to_currency}</span>
+                                    <span className="text-xs text-slate-500 ml-2">
+                                      ({conversion.use_live_rate ? 'Live rate' : `Rate: ${conversion.manual_rate}`})
+                                    </span>
+                                  </div>
+                                  {conversion.frequency !== 'one_time' && (
+                                    <div className="text-xs text-slate-500 mt-1">
+                                      {conversion.frequency === 'monthly' && `On day ${conversion.conversion_date}`}
+                                      {(conversion.frequency === 'weekly' || conversion.frequency === 'bi_weekly') && 
+                                        `On ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][conversion.day_of_week]}`}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => executeConversionMutation.mutate(conversion)}
+                                    disabled={executeConversionMutation.isPending}
+                                  >
+                                    <Play className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setEditingConversion(conversion);
+                                      setShowForm(true);
+                                    }}
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => deleteMutation.mutate(conversion.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          )}
-        </CardContent>
-      </Card>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       <Dialog open={showForm} onOpenChange={(open) => {
         setShowForm(open);
@@ -285,8 +306,8 @@ function ConversionForm({ conversion, bankAccounts, onSubmit, onCancel }) {
     name: conversion?.name || '',
     from_account_id: conversion?.from_account_id || '',
     to_account_id: conversion?.to_account_id || '',
-    from_currency: conversion?.from_currency || 'EUR',
-    to_currency: conversion?.to_currency || 'USD',
+    from_currency: conversion?.from_currency || '',
+    to_currency: conversion?.to_currency || '',
     amount: conversion?.amount || '',
     frequency: conversion?.frequency || 'one_time',
     conversion_date: conversion?.conversion_date || 1,
@@ -295,6 +316,25 @@ function ConversionForm({ conversion, bankAccounts, onSubmit, onCancel }) {
     use_live_rate: conversion?.use_live_rate ?? true,
     manual_rate: conversion?.manual_rate || ''
   });
+
+  // Auto-detect currency from selected accounts
+  React.useEffect(() => {
+    if (formData.from_account_id && !conversion) {
+      const account = bankAccounts.find(a => a.id === formData.from_account_id);
+      if (account) {
+        setFormData(prev => ({ ...prev, from_currency: account.currency }));
+      }
+    }
+  }, [formData.from_account_id, bankAccounts, conversion]);
+
+  React.useEffect(() => {
+    if (formData.to_account_id && !conversion) {
+      const account = bankAccounts.find(a => a.id === formData.to_account_id);
+      if (account) {
+        setFormData(prev => ({ ...prev, to_currency: account.currency }));
+      }
+    }
+  }, [formData.to_account_id, bankAccounts, conversion]);
 
   const [liveRate, setLiveRate] = useState(null);
   const [loadingRate, setLoadingRate] = useState(false);
@@ -372,7 +412,18 @@ function ConversionForm({ conversion, bankAccounts, onSubmit, onCancel }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>Amount to Convert</Label>
+          <Input
+            type="number"
+            step="0.01"
+            value={formData.amount}
+            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+            placeholder="1000.00"
+            required
+          />
+        </div>
         <div>
           <Label>From Currency</Label>
           <Input
@@ -382,27 +433,20 @@ function ConversionForm({ conversion, bankAccounts, onSubmit, onCancel }) {
             maxLength={3}
             required
           />
+          <p className="text-xs text-slate-500 mt-1">Can be different from account currency</p>
         </div>
-        <div>
-          <Label>Amount</Label>
-          <Input
-            type="number"
-            step="0.01"
-            value={formData.amount}
-            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-            required
-          />
-        </div>
-        <div>
-          <Label>To Currency</Label>
-          <Input
-            value={formData.to_currency}
-            onChange={(e) => setFormData({ ...formData, to_currency: e.target.value.toUpperCase() })}
-            placeholder="USD"
-            maxLength={3}
-            required
-          />
-        </div>
+      </div>
+
+      <div>
+        <Label>To Currency</Label>
+        <Input
+          value={formData.to_currency}
+          onChange={(e) => setFormData({ ...formData, to_currency: e.target.value.toUpperCase() })}
+          placeholder="USD"
+          maxLength={3}
+          required
+        />
+        <p className="text-xs text-slate-500 mt-1">Can be different from account currency</p>
       </div>
 
       <div className="flex items-center gap-2">

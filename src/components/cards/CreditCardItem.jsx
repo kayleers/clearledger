@@ -4,7 +4,8 @@ import { createPageUrl } from '@/utils';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, ChevronRight, GripVertical, Zap, Calendar, Pencil, Trash2 } from 'lucide-react';
+import { CreditCard, ChevronRight, GripVertical, Zap, Calendar, Pencil, Trash2, Download } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 import { 
   calculateUtilization, 
   calculateMinimumPayment,
@@ -69,6 +70,29 @@ export default function CreditCardItem({ card, isDragging, onEdit, onDelete }) {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={async (e) => {
+                  e.preventDefault();
+                  try {
+                    const response = await base44.functions.invoke('exportCard', { cardId: card.id });
+                    const blob = new Blob([response.data], { type: 'application/pdf' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Card_${card.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                  } catch (error) {
+                    console.error('Export failed:', error);
+                  }
+                }}
+                className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                title="Export to PDF"
+              >
+                <Download className="w-4 h-4" />
+              </button>
               <button
                 onClick={(e) => {
                   e.preventDefault();

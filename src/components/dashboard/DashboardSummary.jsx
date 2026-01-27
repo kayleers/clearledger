@@ -232,6 +232,12 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
       }
     };
 
+    // Initialize currencies from all sources
+    bankAccounts.forEach(acc => initCurrency(acc.currency || 'USD'));
+    cards.forEach(card => initCurrency(card.currency || 'USD'));
+    recurringBills.forEach(bill => initCurrency(bill.currency || 'USD'));
+    mortgageLoans.forEach(loan => initCurrency(loan.currency || 'USD'));
+
     const accountsByCurrency = {};
     bankAccounts.forEach(acc => {
       const curr = acc.currency || 'USD';
@@ -245,9 +251,10 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
       }
     });
 
-    Object.entries(accountsByCurrency).forEach(([currency, accounts]) => {
-      initCurrency(currency);
+    Object.keys(projectionsByCurrency).forEach(currency => {
+      const accounts = accountsByCurrency[currency] || { checking: [], savings: [] };
       
+      // Calculate income from recurring deposits
       accounts.checking.forEach(acc => {
         const depositsForAccount = recurringDeposits.filter(d => d.bank_account_id === acc.id);
         depositsForAccount.forEach(deposit => {
@@ -264,6 +271,7 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
         });
       });
 
+      // Calculate outgoing from bills
       accounts.checking.forEach(acc => {
         const billsForAccount = recurringBills.filter(b => b.bank_account_id === acc.id);
         billsForAccount.forEach(bill => {
@@ -290,21 +298,24 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
             }
           }
         });
-
-        const cardsForAccount = cards.filter(c => c.bank_account_id === acc.id && c.payment_method === 'autopay');
-        cardsForAccount.forEach(card => {
-          const amount = card.autopay_amount_type === 'minimum' ? card.min_payment :
-                        card.autopay_amount_type === 'full_balance' ? card.balance :
-                        card.autopay_custom_amount || 0;
-          projectionsByCurrency[currency].outgoing += amount;
-        });
-
-        const loansForAccount = mortgageLoans.filter(l => l.bank_account_id === acc.id);
-        loansForAccount.forEach(loan => {
-          projectionsByCurrency[currency].outgoing += loan.monthly_payment || 0;
-        });
       });
 
+      // Calculate outgoing from cards in this currency
+      const cardsInCurrency = cards.filter(c => (c.currency || 'USD') === currency && c.payment_method === 'autopay');
+      cardsInCurrency.forEach(card => {
+        const amount = card.autopay_amount_type === 'minimum' ? card.min_payment :
+                      card.autopay_amount_type === 'full_balance' ? card.balance :
+                      card.autopay_custom_amount || 0;
+        projectionsByCurrency[currency].outgoing += amount;
+      });
+
+      // Calculate outgoing from loans in this currency
+      const loansInCurrency = mortgageLoans.filter(l => (l.currency || 'USD') === currency);
+      loansInCurrency.forEach(loan => {
+        projectionsByCurrency[currency].outgoing += loan.monthly_payment || 0;
+      });
+
+      // Calculate transfers to savings
       bankTransfers.forEach(transfer => {
         const fromAccount = bankAccounts.find(a => a.id === transfer.from_account_id);
         const toAccount = bankAccounts.find(a => a.id === transfer.to_account_id);

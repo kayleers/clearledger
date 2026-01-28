@@ -269,38 +269,38 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
                               className="border-l-4 border-l-orange-500"
                             >
                               <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                      <GripVertical className="w-5 h-5 text-slate-400" />
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex items-start gap-2 min-w-0 flex-1">
+                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing flex-shrink-0 mt-1">
+                                      <GripVertical className="w-4 h-4 text-slate-400" />
                                     </div>
-                                    <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-lg">
-                                      <ArrowRightLeft className="w-5 h-5 text-orange-600" />
+                                    <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                      <ArrowRightLeft className="w-4 h-4 text-orange-600" />
                                     </div>
-                                    <div>
-                                      <p className="font-semibold text-slate-800">{transfer.name}</p>
-                                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-semibold text-slate-800 text-sm break-words">{transfer.name}</p>
+                                      <div className="flex items-center gap-1.5 text-xs text-slate-500 flex-wrap mt-0.5">
                                         {transfer.amount_type === 'variable' ? (
                                           <>
-                                            <TrendingUp className="w-4 h-4 text-slate-400" />
-                                            <span>{formatCurrency(transfer.min_amount, transfer.currency || 'USD')} - {formatCurrency(transfer.max_amount, transfer.currency || 'USD')}</span>
+                                            <TrendingUp className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                                            <span className="break-all">{formatCurrency(transfer.min_amount, transfer.currency || 'USD')} - {formatCurrency(transfer.max_amount, transfer.currency || 'USD')}</span>
                                           </>
                                         ) : (
-                                          <span>{formatCurrency(transfer.amount, transfer.currency || 'USD')}</span>
+                                          <span className="break-all">{formatCurrency(transfer.amount, transfer.currency || 'USD')}</span>
                                         )}
-                                        <span>•</span>
-                                        <span>{frequencyLabels[transfer.frequency]}</span>
+                                        <span className="flex-shrink-0">•</span>
+                                        <span className="flex-shrink-0">{frequencyLabels[transfer.frequency]}</span>
                                         {(transfer.frequency === 'monthly' || transfer.frequency === 'quarterly') && transfer.transfer_date && (
                                           <>
-                                            <span>•</span>
-                                            <span>Day {transfer.transfer_date}{getOrdinalSuffix(transfer.transfer_date)}</span>
+                                            <span className="flex-shrink-0">•</span>
+                                            <span className="flex-shrink-0">Day {transfer.transfer_date}{getOrdinalSuffix(transfer.transfer_date)}</span>
                                           </>
                                         )}
                                       </div>
-                                      <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-                                        <span>{fromAccount?.name || 'Unknown'}</span>
-                                        <ArrowRightLeft className="w-3 h-3" />
-                                        <span>{toAccount?.name || 'Unknown'}</span>
+                                      <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1 flex-wrap">
+                                        <span className="break-words">{fromAccount?.name || 'Unknown'}</span>
+                                        <ArrowRightLeft className="w-3 h-3 flex-shrink-0" />
+                                        <span className="break-words">{toAccount?.name || 'Unknown'}</span>
                                       </div>
                                       {transfer.end_date && (
                                         <p className="text-xs text-orange-600 mt-1">
@@ -309,26 +309,26 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
                                       )}
                                     </div>
                                   </div>
-                                  <div className="flex gap-2">
+                                  <div className="flex gap-1 flex-shrink-0">
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8"
+                                      className="h-7 w-7"
                                       onClick={() => setEditingTransfer(transfer)}
                                     >
-                                      <Edit2 className="w-4 h-4" />
+                                      <Edit2 className="w-3.5 h-3.5" />
                                     </Button>
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 text-red-500"
+                                      className="h-7 w-7 text-red-500"
                                       onClick={() => {
                                         if (confirm('Delete this transfer?')) {
                                           deleteTransferMutation.mutate(transfer.id);
                                         }
                                       }}
                                     >
-                                      <Trash2 className="w-4 h-4" />
+                                      <Trash2 className="w-3.5 h-3.5" />
                                     </Button>
                                   </div>
                                 </div>

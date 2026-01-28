@@ -295,48 +295,48 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], credi
                         className="border-l-4 border-l-purple-500"
                       >
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                      <GripVertical className="w-5 h-5 text-slate-400" />
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2 min-w-0 flex-1">
+                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing flex-shrink-0 mt-1">
+                      <GripVertical className="w-4 h-4 text-slate-400" />
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-lg">
+                    <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-base flex-shrink-0 mt-0.5">
                       {categoryIcons[bill.category] || '📄'}
                     </div>
-                    <div>
-                      <p className="font-semibold text-slate-800">{bill.name}</p>
-                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-slate-800 text-sm break-words">{bill.name}</p>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 flex-wrap mt-0.5">
                         {bill.amount_type === 'variable' ? (
-                          <span className="flex items-center gap-1">
-                            <TrendingUp className="w-3 h-3" />
+                          <span className="flex items-center gap-0.5 break-all flex-shrink-0">
+                            <TrendingUp className="w-3 h-3 flex-shrink-0" />
                             {formatCurrency(bill.min_amount || 0, bill.currency || 'USD')} - {formatCurrency(bill.max_amount || 0, bill.currency || 'USD')}
                           </span>
                         ) : (
-                          <span>{formatCurrency(bill.amount, bill.currency || 'USD')}</span>
+                          <span className="break-all">{formatCurrency(bill.amount, bill.currency || 'USD')}</span>
                         )}
-                        <span>•</span>
-                        <span>{frequencyLabels[bill.frequency]}</span>
+                        <span className="flex-shrink-0">•</span>
+                        <span className="flex-shrink-0">{frequencyLabels[bill.frequency]}</span>
                         {bill.frequency === 'weekly' && bill.day_of_week !== undefined && (
                           <>
-                            <span>•</span>
-                            <span>{getDayOfWeekLabel(bill.day_of_week)}</span>
+                            <span className="flex-shrink-0">•</span>
+                            <span className="flex-shrink-0">{getDayOfWeekLabel(bill.day_of_week)}</span>
                           </>
                         )}
                         {(bill.frequency === 'monthly' || bill.frequency === 'quarterly') && bill.due_date && (
                           <>
-                            <span>•</span>
-                            <span>Due: {bill.due_date}{getOrdinalSuffix(bill.due_date)}</span>
+                            <span className="flex-shrink-0">•</span>
+                            <span className="flex-shrink-0">Due: {bill.due_date}{getOrdinalSuffix(bill.due_date)}</span>
                           </>
                         )}
                         {bill.frequency === 'yearly' && bill.due_month && bill.due_date && (
                           <>
-                            <span>•</span>
-                            <span>{getMonthLabel(bill.due_month)} {bill.due_date}{getOrdinalSuffix(bill.due_date)}</span>
+                            <span className="flex-shrink-0">•</span>
+                            <span className="flex-shrink-0">{getMonthLabel(bill.due_month)} {bill.due_date}{getOrdinalSuffix(bill.due_date)}</span>
                           </>
                         )}
                       </div>
                       {paymentSource && (
-                        <p className="text-xs text-slate-400 mt-1">
+                        <p className="text-xs text-slate-400 mt-1 break-words">
                           From: {paymentSource.name} {card ? '(Card)' : ''}
                         </p>
                       )}
@@ -347,26 +347,26 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], credi
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-7 w-7"
                       onClick={() => setEditingBill(bill)}
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Edit2 className="w-3.5 h-3.5" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-red-500"
+                      className="h-7 w-7 text-red-500"
                       onClick={() => {
                         if (confirm('Delete this recurring bill?')) {
                           deleteBillMutation.mutate(bill.id);
                         }
                       }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
                 </div>

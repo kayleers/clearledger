@@ -182,8 +182,20 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
             <div className="flex gap-2">
               <Button
                 size="sm"
-                variant="outline"
-                onClick={async () => {
+                onClick={() => setShowAddDeposit(true)}
+                className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add Deposit
+              </Button>
+              </div>
+
+              {isExpanded && deposits.length > 0 && (
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
                   try {
                     const response = await base44.functions.invoke('exportRecurringDeposits', {});
                     const blob = new Blob([response.data], { type: 'application/pdf' });
@@ -201,21 +213,8 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
                 }}
               >
                 <Download className="w-4 h-4 mr-1" />
-                Export PDF
+                Quick Export
               </Button>
-              <Button
-                size="sm"
-                onClick={() => setShowAddDeposit(true)}
-                className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Deposit
-              </Button>
-            </div>
-          </div>
-          
-          {isExpanded && deposits.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
               <Button
                 size="sm"
                 variant={viewMode === 'default' ? 'default' : 'outline'}
@@ -293,35 +292,35 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
                               className="border-l-4 border-l-green-500"
                             >
                               <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                      <GripVertical className="w-5 h-5 text-slate-400" />
+                                  <div className="flex items-start justify-between gap-2">
+                                  <div className="flex items-start gap-2 min-w-0 flex-1">
+                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing flex-shrink-0 mt-1">
+                                      <GripVertical className="w-4 h-4 text-slate-400" />
                                     </div>
-                                    <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-lg">
+                                    <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-base flex-shrink-0 mt-0.5">
                                       💰
                                     </div>
-                                    <div>
-                                      <p className="font-semibold text-slate-800">{deposit.name}</p>
-                                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-semibold text-slate-800 text-sm break-words">{deposit.name}</p>
+                                      <div className="flex items-center gap-1.5 text-xs text-slate-500 flex-wrap mt-0.5">
                                         {deposit.amount_type === 'variable' ? (
                                           <>
-                                            <TrendingUp className="w-4 h-4 text-slate-400" />
-                                            <span>{formatCurrency(deposit.min_amount, deposit.currency || 'USD')} - {formatCurrency(deposit.max_amount, deposit.currency || 'USD')}</span>
+                                            <TrendingUp className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                                            <span className="break-all">{formatCurrency(deposit.min_amount, deposit.currency || 'USD')} - {formatCurrency(deposit.max_amount, deposit.currency || 'USD')}</span>
                                           </>
                                         ) : (
-                                          <span>{formatCurrency(deposit.amount, deposit.currency || 'USD')}</span>
+                                          <span className="break-all">{formatCurrency(deposit.amount, deposit.currency || 'USD')}</span>
                                         )}
-                                        <span>•</span>
-                                        <span>{frequencyLabels[deposit.frequency]}</span>
+                                        <span className="flex-shrink-0">•</span>
+                                        <span className="flex-shrink-0">{frequencyLabels[deposit.frequency]}</span>
                                         {(deposit.frequency === 'monthly' || deposit.frequency === 'quarterly') && deposit.deposit_date && (
                                           <>
-                                            <span>•</span>
-                                            <span>Day {deposit.deposit_date}{getOrdinalSuffix(deposit.deposit_date)}</span>
+                                            <span className="flex-shrink-0">•</span>
+                                            <span className="flex-shrink-0">Day {deposit.deposit_date}{getOrdinalSuffix(deposit.deposit_date)}</span>
                                           </>
                                         )}
                                       </div>
-                                      <p className="text-xs text-slate-400 mt-1">
+                                      <p className="text-xs text-slate-400 mt-1 break-words">
                                         To: {account?.name || 'Unknown'}
                                       </p>
                                       {deposit.end_date && (
@@ -331,26 +330,26 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
                                       )}
                                     </div>
                                   </div>
-                                  <div className="flex gap-2">
+                                  <div className="flex gap-1 flex-shrink-0">
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8"
+                                      className="h-7 w-7"
                                       onClick={() => setEditingDeposit(deposit)}
                                     >
-                                      <Edit2 className="w-4 h-4" />
+                                      <Edit2 className="w-3.5 h-3.5" />
                                     </Button>
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 text-red-500"
+                                      className="h-7 w-7 text-red-500"
                                       onClick={() => {
                                         if (confirm('Delete this recurring deposit?')) {
                                           deleteDepositMutation.mutate(deposit.id);
                                         }
                                       }}
                                     >
-                                      <Trash2 className="w-4 h-4" />
+                                      <Trash2 className="w-3.5 h-3.5" />
                                     </Button>
                                   </div>
                                 </div>

@@ -212,24 +212,24 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
                           <Card className="border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow cursor-pointer">
                             <CardContent className="p-4">
                 <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing" onClick={(e) => e.preventDefault()}>
-                      <GripVertical className="w-5 h-5 text-slate-400" />
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2 min-w-0 flex-1">
+                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing flex-shrink-0 mt-1" onClick={(e) => e.preventDefault()}>
+                      <GripVertical className="w-4 h-4 text-slate-400" />
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-lg">
+                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-base flex-shrink-0 mt-0.5">
                       {loanTypeIcons[loan.loan_type] || '📄'}
                     </div>
-                    <div>
-                      <p className="font-semibold text-slate-800">{loan.name}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-slate-800 text-sm break-words">{loan.name}</p>
                       <p className="text-xs text-slate-500">{loanTypeLabels[loan.loan_type]}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
+                  <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.preventDefault()}>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-7 w-7"
                         onClick={async (e) => {
                           e.preventDefault();
                           try {
@@ -249,23 +249,23 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
                         }}
                         title="Export to PDF"
                       >
-                        <Download className="w-4 h-4" />
+                        <Download className="w-3.5 h-3.5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-7 w-7"
                         onClick={(e) => {
                           e.preventDefault();
                           setEditingLoan(loan);
                         }}
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3.5 h-3.5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-red-500"
+                        className="h-7 w-7 text-red-500"
                         onClick={(e) => {
                           e.preventDefault();
                           if (confirm('Delete this loan?')) {
@@ -273,7 +273,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
                           }
                         }}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                   </div>

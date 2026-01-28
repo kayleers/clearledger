@@ -194,42 +194,42 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
                       className="border-l-4 border-l-blue-500"
                     >
             <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                    <GripVertical className="w-5 h-5 text-slate-400" />
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2 min-w-0 flex-1">
+                  <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing flex-shrink-0 mt-1">
+                    <GripVertical className="w-4 h-4 text-slate-400" />
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-                    <Building2 className="w-5 h-5 text-blue-600" />
+                  <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Building2 className="w-4 h-4 text-blue-600" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-slate-800">{account.name}</p>
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-slate-200 text-slate-600">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="font-semibold text-slate-800 text-sm break-words">{account.name}</p>
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-slate-200 text-slate-600 flex-shrink-0">
                         {account.account_type === 'savings' ? '🏦' : '💳'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-500">
-                      <span className="font-medium text-slate-700">{formatCurrency(getOngoingBalance(account), account.currency)}</span>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 flex-wrap mt-0.5">
+                      <span className="font-medium text-slate-700 break-all">{formatCurrency(getOngoingBalance(account), account.currency)}</span>
                       {account.account_number && (
                         <>
-                          <span>•</span>
-                          <span>****{account.account_number}</span>
+                          <span className="flex-shrink-0">•</span>
+                          <span className="flex-shrink-0">****{account.account_number}</span>
                         </>
                       )}
                     </div>
                     {(account.stocks_investments > 0) && (
-                      <div className="flex items-center gap-1 text-xs text-emerald-600 mt-1">
-                        <span>📈 {formatCurrency(account.stocks_investments, account.currency)} in investments</span>
+                      <div className="flex items-center gap-1 text-xs text-emerald-600 mt-1 flex-wrap">
+                        <span className="break-words">📈 {formatCurrency(account.stocks_investments, account.currency)}</span>
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1 flex-shrink-0">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-7 w-7"
                     onClick={async () => {
                       try {
                         const response = await base44.functions.invoke('exportBankAccount', { accountId: account.id });
@@ -248,27 +248,27 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
                     }}
                     title="Export to PDF"
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className="w-3.5 h-3.5" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-7 w-7"
                     onClick={() => setEditingAccount(account)}
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 className="w-3.5 h-3.5" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-red-500"
+                    className="h-7 w-7 text-red-500"
                     onClick={() => {
                       if (confirm('Delete this bank account?')) {
                         deleteAccountMutation.mutate(account.id);
                       }
                     }}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
               </div>

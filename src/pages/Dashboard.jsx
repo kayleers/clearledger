@@ -42,52 +42,69 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
 
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me()
+  });
+
   const { data: cards = [], isLoading } = useQuery({
-    queryKey: ['credit-cards'],
+    queryKey: ['credit-cards', user?.email],
     queryFn: async () => {
-      const allCards = await base44.entities.CreditCard.list();
+      if (!user) return [];
+      const allCards = await base44.entities.CreditCard.filter({ created_by: user.email });
       return allCards.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-    }
+    },
+    enabled: !!user
   });
 
   const { data: bankAccounts = [] } = useQuery({
-    queryKey: ['bank-accounts'],
+    queryKey: ['bank-accounts', user?.email],
     queryFn: async () => {
-      const accounts = await base44.entities.BankAccount.filter({ is_active: true });
+      if (!user) return [];
+      const accounts = await base44.entities.BankAccount.filter({ is_active: true, created_by: user.email });
       return accounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-    }
+    },
+    enabled: !!user
   });
 
   const { data: recurringBills = [] } = useQuery({
-    queryKey: ['recurring-bills'],
+    queryKey: ['recurring-bills', user?.email],
     queryFn: async () => {
-      const bills = await base44.entities.RecurringBill.filter({ is_active: true });
+      if (!user) return [];
+      const bills = await base44.entities.RecurringBill.filter({ is_active: true, created_by: user.email });
       return bills.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-    }
+    },
+    enabled: !!user
   });
 
   const { data: mortgageLoans = [] } = useQuery({
-    queryKey: ['mortgage-loans'],
+    queryKey: ['mortgage-loans', user?.email],
     queryFn: async () => {
-      const loans = await base44.entities.MortgageLoan.filter({ is_active: true });
+      if (!user) return [];
+      const loans = await base44.entities.MortgageLoan.filter({ is_active: true, created_by: user.email });
       return loans.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-    }
+    },
+    enabled: !!user
   });
 
   const { data: bankTransfers = [] } = useQuery({
-    queryKey: ['bank-transfers'],
+    queryKey: ['bank-transfers', user?.email],
     queryFn: async () => {
-      const transfers = await base44.entities.BankTransfer.filter({ is_active: true });
+      if (!user) return [];
+      const transfers = await base44.entities.BankTransfer.filter({ is_active: true, created_by: user.email });
       return transfers.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-    }
+    },
+    enabled: !!user
   });
 
   const { data: recurringDeposits = [] } = useQuery({
-    queryKey: ['recurring-deposits'],
+    queryKey: ['recurring-deposits', user?.email],
     queryFn: async () => {
-      const deposits = await base44.entities.RecurringDeposit.filter({ is_active: true });
+      if (!user) return [];
+      const deposits = await base44.entities.RecurringDeposit.filter({ is_active: true, created_by: user.email });
       return deposits.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-    }
+    },
+    enabled: !!user
   });
 
   const createCardMutation = useMutation({
@@ -179,8 +196,8 @@ export default function Dashboard() {
 
   React.useEffect(() => {
     const fetchSectionOrder = async () => {
+      if (!user) return;
       try {
-        const user = await base44.auth.me();
         if (user.section_order) {
           let newOrder = user.section_order;
           let updated = false;
@@ -270,7 +287,7 @@ export default function Dashboard() {
       }
     };
     fetchSectionOrder();
-  }, []);
+  }, [user]);
 
   const canAddCard = accessControl.canAddCreditCard(cards.length);
 

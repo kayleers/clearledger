@@ -179,42 +179,18 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
                 )}
               </CollapsibleTrigger>
             </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={() => setShowAddDeposit(true)}
-                className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Deposit
-              </Button>
-              </div>
+            <Button
+              size="sm"
+              onClick={() => setShowAddDeposit(true)}
+              className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add Deposit
+            </Button>
+          </div>
 
-              {isExpanded && deposits.length > 0 && (
-              <div className="flex gap-2 flex-wrap">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={async () => {
-                  try {
-                    const response = await base44.functions.invoke('exportRecurringDeposits', {});
-                    const blob = new Blob([response.data], { type: 'application/pdf' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Recurring_Deposits_${new Date().toISOString().split('T')[0]}.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                  } catch (error) {
-                    console.error('Export failed:', error);
-                  }
-                }}
-              >
-                <Download className="w-4 h-4 mr-1" />
-                Quick Export
-              </Button>
+          {isExpanded && deposits.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
               <Button
                 size="sm"
                 variant={viewMode === 'default' ? 'default' : 'outline'}

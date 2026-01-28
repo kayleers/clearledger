@@ -225,10 +225,10 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
 
         <CollapsibleContent>
           {transfers.filter(t => t.frequency !== 'one_time').length > 0 && (
-            <div className="mb-4">
+            <div className="mb-4 flex justify-end">
               <Button
                 size="sm"
-                variant="outline"
+                variant="ghost"
                 onClick={async () => {
                   try {
                     const response = await base44.functions.invoke('exportBankTransfers', {});
@@ -245,9 +245,9 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
                     console.error('Export failed:', error);
                   }
                 }}
-                className="w-full"
+                className="text-xs text-slate-500 hover:text-slate-700"
               >
-                <Download className="w-4 h-4 mr-1" />
+                <Download className="w-3 h-3 mr-1" />
                 Export PDF
               </Button>
             </div>

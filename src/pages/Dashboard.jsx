@@ -472,8 +472,19 @@ export default function Dashboard() {
   const handleExportData = async () => {
     try {
       const response = await base44.functions.invoke('exportAllData', {});
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
+      
+      // Check if response.data is already a Blob or ArrayBuffer
+      let blobData;
+      if (response.data instanceof Blob) {
+        blobData = response.data;
+      } else if (response.data instanceof ArrayBuffer) {
+        blobData = new Blob([response.data], { type: 'application/pdf' });
+      } else {
+        // Axios response returns data directly
+        blobData = new Blob([response.data], { type: 'application/pdf' });
+      }
+      
+      const url = window.URL.createObjectURL(blobData);
       const a = document.createElement('a');
       a.href = url;
       a.download = `ClearLedger_Export_${new Date().toISOString().split('T')[0]}.pdf`;

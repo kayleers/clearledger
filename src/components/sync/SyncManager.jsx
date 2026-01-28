@@ -308,17 +308,28 @@ export default function SyncManager({ cards = [], bankAccounts = [], bills = [],
 
   return (
     <>
-      {/* Sync Button */}
+      {/* Sync and Export Buttons */}
       <div className="flex items-center gap-2">
         <Button
           onClick={() => setShowSyncDialog(true)}
           variant={shouldShowReminder ? "default" : "outline"}
           size="sm"
-          className={shouldShowReminder ? "bg-gradient-to-r from-orange-500 to-red-500 text-white animate-pulse" : ""}
+          className={shouldShowReminder ? "bg-gradient-to-r from-orange-500 to-red-500 text-white animate-pulse" : "bg-white/10 border-white/20 text-white hover:bg-white/20"}
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${shouldShowReminder ? 'animate-spin' : ''}`} />
           {daysBehind > 0 ? `Sync (${daysBehind} ${daysBehind === 1 ? 'day' : 'days'} behind)` : 'Sync to Today'}
         </Button>
+        {onExportData && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onExportData}
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+          >
+            <Download className="w-4 h-4 mr-1" />
+            Export PDF
+          </Button>
+        )}
       </div>
 
       {/* Sync Dialog */}

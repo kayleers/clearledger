@@ -12,10 +12,14 @@ Deno.serve(async (req) => {
 
     const { month, year } = await req.json();
     
-    const [cards, bills, loans] = await Promise.all([
+    const [cards, bills, loans, bankAccounts, transfers, conversions, deposits] = await Promise.all([
       base44.entities.CreditCard.filter({ is_active: true }),
       base44.entities.RecurringBill.filter({ is_active: true }),
-      base44.entities.MortgageLoan.filter({ is_active: true })
+      base44.entities.MortgageLoan.filter({ is_active: true }),
+      base44.entities.BankAccount.filter({ is_active: true }),
+      base44.entities.BankTransfer.filter({ is_active: true }),
+      base44.entities.CurrencyConversion.filter({ is_active: true }),
+      base44.entities.RecurringDeposit.filter({ is_active: true })
     ]);
 
     const doc = new jsPDF();
@@ -54,18 +58,27 @@ Deno.serve(async (req) => {
     doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, yPos);
     yPos += 15;
 
+    // Helper to get account name
+    const getAccountName = (accountId) => {
+      const account = bankAccounts.find(a => a.id === accountId);
+      return account ? account.name : 'Unknown';
+    };
+
     // Collect all payments
     const payments = [];
 
     // Card payments
     cards.forEach(card => {
       if (card.due_date) {
+        const accountName = card.bank_account_id ? getAccountName(card.bank_account_id) : '';
         payments.push({
           date: card.due_date,
           name: card.name,
           type: 'Credit Card',
           amount: card.projected_monthly_payment || card.min_payment || 0,
-          currency: card.currency
+          currency: card.currency,
+          account: accountName,
+          isOutflow: true
         });
       }
     });
@@ -73,12 +86,15 @@ Deno.serve(async (req) => {
     // Bills
     bills.forEach(bill => {
       if (bill.frequency === 'monthly' && bill.due_date) {
+        const accountName = bill.bank_account_id ? getAccountName(bill.bank_account_id) : '';
         payments.push({
           date: bill.due_date,
           name: bill.name,
           type: 'Bill',
           amount: bill.amount,
-          currency: bill.currency
+          currency: bill.currency,
+          account: accountName,
+          isOutflow: true
         });
       }
     });
@@ -86,12 +102,65 @@ Deno.serve(async (req) => {
     // Loans
     loans.forEach(loan => {
       if (loan.payment_due_date) {
+        const accountName = loan.bank_account_id ? getAccountName(loan.bank_account_id) : '';
         payments.push({
           date: loan.payment_due_date,
           name: loan.name,
           type: 'Loan',
           amount: loan.projected_monthly_payment || loan.monthly_payment || 0,
-          currency: loan.currency
+          currency: loan.currency,
+          account: accountName,
+          isOutflow: true
+        });
+      }
+    });
+
+    // Bank Transfers
+    transfers.forEach(transfer => {
+      if (transfer.frequency === 'monthly' && transfer.transfer_date) {
+        const fromAccount = getAccountName(transfer.from_account_id);
+        const toAccount = getAccountName(transfer.to_account_id);
+        payments.push({
+          date: transfer.transfer_date,
+          name: transfer.name,
+          type: 'Transfer',
+          amount: transfer.amount,
+          currency: transfer.currency,
+          account: `${fromAccount} → ${toAccount}`,
+          isOutflow: false
+        });
+      }
+    });
+
+    // Currency Conversions
+    conversions.forEach(conversion => {
+      if (conversion.frequency === 'monthly' && conversion.conversion_date) {
+        const fromAccount = getAccountName(conversion.from_account_id);
+        const toAccount = getAccountName(conversion.to_account_id);
+        payments.push({
+          date: conversion.conversion_date,
+          name: conversion.name,
+          type: 'Conversion',
+          amount: conversion.amount,
+          currency: conversion.from_currency,
+          account: `${fromAccount} → ${toAccount}`,
+          isOutflow: false
+        });
+      }
+    });
+
+    // Recurring Deposits
+    deposits.forEach(deposit => {
+      if (deposit.frequency === 'monthly' && deposit.deposit_date) {
+        const accountName = getAccountName(deposit.bank_account_id);
+        payments.push({
+          date: deposit.deposit_date,
+          name: deposit.name,
+          type: 'Deposit',
+          amount: deposit.amount,
+          currency: deposit.currency,
+          account: accountName,
+          isOutflow: false
         });
       }
     });
@@ -131,7 +200,7 @@ Deno.serve(async (req) => {
 
       doc.setFont(undefined, 'normal');
       items.forEach(item => {
-        if (yPos > 270) {
+        if (yPos > 265) {
           doc.addPage();
           yPos = 20;
         }
@@ -140,7 +209,7 @@ Deno.serve(async (req) => {
         doc.setTextColor(40, 40, 40);
         
         // Truncate long names to fit properly
-        const maxNameLength = 40;
+        const maxNameLength = 35;
         const nameText = item.name.length > maxNameLength ? 
           item.name.substring(0, maxNameLength) + '...' : 
           item.name;
@@ -156,7 +225,17 @@ Deno.serve(async (req) => {
         doc.text(amountText, pageWidth - margin, yPos, { align: 'right' });
         doc.setFont(undefined, 'normal');
         
-        yPos += 6;
+        yPos += 4;
+        
+        // Draw account info if available
+        if (item.account) {
+          doc.setFontSize(8);
+          doc.setTextColor(100, 100, 100);
+          doc.text(`${item.isOutflow ? 'From' : 'To'}: ${item.account}`, margin + 5, yPos);
+          yPos += 5;
+        } else {
+          yPos += 2;
+        }
       });
 
       yPos += 4;
@@ -263,22 +342,33 @@ Deno.serve(async (req) => {
 
         // Payments in cell (truncate to fit)
         doc.setFont(undefined, 'normal');
-        doc.setFontSize(7);
+        doc.setFontSize(6.5);
         let cellYPos = y + 10;
 
-        dayPayments.slice(0, 3).forEach((payment, idx) => {
+        dayPayments.slice(0, 2).forEach((payment, idx) => {
           if (idx >= 2) {
-            doc.text(`+${dayPayments.length - 2} more`, x + 2, cellYPos);
+            doc.text(`+${dayPayments.length - 2}`, x + 2, cellYPos);
             return;
           }
           // Truncate name to fit cell width
-          const maxChars = Math.floor(cellWidth / 1.5);
+          const maxChars = Math.floor(cellWidth / 1.2);
           const shortName = payment.name.length > maxChars ? 
-            payment.name.substring(0, maxChars - 1) : 
+            payment.name.substring(0, maxChars - 3) + '...' : 
             payment.name;
           doc.text(shortName, x + 2, cellYPos);
-          cellYPos += 3.5;
+          cellYPos += 3;
+          
+          // Show amount
+          doc.setFont(undefined, 'bold');
+          const amtText = formatCurrency(payment.amount, payment.currency);
+          doc.text(amtText, x + 2, cellYPos);
+          doc.setFont(undefined, 'normal');
+          cellYPos += 4;
         });
+        
+        if (dayPayments.length > 2) {
+          doc.text(`+${dayPayments.length - 2} more`, x + 2, cellYPos);
+        }
 
         dayCounter++;
       }

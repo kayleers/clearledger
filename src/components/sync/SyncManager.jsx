@@ -3,12 +3,12 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { RefreshCw, Calendar, DollarSign, CreditCard, Building2, FileText, Home, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, Calendar, DollarSign, CreditCard, Building2, FileText, Home, CheckCircle2, Download } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
-export default function SyncManager({ cards = [], bankAccounts = [], bills = [], loans = [] }) {
+export default function SyncManager({ cards = [], bankAccounts = [], bills = [], loans = [], onExportData }) {
   const [showSyncDialog, setShowSyncDialog] = useState(false);
   const [syncResults, setSyncResults] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);

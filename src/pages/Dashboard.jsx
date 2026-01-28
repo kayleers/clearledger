@@ -498,28 +498,18 @@ export default function Dashboard() {
               <h1 className="text-3xl font-bold text-emerald-400 drop-shadow-lg">ClearLedger</h1>
               <p className="text-white">Private bill & balance tracking. Smarter payment planning.</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleExportData}
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-              >
-                <Download className="w-4 h-4 mr-1" />
-                Export PDF
-              </Button>
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/7335a5ce2_WhatsAppImage2026-01-08at73945PM.jpeg" 
-                alt="ClearLedger Logo" 
-                className="w-16 h-16 rounded-xl shadow-lg object-cover scale-110"
-              />
-            </div>
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/7335a5ce2_WhatsAppImage2026-01-08at73945PM.jpeg" 
+              alt="ClearLedger Logo" 
+              className="w-16 h-16 rounded-xl shadow-lg object-cover scale-110"
+            />
           </div>
           <SyncManager 
             cards={cards} 
             bankAccounts={bankAccounts} 
             bills={recurringBills}
             loans={mortgageLoans}
+            onExportData={handleExportData}
           />
         </header>
 

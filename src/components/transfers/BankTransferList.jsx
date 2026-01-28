@@ -161,7 +161,7 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
               )}
               <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
                 <div>
-                  <h2 className="text-xl font-bold text-emerald-400">Recurring Bank Transfers</h2>
+                  <h2 className="text-xl font-bold text-emerald-400">Bank Transfers</h2>
                   {totalsByCurrency && Object.keys(totalsByCurrency).length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-1">
                       {Object.entries(totalsByCurrency).map(([curr, total]) => (

@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
         payments.push({
           date: conversion.conversion_date,
           name: conversion.name,
-          type: 'Conversion',
+          type: 'Currency FX',
           amount: conversion.amount,
           currency: conversion.from_currency,
           account: `${fromAccount} to ${toAccount}`,
@@ -231,7 +231,7 @@ Deno.serve(async (req) => {
         if (item.account) {
           doc.setFontSize(8);
           doc.setTextColor(100, 100, 100);
-          const accountLabel = item.isOutflow ? 'From' : (item.type === 'Transfer' || item.type === 'Conversion' ? 'From' : 'To');
+          const accountLabel = item.isOutflow ? 'From' : (item.type === 'Transfer' || item.type === 'Currency FX' ? 'From' : 'To');
           doc.text(`${accountLabel}: ${item.account}`, margin + 5, yPos);
           yPos += 5;
         } else {

@@ -149,7 +149,7 @@ export default function CurrencyConversionList({ dragHandleProps }) {
               </div>
             )}
             <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-              <h2 className="text-base font-bold text-emerald-400">Currency Conversions</h2>
+              <h2 className="text-base font-bold text-emerald-400">Currency FX</h2>
               {isExpanded ? (
                 <ChevronUp className="w-5 h-5 text-slate-500" />
               ) : (

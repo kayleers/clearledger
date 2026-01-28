@@ -646,44 +646,45 @@ export default function PaymentCalendar() {
             <Calendar className="w-5 h-5" />
             Payment Schedule
           </CardTitle>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={async () => {
-                try {
-                  const response = await base44.functions.invoke('exportPaymentCalendar', {
-                    month: currentMonth.getMonth(),
-                    year: currentMonth.getFullYear()
-                  });
-                  const blob = new Blob([response.data], { type: 'application/pdf' });
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `Payment_Schedule_${currentMonth.toLocaleString('default', { month: 'long' })}_${currentMonth.getFullYear()}.pdf`;
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                  a.remove();
-                } catch (error) {
-                  console.error('Export failed:', error);
-                }
-              }}
-            >
-              <Download className="w-4 h-4 mr-1" />
-              Export PDF
-            </Button>
-            <Tabs value={view} onValueChange={setView}>
-              <TabsList>
-                <TabsTrigger value="calendar">
-                  <Calendar className="w-4 h-4" />
-                </TabsTrigger>
-                <TabsTrigger value="list">
-                  <List className="w-4 h-4" />
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+          <Tabs value={view} onValueChange={setView}>
+            <TabsList>
+              <TabsTrigger value="calendar">
+                <Calendar className="w-4 h-4" />
+              </TabsTrigger>
+              <TabsTrigger value="list">
+                <List className="w-4 h-4" />
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        <div className="flex justify-end mt-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={async () => {
+              try {
+                const response = await base44.functions.invoke('exportPaymentCalendar', {
+                  month: currentMonth.getMonth(),
+                  year: currentMonth.getFullYear()
+                });
+                const blob = new Blob([response.data], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Payment_Schedule_${currentMonth.toLocaleString('default', { month: 'long' })}_${currentMonth.getFullYear()}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+              } catch (error) {
+                console.error('Export failed:', error);
+              }
+            }}
+            className="text-xs text-slate-500 hover:text-slate-700"
+          >
+            <Download className="w-3 h-3 mr-1" />
+            Export PDF
+          </Button>
         </div>
         <div className="flex items-center justify-between mt-4">
           <Button variant="outline" size="sm" onClick={() => navigateMonth(-1)} disabled={!canNavigate}>

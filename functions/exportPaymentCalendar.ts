@@ -214,10 +214,7 @@ Deno.serve(async (req) => {
           item.name.substring(0, maxNameLength) + '...' : 
           item.name;
         const typeText = `(${item.type})`;
-        
-        // Add +/- prefix to amount
-        const prefix = item.isOutflow ? '-' : '+';
-        const amountText = `${prefix}${formatCurrency(item.amount, item.currency)}`;
+        const amountText = formatCurrency(item.amount, item.currency);
         
         // Draw name and type on same line
         doc.text(`${nameText} ${typeText}`, margin + 5, yPos);
@@ -273,9 +270,7 @@ Deno.serve(async (req) => {
 
     doc.setFont(undefined, 'bold');
     Object.entries(totalByCurrency).forEach(([currency, total]) => {
-      const netAmount = total;
-      const prefix = netAmount >= 0 ? '' : '+';
-      doc.text(`Net (${currency}): ${prefix}${formatCurrency(Math.abs(netAmount), currency)}`, margin, yPos);
+      doc.text(`Total (${currency}): ${formatCurrency(Math.abs(total), currency)}`, margin, yPos);
       yPos += 6;
     });
 
@@ -366,10 +361,9 @@ Deno.serve(async (req) => {
           doc.text(shortName, x + 2, cellYPos);
           cellYPos += 3;
           
-          // Show amount with +/- prefix
+          // Show amount
           doc.setFont(undefined, 'bold');
-          const prefix = payment.isOutflow ? '-' : '+';
-          const amtText = `${prefix}${formatCurrency(payment.amount, payment.currency)}`;
+          const amtText = formatCurrency(payment.amount, payment.currency);
           doc.text(amtText, x + 2, cellYPos);
           doc.setFont(undefined, 'normal');
           cellYPos += 4;

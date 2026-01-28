@@ -258,7 +258,7 @@ Deno.serve(async (req) => {
       checkNewPage(30);
       doc.setFontSize(16);
       doc.setTextColor(16, 185, 129);
-      doc.text('Currency Conversions', margin, yPos);
+      doc.text('Currency FX', margin, yPos);
       yPos += 8;
 
       conversions.forEach((conversion) => {
@@ -276,6 +276,184 @@ Deno.serve(async (req) => {
         
         yPos += 23;
       });
+      yPos += 5;
+    }
+
+    // Payment Schedule Section (Current Month)
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    checkNewPage(30);
+    doc.setFontSize(16);
+    doc.setTextColor(16, 185, 129);
+    doc.text(`Payment Schedule - ${monthNames[currentMonth]} ${currentYear}`, margin, yPos);
+    yPos += 8;
+
+    const getAccountName = (accountId) => {
+      const account = bankAccounts.find(a => a.id === accountId);
+      return account ? account.name : 'Unknown';
+    };
+
+    const payments = [];
+
+    // Card payments
+    cards.forEach(card => {
+      if (card.due_date) {
+        const accountName = card.bank_account_id ? getAccountName(card.bank_account_id) : '';
+        payments.push({
+          date: card.due_date,
+          name: card.name,
+          type: 'Credit Card',
+          amount: card.projected_monthly_payment || card.min_payment || 0,
+          currency: card.currency,
+          account: accountName,
+          isOutflow: true
+        });
+      }
+    });
+
+    // Bills
+    bills.forEach(bill => {
+      if (bill.frequency === 'monthly' && bill.due_date) {
+        const accountName = bill.bank_account_id ? getAccountName(bill.bank_account_id) : '';
+        payments.push({
+          date: bill.due_date,
+          name: bill.name,
+          type: 'Bill',
+          amount: bill.amount,
+          currency: bill.currency,
+          account: accountName,
+          isOutflow: true
+        });
+      }
+    });
+
+    // Loans
+    loans.forEach(loan => {
+      if (loan.payment_due_date) {
+        const accountName = loan.bank_account_id ? getAccountName(loan.bank_account_id) : '';
+        payments.push({
+          date: loan.payment_due_date,
+          name: loan.name,
+          type: 'Loan',
+          amount: loan.projected_monthly_payment || loan.monthly_payment || 0,
+          currency: loan.currency,
+          account: accountName,
+          isOutflow: true
+        });
+      }
+    });
+
+    // Bank Transfers
+    transfers.forEach(transfer => {
+      if (transfer.frequency === 'monthly' && transfer.transfer_date) {
+        const fromAccount = getAccountName(transfer.from_account_id);
+        const toAccount = getAccountName(transfer.to_account_id);
+        payments.push({
+          date: transfer.transfer_date,
+          name: transfer.name,
+          type: 'Transfer',
+          amount: transfer.amount,
+          currency: transfer.currency,
+          account: `${fromAccount} to ${toAccount}`,
+          isOutflow: false
+        });
+      }
+    });
+
+    // Currency Conversions
+    conversions.forEach(conversion => {
+      if (conversion.frequency === 'monthly' && conversion.conversion_date) {
+        const fromAccount = getAccountName(conversion.from_account_id);
+        const toAccount = getAccountName(conversion.to_account_id);
+        payments.push({
+          date: conversion.conversion_date,
+          name: conversion.name,
+          type: 'Conversion',
+          amount: conversion.amount,
+          currency: conversion.from_currency,
+          account: `${fromAccount} to ${toAccount}`,
+          isOutflow: false
+        });
+      }
+    });
+
+    // Recurring Deposits
+    deposits.forEach(deposit => {
+      if (deposit.frequency === 'monthly' && deposit.deposit_date) {
+        const accountName = getAccountName(deposit.bank_account_id);
+        payments.push({
+          date: deposit.deposit_date,
+          name: deposit.name,
+          type: 'Deposit',
+          amount: deposit.amount,
+          currency: deposit.currency,
+          account: accountName,
+          isOutflow: false
+        });
+      }
+    });
+
+    // Sort by date
+    payments.sort((a, b) => a.date - b.date);
+
+    // Group by date
+    const paymentsByDate = {};
+    payments.forEach(payment => {
+      if (!paymentsByDate[payment.date]) {
+        paymentsByDate[payment.date] = [];
+      }
+      paymentsByDate[payment.date].push(payment);
+    });
+
+    // Display payments by date
+    Object.entries(paymentsByDate).forEach(([date, items]) => {
+      checkNewPage(15 + items.length * 8);
+      
+      doc.setFontSize(11);
+      doc.setTextColor(60, 60, 60);
+      doc.text(`Day ${date}`, margin + 5, yPos);
+      yPos += 6;
+
+      items.forEach(item => {
+        doc.setFontSize(9);
+        doc.setTextColor(40, 40, 40);
+        
+        const maxNameLength = 35;
+        const nameText = item.name.length > maxNameLength ? 
+          item.name.substring(0, maxNameLength) + '...' : 
+          item.name;
+        
+        doc.text(`  ${nameText} (${item.type})`, margin + 8, yPos);
+        
+        // Amount with color
+        doc.setTextColor(item.isOutflow ? 200 : 0, item.isOutflow ? 0 : 150, 0);
+        const amountText = formatCurrency(item.amount, item.currency);
+        doc.text(amountText, 190, yPos, { align: 'right' });
+        doc.setTextColor(40, 40, 40);
+        
+        yPos += 5;
+        
+        if (item.account) {
+          doc.setFontSize(7);
+          doc.setTextColor(100, 100, 100);
+          const accountLabel = item.isOutflow ? 'From' : (item.type === 'Transfer' || item.type === 'Conversion' ? 'From' : 'To');
+          doc.text(`    ${accountLabel}: ${item.account}`, margin + 8, yPos);
+          yPos += 5;
+        }
+      });
+
+      yPos += 3;
+    });
+
+    if (payments.length === 0) {
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text('No scheduled payments for this month', margin + 5, yPos);
+      yPos += 10;
     }
 
     // Summary Section

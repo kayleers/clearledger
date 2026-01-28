@@ -24,11 +24,16 @@ Deno.serve(async (req) => {
     const pageWidth = doc.internal.pageSize.getWidth();
 
     const formatCurrency = (amount, currency = 'USD') => {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2
-      }).format(amount || 0);
+      const formatted = (amount || 0).toFixed(2);
+      // Use simple ASCII symbols to avoid encoding issues in PDF
+      const symbols = {
+        'USD': '$',
+        'EUR': 'EUR ',
+        'GBP': 'GBP ',
+        'JPY': 'JPY '
+      };
+      const symbol = symbols[currency] || currency + ' ';
+      return symbol === '$' ? `$${formatted}` : `${symbol}${formatted}`;
     };
 
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 

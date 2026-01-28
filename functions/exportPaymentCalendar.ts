@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
           type: 'Transfer',
           amount: transfer.amount,
           currency: transfer.currency,
-          account: `${fromAccount} → ${toAccount}`,
+          account: `${fromAccount} to ${toAccount}`,
           isOutflow: false
         });
       }
@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
           type: 'Conversion',
           amount: conversion.amount,
           currency: conversion.from_currency,
-          account: `${fromAccount} → ${toAccount}`,
+          account: `${fromAccount} to ${toAccount}`,
           isOutflow: false
         });
       }
@@ -214,13 +214,16 @@ Deno.serve(async (req) => {
           item.name.substring(0, maxNameLength) + '...' : 
           item.name;
         const typeText = `(${item.type})`;
-        const amountText = formatCurrency(item.amount, item.currency);
+        
+        // Add +/- prefix to amount
+        const prefix = item.isOutflow ? '-' : '+';
+        const amountText = `${prefix}${formatCurrency(item.amount, item.currency)}`;
         
         // Draw name and type on same line
         doc.text(`${nameText} ${typeText}`, margin + 5, yPos);
         
-        // Draw amount right-aligned
-        doc.setTextColor(0, 0, 0);
+        // Draw amount right-aligned with appropriate color
+        doc.setTextColor(item.isOutflow ? 200 : 0, item.isOutflow ? 0 : 150, 0);
         doc.setFont(undefined, 'bold');
         doc.text(amountText, pageWidth - margin, yPos, { align: 'right' });
         doc.setFont(undefined, 'normal');
@@ -231,7 +234,8 @@ Deno.serve(async (req) => {
         if (item.account) {
           doc.setFontSize(8);
           doc.setTextColor(100, 100, 100);
-          doc.text(`${item.isOutflow ? 'From' : 'To'}: ${item.account}`, margin + 5, yPos);
+          const accountLabel = item.isOutflow ? 'From' : (item.type === 'Transfer' || item.type === 'Conversion' ? 'From' : 'To');
+          doc.text(`${accountLabel}: ${item.account}`, margin + 5, yPos);
           yPos += 5;
         } else {
           yPos += 2;
@@ -262,12 +266,16 @@ Deno.serve(async (req) => {
 
     const totalByCurrency = {};
     payments.forEach(p => {
-      totalByCurrency[p.currency] = (totalByCurrency[p.currency] || 0) + p.amount;
+      if (p.currency) {
+        totalByCurrency[p.currency] = (totalByCurrency[p.currency] || 0) + (p.isOutflow ? p.amount : -p.amount);
+      }
     });
 
     doc.setFont(undefined, 'bold');
     Object.entries(totalByCurrency).forEach(([currency, total]) => {
-      doc.text(`Total (${currency}): ${formatCurrency(total, currency)}`, margin, yPos);
+      const netAmount = total;
+      const prefix = netAmount >= 0 ? '' : '+';
+      doc.text(`Net (${currency}): ${prefix}${formatCurrency(Math.abs(netAmount), currency)}`, margin, yPos);
       yPos += 6;
     });
 
@@ -358,9 +366,10 @@ Deno.serve(async (req) => {
           doc.text(shortName, x + 2, cellYPos);
           cellYPos += 3;
           
-          // Show amount
+          // Show amount with +/- prefix
           doc.setFont(undefined, 'bold');
-          const amtText = formatCurrency(payment.amount, payment.currency);
+          const prefix = payment.isOutflow ? '-' : '+';
+          const amtText = `${prefix}${formatCurrency(payment.amount, payment.currency)}`;
           doc.text(amtText, x + 2, cellYPos);
           doc.setFont(undefined, 'normal');
           cellYPos += 4;

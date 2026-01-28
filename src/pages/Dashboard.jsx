@@ -595,10 +595,22 @@ export default function Dashboard() {
                                     </CollapsibleTrigger>
                                   </div>
                                   {!showAddCard && (
-                                    <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={handleAddCardClick}
+                                      className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
+                                    >
+                                      <Plus className="w-4 h-4 mr-1" />
+                                      Add Card
+                                    </Button>
+                                  )}
+                                  </div>
+                                  <CollapsibleContent>
+                                  {cards.length > 0 && (
+                                    <div className="mb-4 flex justify-end">
                                       <Button
                                         size="sm"
-                                        variant="outline"
+                                        variant="ghost"
                                         onClick={async () => {
                                           try {
                                             const response = await base44.functions.invoke('exportCreditCards', {});
@@ -615,22 +627,13 @@ export default function Dashboard() {
                                             console.error('Export failed:', error);
                                           }
                                         }}
+                                        className="text-xs text-slate-500 hover:text-slate-700"
                                       >
-                                        <Download className="w-4 h-4 mr-1" />
+                                        <Download className="w-3 h-3 mr-1" />
                                         Export PDF
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        onClick={handleAddCardClick}
-                                        className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
-                                      >
-                                        <Plus className="w-4 h-4 mr-1" />
-                                        Add Card
                                       </Button>
                                     </div>
                                   )}
-                                </div>
-                                <CollapsibleContent>
                                   <Droppable droppableId="cards" type="card">
                                     {(provided) => (
                                       <div 

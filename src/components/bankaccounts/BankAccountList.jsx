@@ -178,7 +178,7 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
         </div>
 
         <CollapsibleContent>
-          {sortedAccounts.length > 0 && (
+          {bankAccounts.length > 0 && (
             <div className="mb-4">
               <Button
                 size="sm"

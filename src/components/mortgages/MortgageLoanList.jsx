@@ -189,7 +189,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
         </div>
 
         <CollapsibleContent>
-          {sortedLoans.length > 0 && (
+          {loans.length > 0 && (
             <div className="mb-4">
               <Button
                 size="sm"

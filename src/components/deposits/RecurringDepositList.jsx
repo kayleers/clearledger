@@ -249,7 +249,7 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
         </div>
 
         <CollapsibleContent>
-          {sortedDeposits.length > 0 && (
+          {deposits.length > 0 && (
             <div className="mb-4">
               <Button
                 size="sm"

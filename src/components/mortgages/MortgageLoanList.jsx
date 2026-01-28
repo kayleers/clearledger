@@ -153,39 +153,14 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
               )}
             </CollapsibleTrigger>
           </div>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={async () => {
-                try {
-                  const response = await base44.functions.invoke('exportAllLoans', {});
-                  const blob = new Blob([response.data], { type: 'application/pdf' });
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `Loans_${new Date().toISOString().split('T')[0]}.pdf`;
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                  a.remove();
-                } catch (error) {
-                  console.error('Export failed:', error);
-                }
-              }}
-            >
-              <Download className="w-4 h-4 mr-1" />
-              Export PDF
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleAddLoanClick}
-              className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Add Loan
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            onClick={handleAddLoanClick}
+            className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Loan
+          </Button>
         </div>
 
         <CollapsibleContent>

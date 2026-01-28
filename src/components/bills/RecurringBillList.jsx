@@ -203,41 +203,16 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], credi
                   <ChevronDown className="w-5 h-5 text-slate-500" />
                 )}
               </CollapsibleTrigger>
-            </div>
-            <div className="flex gap-2">
+              </div>
               <Button
-                size="sm"
-                variant="outline"
-                onClick={async () => {
-                  try {
-                    const response = await base44.functions.invoke('exportRecurringBills', {});
-                    const blob = new Blob([response.data], { type: 'application/pdf' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Recurring_Bills_${new Date().toISOString().split('T')[0]}.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                  } catch (error) {
-                    console.error('Export failed:', error);
-                  }
-                }}
+              size="sm"
+              onClick={handleAddBillClick}
+              className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
               >
-                <Download className="w-4 h-4 mr-1" />
-                Export PDF
+              <Plus className="w-4 h-4 mr-1" />
+              Add Bill
               </Button>
-              <Button
-                size="sm"
-                onClick={handleAddBillClick}
-                className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Bill
-              </Button>
-            </div>
-          </div>
+              </div>
           
           {isExpanded && bills.length > 0 && (
             <div className="flex gap-2 flex-wrap">
@@ -274,7 +249,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], credi
         </div>
 
         <CollapsibleContent>
-          {sortedBills.length > 0 && (
+          {bills.length > 0 && (
             <div className="mb-4">
               <Button
                 size="sm"

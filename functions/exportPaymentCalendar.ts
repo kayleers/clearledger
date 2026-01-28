@@ -104,25 +104,25 @@ Deno.serve(async (req) => {
     });
 
     // PAGE 1: LIST VIEW
-    doc.setFontSize(14);
+    doc.setFontSize(16);
     doc.setTextColor(16, 185, 129);
     doc.text('Transaction List', margin, yPos);
-    yPos += 8;
+    yPos += 10;
 
     doc.setFontSize(10);
     doc.setTextColor(0);
 
     Object.entries(paymentsByDate).forEach(([date, items]) => {
-      if (yPos > 250) {
+      if (yPos > 245) {
         doc.addPage();
         yPos = 20;
       }
 
-      doc.setFontSize(11);
-      doc.setTextColor(80, 80, 80);
+      doc.setFontSize(12);
+      doc.setTextColor(60, 60, 60);
       doc.setFont(undefined, 'bold');
-      doc.text('Day ' + date, margin, yPos);
-      yPos += 6;
+      doc.text(`Day ${date}`, margin, yPos);
+      yPos += 7;
 
       doc.setFont(undefined, 'normal');
       items.forEach(item => {
@@ -132,59 +132,70 @@ Deno.serve(async (req) => {
         }
 
         doc.setFontSize(9);
-        doc.setTextColor(0);
+        doc.setTextColor(40, 40, 40);
         
-        const nameText = item.name.substring(0, 35);
-        const typeText = '(' + item.type + ')';
+        // Truncate long names to fit properly
+        const maxNameLength = 40;
+        const nameText = item.name.length > maxNameLength ? 
+          item.name.substring(0, maxNameLength) + '...' : 
+          item.name;
+        const typeText = `(${item.type})`;
         const amountText = formatCurrency(item.amount, item.currency);
         
-        doc.text(nameText, margin + 3, yPos);
-        doc.text(typeText, margin + 3, yPos + 4);
-        doc.text(amountText, pageWidth - margin - 35, yPos + 1, { align: 'right' });
+        // Draw name and type on same line
+        doc.text(`${nameText} ${typeText}`, margin + 5, yPos);
         
-        yPos += 10;
+        // Draw amount right-aligned
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text(amountText, pageWidth - margin, yPos, { align: 'right' });
+        doc.setFont(undefined, 'normal');
+        
+        yPos += 6;
       });
 
-      yPos += 2;
+      yPos += 4;
     });
 
     // Add summary on same page if room
-    if (yPos > 220) {
+    if (yPos > 210) {
       doc.addPage();
       yPos = 20;
     }
 
-    yPos += 5;
-    doc.setFontSize(12);
+    yPos += 8;
+    doc.setFontSize(14);
     doc.setTextColor(16, 185, 129);
     doc.setFont(undefined, 'bold');
     doc.text('Summary', margin, yPos);
-    yPos += 7;
+    yPos += 8;
 
     doc.setFontSize(10);
-    doc.setTextColor(0);
+    doc.setTextColor(60, 60, 60);
     doc.setFont(undefined, 'normal');
     doc.text(`Total Payments: ${payments.length}`, margin, yPos);
-    yPos += 5;
+    yPos += 6;
 
     const totalByCurrency = {};
     payments.forEach(p => {
       totalByCurrency[p.currency] = (totalByCurrency[p.currency] || 0) + p.amount;
     });
 
+    doc.setFont(undefined, 'bold');
     Object.entries(totalByCurrency).forEach(([currency, total]) => {
       doc.text(`Total (${currency}): ${formatCurrency(total, currency)}`, margin, yPos);
-      yPos += 5;
+      yPos += 6;
     });
 
     // PAGE 2+: CALENDAR VIEW
     doc.addPage();
     yPos = 20;
 
-    doc.setFontSize(14);
+    doc.setFontSize(16);
     doc.setTextColor(16, 185, 129);
+    doc.setFont(undefined, 'bold');
     doc.text('Calendar View', margin, yPos);
-    yPos += 10;
+    yPos += 12;
 
     // Get first day of month and number of days
     const firstDay = new Date(year, month, 1).getDay();
@@ -193,18 +204,18 @@ Deno.serve(async (req) => {
     // Draw calendar header
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const cellWidth = (pageWidth - margin * 2) / 7;
-    const cellHeight = 25;
+    const cellHeight = 28;
 
-    doc.setFontSize(9);
+    doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
-    doc.setTextColor(100, 100, 100);
+    doc.setTextColor(80, 80, 80);
 
     dayNames.forEach((day, idx) => {
       const x = margin + idx * cellWidth;
       doc.text(day, x + cellWidth / 2, yPos, { align: 'center' });
     });
 
-    yPos += 8;
+    yPos += 6;
 
     // Draw calendar grid
     doc.setFont(undefined, 'normal');
@@ -218,6 +229,7 @@ Deno.serve(async (req) => {
 
         // Draw cell border
         doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.2);
         doc.rect(x, y, cellWidth, cellHeight);
 
         if (week === 0 && day < firstDay) {
@@ -236,26 +248,31 @@ Deno.serve(async (req) => {
           doc.rect(x, y, cellWidth, cellHeight, 'F');
           doc.setTextColor(255, 255, 255);
         } else {
-          doc.setTextColor(50, 50, 50);
+          doc.setTextColor(40, 40, 40);
         }
 
         // Day number
         doc.setFont(undefined, 'bold');
-        doc.text(dayCounter.toString(), x + 2, y + 4);
+        doc.setFontSize(9);
+        doc.text(dayCounter.toString(), x + 2, y + 5);
 
-        // Payments in cell
+        // Payments in cell (truncate to fit)
         doc.setFont(undefined, 'normal');
         doc.setFontSize(7);
-        let cellYPos = y + 8;
+        let cellYPos = y + 10;
 
-        dayPayments.forEach((payment, idx) => {
+        dayPayments.slice(0, 3).forEach((payment, idx) => {
           if (idx >= 2) {
-            doc.text('+' + (dayPayments.length - 2).toString(), x + 2, cellYPos);
+            doc.text(`+${dayPayments.length - 2} more`, x + 2, cellYPos);
             return;
           }
-          const shortName = payment.name.substring(0, 12);
+          // Truncate name to fit cell width
+          const maxChars = Math.floor(cellWidth / 1.5);
+          const shortName = payment.name.length > maxChars ? 
+            payment.name.substring(0, maxChars - 1) : 
+            payment.name;
           doc.text(shortName, x + 2, cellYPos);
-          cellYPos += 4;
+          cellYPos += 3.5;
         });
 
         dayCounter++;

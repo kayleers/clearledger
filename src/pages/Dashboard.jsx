@@ -771,18 +771,32 @@ export default function Dashboard() {
                               </div>
                             )}
                             {section === 'privacy' && (
-                              <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                                <div className="flex items-center gap-2 p-4">
-                                  <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                    <GripVertical className="w-5 h-5 text-slate-400" />
+                              <div className="space-y-3">
+                                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                                  <div className="flex items-center gap-2 p-4">
+                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                                      <GripVertical className="w-5 h-5 text-slate-400" />
+                                    </div>
+                                    <button 
+                                      onClick={() => setShowPrivacyPolicy(true)}
+                                      className="flex-1 text-left hover:bg-slate-50 transition-colors -m-4 p-4"
+                                    >
+                                      <h2 className="text-xl font-bold text-slate-800 mb-2">Privacy Policy</h2>
+                                      <p className="text-slate-500 text-sm">View our privacy policy</p>
+                                    </button>
                                   </div>
-                                  <button 
-                                    onClick={() => setShowPrivacyPolicy(true)}
-                                    className="flex-1 text-left hover:bg-slate-50 transition-colors -m-4 p-4"
+                                </div>
+                                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden p-4">
+                                  <Button
+                                    onClick={handleExportData}
+                                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                                   >
-                                    <h2 className="text-xl font-bold text-slate-800 mb-2">Privacy Policy</h2>
-                                    <p className="text-slate-500 text-sm">View our privacy policy</p>
-                                  </button>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Export All Data to PDF
+                                  </Button>
+                                  <p className="text-xs text-slate-500 text-center mt-2">
+                                    Export everything in your account to one comprehensive PDF
+                                  </p>
                                 </div>
                               </div>
                             )}

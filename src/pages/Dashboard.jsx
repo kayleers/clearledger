@@ -925,7 +925,7 @@ export default function Dashboard() {
               <p className="text-sm text-slate-500">Last updated: January 29, 2026</p>
               
               <h3 className="font-bold text-slate-900 mt-4">About ClearLedger</h3>
-              <p>ClearLedger ("the app") is operated by Khaos KR Services, located in the United States. ClearLedger is a manual financial planning tool designed to give users full control over their financial data and help users track bills, loans, credit cards, bank accounts, and payment schedules across multiple currencies. We are committed to protecting your privacy and being transparent about how your information is handled.</p>
+              <p>ClearLedger ("the app") is operated by Khaos, (Doing Business as Khaos KRServices), located in The Netherlands. ClearLedger is a manual financial planning tool designed to give users full control over their financial data and help users track bills, loans, credit cards, bank accounts, and payment schedules across multiple currencies. We are committed to protecting your privacy and being transparent about how your information is handled.</p>
               
               <h3 className="font-bold text-slate-900 mt-6">Legal Basis for Processing Data</h3>
               <p>We process your personal data based on:</p>
@@ -935,7 +935,7 @@ export default function Dashboard() {
               </ul>
               
               <h3 className="font-bold text-slate-900 mt-6">How We Store Your Data</h3>
-              <p>ClearLedger stores your financial data securely in the cloud through Base44, a cloud infrastructure provider that acts as a data processor on our behalf. Data may be stored on servers located outside your country. This allows you to:</p>
+              <p>ClearLedger stores your financial data securely in the cloud through Base44, a cloud infrastructure provider that acts as a data processor on our behalf. Base44 servers are located in The United States. Data may be stored on servers located outside your country. This allows you to:</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Access your data from any device (phone, tablet, computer) by logging in</li>
                 <li>Keep your data synchronized across all your devices</li>
@@ -975,7 +975,7 @@ export default function Dashboard() {
               <h3 className="font-bold text-slate-900 mt-6">Third-Party Service Providers</h3>
               <p>We share your data only with service providers necessary to operate the app:</p>
               <ul className="list-disc pl-5 space-y-1">
-                <li><strong>Base44:</strong> Cloud infrastructure provider for data storage and hosting. Base44 acts as a data processor and may store data on servers outside your country.</li>
+                <li><strong>Base44:</strong> Cloud infrastructure provider for data storage and hosting. Base44 acts as a data processor. Base44 servers are located in The United States.</li>
                 <li><strong>Stripe:</strong> Payment processor for subscriptions. Stripe collects and processes payment information. We do not receive or store your full payment card details. Please refer to Stripe's Privacy Policy for details on how Stripe handles payment data.</li>
               </ul>
               <p>We do not sell or share your data with third parties for advertising, marketing, or any other commercial purposes.</p>
@@ -1019,7 +1019,7 @@ export default function Dashboard() {
               <h3 className="font-bold text-slate-900 mt-6">Contact</h3>
               <p>If you have questions about this privacy policy, your privacy rights, or wish to exercise any of your rights, you may contact us at:</p>
               <p className="font-medium">Email: khaoskrservices@gmail.com</p>
-              <p className="font-medium">Operator: Khaos KR Services, United States</p>
+              <p className="font-medium">Operator: Khaos, (Doing Business as Khaos KRServices), The Netherlands</p>
               
               <h3 className="font-bold text-slate-900 mt-6">Complaints</h3>
               <p>If you are located in the European Union and believe your data protection rights have been violated, you have the right to lodge a complaint with your local data protection authority.</p>

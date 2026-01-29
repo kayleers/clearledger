@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Download } from 'lucide-react';
+import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Download, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { formatCurrency } from '@/components/utils/calculations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -526,11 +528,23 @@ export default function Dashboard() {
               <h1 className="text-3xl font-bold text-emerald-400 drop-shadow-lg">ClearLedger</h1>
               <p className="text-white">Private bill & balance tracking. Smarter payment planning.</p>
             </div>
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/b4ddf4f75_ClearLedgerSquareColorLogo.png" 
-              alt="ClearLedger Logo" 
-              className="w-16 h-16 rounded-xl shadow-lg object-cover"
-            />
+            <div className="flex items-center gap-3">
+              <Link to={createPageUrl('AccountSettings')}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                >
+                  <User className="w-4 h-4 mr-1" />
+                  Account
+                </Button>
+              </Link>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/b4ddf4f75_ClearLedgerSquareColorLogo.png" 
+                alt="ClearLedger Logo" 
+                className="w-16 h-16 rounded-xl shadow-lg object-cover"
+              />
+            </div>
           </div>
           <SyncManager 
             cards={cards} 

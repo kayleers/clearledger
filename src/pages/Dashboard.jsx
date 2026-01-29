@@ -528,23 +528,11 @@ export default function Dashboard() {
               <h1 className="text-3xl font-bold text-emerald-400 drop-shadow-lg">ClearLedger</h1>
               <p className="text-white">Private bill & balance tracking. Smarter payment planning.</p>
             </div>
-            <div className="flex items-center gap-3">
-              <Link to={createPageUrl('AccountSettings')}>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-                >
-                  <User className="w-4 h-4 mr-1" />
-                  Account
-                </Button>
-              </Link>
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/b4ddf4f75_ClearLedgerSquareColorLogo.png" 
-                alt="ClearLedger Logo" 
-                className="w-16 h-16 rounded-xl shadow-lg object-cover"
-              />
-            </div>
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/b4ddf4f75_ClearLedgerSquareColorLogo.png" 
+              alt="ClearLedger Logo" 
+              className="w-16 h-16 rounded-xl shadow-lg object-cover"
+            />
           </div>
           <SyncManager 
             cards={cards} 

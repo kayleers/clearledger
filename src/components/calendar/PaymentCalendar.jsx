@@ -43,39 +43,72 @@ export default function PaymentCalendar() {
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const accessControl = useAccessControl();
 
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me()
+  });
+
   const { data: cards = [] } = useQuery({
-    queryKey: ['credit-cards'],
-    queryFn: () => base44.entities.CreditCard.list()
+    queryKey: ['credit-cards', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      return await base44.entities.CreditCard.filter({ created_by: user.email });
+    },
+    enabled: !!user
   });
 
   const { data: bills = [] } = useQuery({
-    queryKey: ['recurring-bills'],
-    queryFn: () => base44.entities.RecurringBill.filter({ is_active: true })
+    queryKey: ['recurring-bills', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      return await base44.entities.RecurringBill.filter({ is_active: true, created_by: user.email });
+    },
+    enabled: !!user
   });
 
   const { data: loans = [] } = useQuery({
-    queryKey: ['mortgage-loans'],
-    queryFn: () => base44.entities.MortgageLoan.filter({ is_active: true })
+    queryKey: ['mortgage-loans', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      return await base44.entities.MortgageLoan.filter({ is_active: true, created_by: user.email });
+    },
+    enabled: !!user
   });
 
   const { data: bankAccounts = [] } = useQuery({
-    queryKey: ['bank-accounts'],
-    queryFn: () => base44.entities.BankAccount.filter({ is_active: true })
+    queryKey: ['bank-accounts', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      return await base44.entities.BankAccount.filter({ is_active: true, created_by: user.email });
+    },
+    enabled: !!user
   });
 
   const { data: recurringDeposits = [] } = useQuery({
-    queryKey: ['recurring-deposits'],
-    queryFn: () => base44.entities.RecurringDeposit.filter({ is_active: true })
+    queryKey: ['recurring-deposits', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      return await base44.entities.RecurringDeposit.filter({ is_active: true, created_by: user.email });
+    },
+    enabled: !!user
   });
 
   const { data: bankTransfers = [] } = useQuery({
-    queryKey: ['bank-transfers'],
-    queryFn: () => base44.entities.BankTransfer.filter({ is_active: true })
+    queryKey: ['bank-transfers', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      return await base44.entities.BankTransfer.filter({ is_active: true, created_by: user.email });
+    },
+    enabled: !!user
   });
 
   const { data: paidStatuses = [] } = useQuery({
-    queryKey: ['scheduled-payment-statuses'],
-    queryFn: () => base44.entities.ScheduledPaymentStatus.list()
+    queryKey: ['scheduled-payment-statuses', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      return await base44.entities.ScheduledPaymentStatus.filter({ created_by: user.email });
+    },
+    enabled: !!user
   });
 
   const queryClient = useQueryClient();

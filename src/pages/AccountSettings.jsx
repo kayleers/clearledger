@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Save, User, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Loader2, Save, User, Mail, Lock, AlertCircle, CreditCard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 export default function AccountSettings() {
   const queryClient = useQueryClient();
+  const accessControl = useAccessControl();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -18,6 +21,7 @@ export default function AccountSettings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['current-user'],
@@ -186,6 +190,53 @@ export default function AccountSettings() {
           </CardContent>
         </Card>
 
+        {/* Subscription Settings */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Subscription
+            </CardTitle>
+            <CardDescription>Your current subscription tier</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Current Plan</Label>
+              <div className="p-4 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg">
+                <p className="text-lg font-bold text-emerald-700">
+                  {accessControl.userTier === 'free' && '🆓 Free Plan'}
+                  {accessControl.userTier === 'pro' && '⭐ Pro Plan'}
+                  {accessControl.userTier === 'lifetime' && '💎 Lifetime Access'}
+                </p>
+                <p className="text-sm text-slate-600 mt-1">
+                  {accessControl.userTier === 'free' && 'Limited to 2 credit cards and 2 loans'}
+                  {accessControl.userTier === 'pro' && 'Unlimited credit cards and loans'}
+                  {accessControl.userTier === 'lifetime' && 'Unlimited everything, forever'}
+                </p>
+              </div>
+            </div>
+            
+            {accessControl.userTier !== 'lifetime' && (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+                <p className="font-semibold text-slate-800 mb-2">
+                  {accessControl.userTier === 'free' ? '🚀 Upgrade to unlock more!' : '💎 Go Lifetime!'}
+                </p>
+                <p className="text-sm text-slate-700 mb-3">
+                  {accessControl.userTier === 'free' 
+                    ? 'Unlock unlimited credit cards, loans, and advanced features'
+                    : 'Get lifetime access with a one-time payment - no recurring fees!'}
+                </p>
+                <Button 
+                  onClick={() => setShowUpgradeDialog(true)}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  View Upgrade Options
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Email Settings */}
         <Card className="mb-6">
           <CardHeader>
@@ -277,6 +328,13 @@ export default function AccountSettings() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Upgrade Dialog */}
+        <UpgradeDialog 
+          open={showUpgradeDialog}
+          onOpenChange={setShowUpgradeDialog}
+          context="general"
+        />
       </div>
     </div>
   );

@@ -3,7 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { RefreshCw, Calendar, DollarSign, CreditCard, Building2, FileText, Home, CheckCircle2, Download } from 'lucide-react';
+import { RefreshCw, Calendar, DollarSign, CreditCard, Building2, FileText, Home, CheckCircle2, Download, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { formatCurrency } from '@/components/utils/calculations';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -330,6 +332,16 @@ export default function SyncManager({ cards = [], bankAccounts = [], bills = [],
             Export PDF
           </Button>
         )}
+        <Link to={createPageUrl('AccountSettings')}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+          >
+            <User className="w-4 h-4 mr-1" />
+            Account
+          </Button>
+        </Link>
       </div>
 
       {/* Sync Dialog */}

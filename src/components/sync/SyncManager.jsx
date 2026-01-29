@@ -312,15 +312,15 @@ export default function SyncManager({ cards = [], bankAccounts = [], bills = [],
   return (
     <>
       {/* Sync and Export Buttons */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <Button
           onClick={() => setShowSyncDialog(true)}
           variant={shouldShowReminder ? "default" : "outline"}
           size="sm"
           className={shouldShowReminder ? "bg-gradient-to-r from-orange-500 to-red-500 text-white animate-pulse" : "bg-white/10 border-white/20 text-white hover:bg-white/20"}
         >
-          <RefreshCw className={`w-4 h-4 mr-2 ${shouldShowReminder ? 'animate-spin' : ''}`} />
-          {daysBehind > 0 ? `Sync (${daysBehind} ${daysBehind === 1 ? 'day' : 'days'} behind)` : 'Sync to Today'}
+          <RefreshCw className={`w-4 h-4 sm:mr-2 ${shouldShowReminder ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">{daysBehind > 0 ? `Sync (${daysBehind} ${daysBehind === 1 ? 'day' : 'days'} behind)` : 'Sync to Today'}</span>
         </Button>
         {onExportData && (
           <Button
@@ -329,8 +329,8 @@ export default function SyncManager({ cards = [], bankAccounts = [], bills = [],
             onClick={onExportData}
             className="bg-white/10 border-white/20 text-white hover:bg-white/20"
           >
-            <Download className="w-4 h-4 mr-1" />
-            Export PDF
+            <Download className="w-4 h-4 sm:mr-1" />
+            <span className="hidden sm:inline">Export</span>
           </Button>
         )}
         <DropdownMenu>
@@ -340,8 +340,7 @@ export default function SyncManager({ cards = [], bankAccounts = [], bills = [],
               variant="outline"
               className="bg-white/10 text-white border-white/20 hover:bg-white/20"
             >
-              <User className="w-4 h-4 mr-1" />
-              Account
+              <User className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

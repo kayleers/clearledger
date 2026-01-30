@@ -41,9 +41,13 @@ export default function AccountSettings() {
     mutationFn: async () => {
       const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
       await base44.auth.updateMe({ full_name: fullName });
+      return fullName;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['current-user'] });
+    onSuccess: (fullName) => {
+      queryClient.setQueryData(['current-user'], (old) => ({
+        ...old,
+        full_name: fullName
+      }));
       setSuccess('Name updated successfully!');
       setError('');
       setTimeout(() => setSuccess(''), 3000);
@@ -204,19 +208,19 @@ export default function AccountSettings() {
               <Label>Current Plan</Label>
               <div className="p-4 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg">
                 <p className="text-lg font-bold text-emerald-700">
-                  {accessControl.userTier === 'free' && '🆓 Free Plan'}
-                  {accessControl.userTier === 'pro' && '⭐ Pro Plan'}
-                  {accessControl.userTier === 'lifetime' && '💎 Lifetime Access'}
+                  {accessControl.userTier === 'free' ? '🆓 Free Plan' : 
+                   accessControl.userTier === 'pro' ? '⭐ Pro Plan' : 
+                   accessControl.userTier === 'lifetime' ? '💎 Lifetime Access' : '🆓 Free Plan'}
                 </p>
                 <p className="text-sm text-slate-600 mt-1">
-                  {accessControl.userTier === 'free' && 'Limited to 2 credit cards and 2 loans'}
-                  {accessControl.userTier === 'pro' && 'Unlimited credit cards and loans'}
-                  {accessControl.userTier === 'lifetime' && 'Unlimited everything, forever'}
+                  {accessControl.userTier === 'free' ? 'Limited to 2 credit cards and 2 loans' :
+                   accessControl.userTier === 'pro' ? 'Unlimited credit cards and loans' :
+                   accessControl.userTier === 'lifetime' ? 'Unlimited everything, forever' : 'Limited to 2 credit cards and 2 loans'}
                 </p>
               </div>
             </div>
             
-            {accessControl.userTier !== 'lifetime' && (
+            {(accessControl.userTier === 'free' || accessControl.userTier === 'lifetime') && (
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
                 <p className="font-semibold text-slate-800 mb-2">
                   {accessControl.userTier === 'free' ? '🚀 Upgrade to unlock more!' : '💎 Go Lifetime!'}
@@ -248,17 +252,18 @@ export default function AccountSettings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Current Email</Label>
-              <div className="p-3 bg-slate-100 rounded-md text-slate-700 font-medium">
-                {user?.email}
-              </div>
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={user?.email || ''}
+                disabled
+                className="bg-slate-100 cursor-not-allowed"
+              />
             </div>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-900">
-                <strong>Note:</strong> Email addresses cannot be changed directly in Base44. Your subscription tier is tied to your email address and will be preserved.
-              </p>
-              <p className="text-sm text-blue-800 mt-2">
-                If you need to change your email, please contact support at <a href="mailto:khaoskrservices@gmail.com" className="underline font-medium">khaoskrservices@gmail.com</a>
+                <strong>Note:</strong> To change your email address, please contact support at <a href="mailto:khaoskrservices@gmail.com" className="underline font-medium">khaoskrservices@gmail.com</a>
               </p>
             </div>
           </CardContent>

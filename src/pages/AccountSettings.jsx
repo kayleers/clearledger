@@ -16,6 +16,7 @@ export default function AccountSettings() {
   const accessControl = useAccessControl();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,6 +33,10 @@ export default function AccountSettings() {
         const nameParts = userData.full_name.split(' ');
         setFirstName(nameParts[0] || '');
         setLastName(nameParts.slice(1).join(' ') || '');
+      }
+      // Set email
+      if (userData.email) {
+        setEmail(userData.email);
       }
       return userData;
     }
@@ -54,6 +59,29 @@ export default function AccountSettings() {
     },
     onError: (error) => {
       setError('Failed to update name. Please try again.');
+      setSuccess('');
+    }
+  });
+
+  const updateEmailMutation = useMutation({
+    mutationFn: async () => {
+      if (!email || !email.includes('@')) {
+        throw new Error('Please enter a valid email address');
+      }
+      await base44.auth.updateMe({ email: email.trim() });
+      return email.trim();
+    },
+    onSuccess: (newEmail) => {
+      queryClient.setQueryData(['current-user'], (old) => ({
+        ...old,
+        email: newEmail
+      }));
+      setSuccess('Email updated successfully!');
+      setError('');
+      setTimeout(() => setSuccess(''), 3000);
+    },
+    onError: (error) => {
+      setError(error.message || 'Failed to update email. Please try again.');
       setSuccess('');
     }
   });
@@ -93,6 +121,11 @@ export default function AccountSettings() {
   const handleUpdateName = (e) => {
     e.preventDefault();
     updateNameMutation.mutate();
+  };
+
+  const handleUpdateEmail = (e) => {
+    e.preventDefault();
+    updateEmailMutation.mutate();
   };
 
   const handleChangePassword = (e) => {
@@ -248,24 +281,39 @@ export default function AccountSettings() {
               <Mail className="w-5 h-5" />
               Email Address
             </CardTitle>
-            <CardDescription>Your email address and subscription tier</CardDescription>
+            <CardDescription>Update your email address</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={user?.email || ''}
-                disabled
-                className="bg-slate-100 cursor-not-allowed"
-              />
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-900">
-                <strong>Note:</strong> To change your email address, please contact support at <a href="mailto:khaoskrservices@gmail.com" className="underline font-medium">khaoskrservices@gmail.com</a>
-              </p>
-            </div>
+          <CardContent>
+            <form onSubmit={handleUpdateEmail} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-emerald-600 hover:bg-emerald-700"
+                disabled={updateEmailMutation.isPending}
+              >
+                {updateEmailMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Email
+                  </>
+                )}
+              </Button>
+            </form>
           </CardContent>
         </Card>
 

@@ -45,14 +45,11 @@ export default function AccountSettings() {
   const updateNameMutation = useMutation({
     mutationFn: async () => {
       const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-      await base44.auth.updateMe({ full_name: fullName });
+      await base44.entities.User.update(user.id, { full_name: fullName });
       return fullName;
     },
     onSuccess: (fullName) => {
-      queryClient.setQueryData(['current-user'], (old) => ({
-        ...old,
-        full_name: fullName
-      }));
+      queryClient.invalidateQueries({ queryKey: ['current-user'] });
       setSuccess('Name updated successfully!');
       setError('');
       setTimeout(() => setSuccess(''), 3000);
@@ -68,14 +65,11 @@ export default function AccountSettings() {
       if (!email || !email.includes('@')) {
         throw new Error('Please enter a valid email address');
       }
-      await base44.auth.updateMe({ email: email.trim() });
+      await base44.entities.User.update(user.id, { email: email.trim() });
       return email.trim();
     },
     onSuccess: (newEmail) => {
-      queryClient.setQueryData(['current-user'], (old) => ({
-        ...old,
-        email: newEmail
-      }));
+      queryClient.invalidateQueries({ queryKey: ['current-user'] });
       setSuccess('Email updated successfully!');
       setError('');
       setTimeout(() => setSuccess(''), 3000);
@@ -241,25 +235,27 @@ export default function AccountSettings() {
               <Label>Current Plan</Label>
               <div className="p-4 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg">
                 <p className="text-lg font-bold text-emerald-700">
-                  {accessControl.userTier === 'free' ? '🆓 Free Plan' : 
-                   accessControl.userTier === 'pro' ? '⭐ Pro Plan' : 
-                   accessControl.userTier === 'lifetime' ? '💎 Lifetime Access' : '🆓 Free Plan'}
+                  {user?.tier === 'free' ? '🆓 Free Plan' : 
+                   user?.tier === 'pro' ? '⭐ Pro Plan' : 
+                   user?.tier === 'lifetime' ? '💎 Lifetime Access' : 
+                   !user?.tier ? '🆓 Free Plan' : '🆓 Free Plan'}
                 </p>
                 <p className="text-sm text-slate-600 mt-1">
-                  {accessControl.userTier === 'free' ? 'Limited to 2 credit cards and 2 loans' :
-                   accessControl.userTier === 'pro' ? 'Unlimited credit cards and loans' :
-                   accessControl.userTier === 'lifetime' ? 'Unlimited everything, forever' : 'Limited to 2 credit cards and 2 loans'}
+                  {user?.tier === 'free' ? 'Limited to 2 credit cards and 2 loans' :
+                   user?.tier === 'pro' ? 'Unlimited credit cards and loans' :
+                   user?.tier === 'lifetime' ? 'Unlimited everything, forever' : 
+                   !user?.tier ? 'Limited to 2 credit cards and 2 loans' : 'Limited to 2 credit cards and 2 loans'}
                 </p>
               </div>
             </div>
             
-            {(accessControl.userTier === 'free' || accessControl.userTier === 'lifetime') && (
+            {(user?.tier === 'free' || user?.tier === 'lifetime' || !user?.tier) && (
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
                 <p className="font-semibold text-slate-800 mb-2">
-                  {accessControl.userTier === 'free' ? '🚀 Upgrade to unlock more!' : '💎 Go Lifetime!'}
+                  {(user?.tier === 'free' || !user?.tier) ? '🚀 Upgrade to unlock more!' : '💎 Go Lifetime!'}
                 </p>
                 <p className="text-sm text-slate-700 mb-3">
-                  {accessControl.userTier === 'free' 
+                  {(user?.tier === 'free' || !user?.tier)
                     ? 'Unlock unlimited credit cards, loans, and advanced features'
                     : 'Get lifetime access with a one-time payment - no recurring fees!'}
                 </p>

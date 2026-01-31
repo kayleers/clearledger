@@ -32,11 +32,16 @@ export default function AccountSettings() {
     queryKey: ['current-user'],
     queryFn: async () => {
       const currentUser = await base44.auth.me();
-      setFullName(currentUser.full_name || '');
-      setEmail(currentUser.email || '');
       return currentUser;
     }
   });
+
+  React.useEffect(() => {
+    if (user) {
+      setFullName(user.full_name || '');
+      setEmail(user.email || '');
+    }
+  }, [user]);
 
   const updateUserMutation = useMutation({
     mutationFn: async (data) => {

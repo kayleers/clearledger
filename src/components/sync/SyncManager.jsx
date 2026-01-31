@@ -330,6 +330,15 @@ export default function SyncManager({ cards = [], bankAccounts = [], bills = [],
             <span className="hidden sm:inline">Export</span>
           </Button>
         )}
+        <Link to={createPageUrl('AccountSettings')}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+          >
+            <User className="w-4 h-4" />
+          </Button>
+        </Link>
       </div>
 
       {/* Sync Dialog */}

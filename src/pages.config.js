@@ -47,7 +47,6 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import AccountSettings from './pages/AccountSettings';
 import BankAccountDetail from './pages/BankAccountDetail';
 import BillDetail from './pages/BillDetail';
 import CardDetail from './pages/CardDetail';
@@ -57,7 +56,6 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AccountSettings": AccountSettings,
     "BankAccountDetail": BankAccountDetail,
     "BillDetail": BillDetail,
     "CardDetail": CardDetail,

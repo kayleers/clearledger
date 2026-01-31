@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Sparkles, Crown, Zap } from 'lucide-react';
 import { TIERS, TIER_DETAILS } from './tierConfig';
 import { useEntitlements } from './EntitlementsProvider';
+import SubscriptionPurchaseDialog from '@/components/billing/SubscriptionPurchaseDialog';
 
 export default function UpgradeDialog({ open, onOpenChange, context = 'general', itemType = 'item' }) {
   const { userTier } = useEntitlements();
+  const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
 
   const contextMessages = {
     creditCards: {
@@ -42,14 +44,14 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general',
 
   const message = contextMessages[context] || contextMessages.general;
 
-  const handleUpgradeLifetime = () => {
-    // TODO: Integrate with payment processor
-    alert('Lifetime upgrade coming soon!');
+  const handleUpgrade = () => {
+    setShowPurchaseDialog(true);
   };
 
-  const handleUpgradePro = () => {
-    // TODO: Integrate with payment processor
-    alert('Pro subscription coming soon!');
+  const handlePurchaseComplete = () => {
+    setShowPurchaseDialog(false);
+    onOpenChange(false);
+    window.location.reload(); // Refresh to update tier
   };
 
   const showLifetime = userTier === TIERS.FREE;
@@ -108,7 +110,7 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general',
               </div>
 
               <Button 
-                onClick={handleUpgradeLifetime}
+                onClick={handleUpgrade}
                 className="w-full bg-purple-600 hover:bg-purple-700"
               >
                 Get Lifetime Access
@@ -167,7 +169,7 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general',
               </div>
 
               <Button 
-                onClick={handleUpgradePro}
+                onClick={handleUpgrade}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               >
                 Start Pro Subscription
@@ -181,9 +183,16 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general',
             className="w-full"
           >
             Maybe Later
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
+            </Button>
+            </div>
+            </DialogContent>
+            </Dialog>
+
+            <SubscriptionPurchaseDialog 
+            open={showPurchaseDialog}
+            onOpenChange={setShowPurchaseDialog}
+            onPurchaseComplete={handlePurchaseComplete}
+            />
+            </>
+            );
+            }

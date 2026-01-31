@@ -49,6 +49,9 @@ export default function AccountSettings() {
       return fullName;
     },
     onSuccess: (fullName) => {
+      queryClient.setQueryData(['current-user'], (old) => ({ ...old, full_name: fullName }));
+      setFirstName(fullName.split(' ')[0] || '');
+      setLastName(fullName.split(' ').slice(1).join(' ') || '');
       queryClient.invalidateQueries({ queryKey: ['current-user'] });
       setSuccess('Name updated successfully!');
       setError('');
@@ -69,6 +72,8 @@ export default function AccountSettings() {
       return email.trim();
     },
     onSuccess: (newEmail) => {
+      queryClient.setQueryData(['current-user'], (old) => ({ ...old, email: newEmail }));
+      setEmail(newEmail);
       queryClient.invalidateQueries({ queryKey: ['current-user'] });
       setSuccess('Email updated successfully!');
       setError('');

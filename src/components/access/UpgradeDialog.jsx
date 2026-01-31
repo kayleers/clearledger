@@ -58,14 +58,15 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general',
   const showPro = userTier === TIERS.FREE || userTier === TIERS.LIFETIME;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">{message.title}</DialogTitle>
-          <DialogDescription className="text-base">{message.description}</DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">{message.title}</DialogTitle>
+            <DialogDescription className="text-base">{message.description}</DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4 mt-6">
+          <div className="space-y-4 mt-6">
           {showLifetime && (
             <div className="border-2 border-purple-200 rounded-xl p-6 hover:border-purple-400 transition-colors">
               <div className="flex items-start justify-between mb-4">
@@ -183,16 +184,16 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general',
             className="w-full"
           >
             Maybe Later
-            </Button>
-            </div>
-            </DialogContent>
-            </Dialog>
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
 
-            <SubscriptionPurchaseDialog 
-            open={showPurchaseDialog}
-            onOpenChange={setShowPurchaseDialog}
-            onPurchaseComplete={handlePurchaseComplete}
-            />
-            </>
-            );
-            }
+    <SubscriptionPurchaseDialog 
+      open={showPurchaseDialog}
+      onOpenChange={setShowPurchaseDialog}
+      onPurchaseComplete={handlePurchaseComplete}
+    />
+  </>
+  );
+}

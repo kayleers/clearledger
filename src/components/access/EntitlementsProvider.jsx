@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { TIERS, getHighestTier } from './tierConfig';
+import { TIERS, getHighestTier, GOOGLE_PLAY_PRODUCT_TO_TIER } from './tierConfig';
+import { isAndroid } from '@/components/platform/platformDetection';
+import { googlePlayBilling } from '@/components/billing/GooglePlayBillingService';
 
 const EntitlementsContext = createContext(null);
 
@@ -15,6 +17,42 @@ export function EntitlementsProvider({ children }) {
   const loadUserTier = async () => {
     try {
       const user = await base44.auth.me();
+      
+      // On Android, check Google Play Billing first
+      if (isAndroid()) {
+        try {
+          await googlePlayBilling.initialize();
+          const subscriptions = await googlePlayBilling.getActiveSubscriptions();
+          
+          if (subscriptions.length > 0) {
+            // Find the highest tier subscription
+            let highestTier = TIERS.FREE;
+            for (const sub of subscriptions) {
+              const tier = GOOGLE_PLAY_PRODUCT_TO_TIER[sub.productId];
+              if (tier) {
+                highestTier = getHighestTier(highestTier, tier);
+              }
+            }
+            
+            if (highestTier !== TIERS.FREE) {
+              setUserTier(highestTier);
+              
+              // Sync with backend if different
+              if (user.subscription_tier !== highestTier) {
+                await base44.auth.updateMe({ subscription_tier: highestTier });
+              }
+              
+              setIsLoading(false);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Google Play Billing check failed:', error);
+          // Fall through to web-based tier check
+        }
+      }
+      
+      // Web or fallback: Use backend tier
       const tier = user.subscription_tier || TIERS.FREE;
       setUserTier(tier);
     } catch (error) {

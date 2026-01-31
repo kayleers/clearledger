@@ -5,6 +5,13 @@ export const TIERS = {
   PRO_SUBSCRIPTION: 'PRO_SUBSCRIPTION'
 };
 
+// Google Play Product IDs mapping
+export const GOOGLE_PLAY_PRODUCT_TO_TIER = {
+  'clearledger_pro_monthly': TIERS.PRO_SUBSCRIPTION,
+  'clearledger_pro_yearly': TIERS.PRO_SUBSCRIPTION,
+  'clearledger_lifetime': TIERS.LIFETIME
+};
+
 export const TIER_DETAILS = {
   [TIERS.FREE]: {
     name: 'Free',

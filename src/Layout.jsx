@@ -36,6 +36,13 @@ export default function Layout({ children, currentPageName }) {
             overscroll-behavior-y: none;
           }
 
+          /* Prevent text selection on interactive elements */
+          button, a, nav, [role="button"], [role="tab"], [role="link"] {
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+          }
+
           /* Dark mode support */
           @media (prefers-color-scheme: dark) {
             :root {

@@ -229,7 +229,7 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7"
+                    className="h-11 w-11 p-0 flex items-center justify-center"
                     onClick={async () => {
                       try {
                         const response = await base44.functions.invoke('exportBankAccount', { accountId: account.id });
@@ -253,7 +253,7 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7"
+                    className="h-11 w-11 p-0 flex items-center justify-center"
                     onClick={() => setEditingAccount(account)}
                   >
                     <Edit2 className="w-3.5 h-3.5" />
@@ -261,7 +261,7 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-red-500"
+                    className="h-11 w-11 p-0 flex items-center justify-center text-red-500"
                     onClick={() => {
                       if (confirm('Delete this bank account?')) {
                         deleteAccountMutation.mutate(account.id);

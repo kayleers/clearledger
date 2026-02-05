@@ -15,6 +15,7 @@ import { formatCurrency } from '@/components/utils/calculations';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
+import { MobileSelect } from '@/components/ui/mobile-select';
 
 const loanTypeIcons = {
   mortgage: '🏠',
@@ -229,7 +230,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7"
+                        className="h-11 w-11 p-0 flex items-center justify-center"
                         onClick={async (e) => {
                           e.preventDefault();
                           try {
@@ -254,7 +255,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7"
+                        className="h-11 w-11 p-0 flex items-center justify-center"
                         onClick={(e) => {
                           e.preventDefault();
                           setEditingLoan(loan);
@@ -265,7 +266,7 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-red-500"
+                        className="h-11 w-11 p-0 flex items-center justify-center text-red-500"
                         onClick={(e) => {
                           e.preventDefault();
                           if (confirm('Delete this loan?')) {
@@ -511,19 +512,20 @@ function MortgageLoanForm({ loan, bankAccounts, creditCards = [], onSubmit, isLo
 
       <div className="space-y-2">
         <Label htmlFor="loanType">Loan Type</Label>
-        <select
-          id="loanType"
+        <MobileSelect
           value={formData.loan_type}
-          onChange={(e) => setFormData({ ...formData, loan_type: e.target.value })}
-          className="w-full h-10 px-3 rounded-md border border-slate-200"
-        >
-          <option value="mortgage">Mortgage</option>
-          <option value="auto">Auto Loan</option>
-          <option value="personal">Personal Loan</option>
-          <option value="student">Student Loan</option>
-          <option value="business">Business Loan</option>
-          <option value="other">Other</option>
-        </select>
+          onValueChange={(value) => setFormData({ ...formData, loan_type: value })}
+          options={[
+            { value: 'mortgage', label: 'Mortgage' },
+            { value: 'auto', label: 'Auto Loan' },
+            { value: 'personal', label: 'Personal Loan' },
+            { value: 'student', label: 'Student Loan' },
+            { value: 'business', label: 'Business Loan' },
+            { value: 'other', label: 'Other' }
+          ]}
+          placeholder="Select loan type"
+          label="Loan Type"
+        />
       </div>
 
       <div className="space-y-2">

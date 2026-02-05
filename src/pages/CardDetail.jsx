@@ -37,6 +37,7 @@ import SavedScenarios from '@/components/scenarios/SavedScenarios';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
+import { MobileSelect } from '@/components/ui/mobile-select';
 import { 
   formatCurrency, 
   calculateUtilization, 
@@ -137,6 +138,20 @@ export default function CardDetail() {
         balance: card.balance + purchaseData.amount
       });
     },
+    onMutate: async (purchaseData) => {
+      await queryClient.cancelQueries({ queryKey: ['credit-card', cardId] });
+      const previousCard = queryClient.getQueryData(['credit-card', cardId]);
+      
+      queryClient.setQueryData(['credit-card', cardId], (old) => ({
+        ...old,
+        balance: old.balance + purchaseData.amount
+      }));
+      
+      return { previousCard };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(['credit-card', cardId], context.previousCard);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchases', cardId] });
       queryClient.invalidateQueries({ queryKey: ['credit-card', cardId] });
@@ -151,6 +166,20 @@ export default function CardDetail() {
       await base44.entities.CreditCard.update(cardId, {
         balance: Math.max(0, card.balance - paymentData.amount)
       });
+    },
+    onMutate: async (paymentData) => {
+      await queryClient.cancelQueries({ queryKey: ['credit-card', cardId] });
+      const previousCard = queryClient.getQueryData(['credit-card', cardId]);
+      
+      queryClient.setQueryData(['credit-card', cardId], (old) => ({
+        ...old,
+        balance: Math.max(0, old.balance - paymentData.amount)
+      }));
+      
+      return { previousCard };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(['credit-card', cardId], context.previousCard);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments', cardId] });
@@ -844,19 +873,19 @@ function EditCardForm({ card, bankAccounts, onSave }) {
 
       <div className="space-y-2">
         <Label htmlFor="editBankAccount">Bank Account (Optional)</Label>
-        <select
-          id="editBankAccount"
+        <MobileSelect
           value={formData.bank_account_id}
-          onChange={(e) => setFormData({ ...formData, bank_account_id: e.target.value })}
-          className="w-full h-10 px-3 rounded-md border border-slate-200"
-        >
-          <option value="">None</option>
-          {bankAccounts.map(account => (
-            <option key={account.id} value={account.id}>
-              {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
-            </option>
-          ))}
-        </select>
+          onValueChange={(value) => setFormData({ ...formData, bank_account_id: value })}
+          options={[
+            { value: '', label: 'None' },
+            ...bankAccounts.map(account => ({
+              value: account.id,
+              label: `${account.name} ${account.account_number ? `(${account.account_number})` : ''} - ${account.currency}`
+            }))
+          ]}
+          placeholder="Select payment source"
+          label="Bank Account"
+        />
         <p className="text-xs text-slate-500">Select which account payments will be withdrawn from</p>
       </div>
 
@@ -1129,22 +1158,23 @@ function EditPurchaseForm({ purchase, onSave, isLoading }) {
       </div>
       <div className="space-y-2">
         <Label htmlFor="editCategory">Category</Label>
-        <select
-          id="editCategory"
+        <MobileSelect
           value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          className="w-full h-10 px-3 rounded-md border border-slate-200"
-        >
-          <option value="groceries">Groceries</option>
-          <option value="dining">Dining</option>
-          <option value="shopping">Shopping</option>
-          <option value="gas">Gas</option>
-          <option value="bills">Bills</option>
-          <option value="entertainment">Entertainment</option>
-          <option value="travel">Travel</option>
-          <option value="health">Health</option>
-          <option value="other">Other</option>
-        </select>
+          onValueChange={(value) => setFormData({ ...formData, category: value })}
+          options={[
+            { value: 'groceries', label: 'Groceries' },
+            { value: 'dining', label: 'Dining' },
+            { value: 'shopping', label: 'Shopping' },
+            { value: 'gas', label: 'Gas' },
+            { value: 'bills', label: 'Bills' },
+            { value: 'entertainment', label: 'Entertainment' },
+            { value: 'travel', label: 'Travel' },
+            { value: 'health', label: 'Health' },
+            { value: 'other', label: 'Other' }
+          ]}
+          placeholder="Select category"
+          label="Category"
+        />
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? 'Saving...' : 'Save Changes'}

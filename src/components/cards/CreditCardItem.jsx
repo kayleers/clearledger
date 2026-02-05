@@ -98,7 +98,7 @@ export default function CreditCardItem({ card, isDragging, onEdit, onDelete }) {
                   e.preventDefault();
                   onEdit?.(card);
                 }}
-                className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                className="p-2.5 hover:bg-white/20 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
                 <Pencil className="w-4 h-4" />
               </button>
@@ -107,7 +107,7 @@ export default function CreditCardItem({ card, isDragging, onEdit, onDelete }) {
                   e.preventDefault();
                   onDelete?.(card);
                 }}
-                className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                className="p-2.5 hover:bg-white/20 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
                 <Trash2 className="w-4 h-4" />
               </button>

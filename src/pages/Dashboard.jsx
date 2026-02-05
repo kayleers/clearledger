@@ -316,6 +316,21 @@ export default function Dashboard() {
         });
       }
     },
+    onMutate: async ({ purchaseData, cardId }) => {
+      await queryClient.cancelQueries({ queryKey: ['credit-cards'] });
+      const previousCards = queryClient.getQueryData(['credit-cards', user?.email]);
+      
+      queryClient.setQueryData(['credit-cards', user?.email], (old) => {
+        return old?.map(c => 
+          c.id === cardId ? { ...c, balance: c.balance + purchaseData.amount } : c
+        );
+      });
+      
+      return { previousCards };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(['credit-cards', user?.email], context.previousCards);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchases'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card'] });
@@ -390,6 +405,21 @@ export default function Dashboard() {
           });
         }
       }
+    },
+    onMutate: async ({ amount, targetId }) => {
+      await queryClient.cancelQueries({ queryKey: ['credit-cards'] });
+      const previousCards = queryClient.getQueryData(['credit-cards', user?.email]);
+      
+      queryClient.setQueryData(['credit-cards', user?.email], (old) => {
+        return old?.map(c => 
+          c.id === targetId ? { ...c, balance: Math.max(0, c.balance - amount) } : c
+        );
+      });
+      
+      return { previousCards };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(['credit-cards', user?.email], context.previousCards);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
@@ -474,6 +504,21 @@ export default function Dashboard() {
         balance: parseFloat(amount),
         last_balance_override: new Date().toISOString()
       });
+    },
+    onMutate: async ({ amount, targetId }) => {
+      await queryClient.cancelQueries({ queryKey: ['credit-cards'] });
+      const previousCards = queryClient.getQueryData(['credit-cards', user?.email]);
+      
+      queryClient.setQueryData(['credit-cards', user?.email], (old) => {
+        return old?.map(c => 
+          c.id === targetId ? { ...c, balance: parseFloat(amount), last_balance_override: new Date().toISOString() } : c
+        );
+      });
+      
+      return { previousCards };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(['credit-cards', user?.email], context.previousCards);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });

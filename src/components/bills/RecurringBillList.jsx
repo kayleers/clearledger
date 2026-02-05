@@ -351,7 +351,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], credi
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7"
+                      className="h-11 w-11 p-0 flex items-center justify-center"
                       onClick={() => setEditingBill(bill)}
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -359,7 +359,7 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], credi
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-red-500"
+                      className="h-11 w-11 p-0 flex items-center justify-center text-red-500"
                       onClick={() => {
                         if (confirm('Delete this recurring bill?')) {
                           deleteBillMutation.mutate(bill.id);
@@ -637,15 +637,16 @@ function RecurringBillForm({ bill, bankAccounts, creditCards = [], onSubmit, isL
       </div>
       <div className="space-y-2">
         <Label htmlFor="amountType">Amount Type</Label>
-        <select
-          id="amountType"
+        <MobileSelect
           value={formData.amount_type}
-          onChange={(e) => setFormData({ ...formData, amount_type: e.target.value })}
-          className="w-full h-10 px-3 rounded-md border border-slate-200"
-        >
-          <option value="fixed">Fixed Amount</option>
-          <option value="variable">Variable Amount (Range)</option>
-        </select>
+          onValueChange={(value) => setFormData({ ...formData, amount_type: value })}
+          options={[
+            { value: 'fixed', label: 'Fixed Amount' },
+            { value: 'variable', label: 'Variable Amount (Range)' }
+          ]}
+          placeholder="Select amount type"
+          label="Amount Type"
+        />
       </div>
 
       {formData.amount_type === 'fixed' ? (
@@ -754,36 +755,38 @@ function RecurringBillForm({ bill, bankAccounts, creditCards = [], onSubmit, isL
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="billFrequency">Frequency</Label>
-            <select
-              id="billFrequency"
+            <MobileSelect
               value={formData.frequency}
-              onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-              className="w-full h-10 px-3 rounded-md border border-slate-200"
-            >
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="yearly">Yearly</option>
-            </select>
+              onValueChange={(value) => setFormData({ ...formData, frequency: value })}
+              options={[
+                { value: 'weekly', label: 'Weekly' },
+                { value: 'monthly', label: 'Monthly' },
+                { value: 'quarterly', label: 'Quarterly' },
+                { value: 'yearly', label: 'Yearly' }
+              ]}
+              placeholder="Select frequency"
+              label="Frequency"
+            />
           </div>
 
           {formData.frequency === 'weekly' && (
             <div className="space-y-2">
               <Label htmlFor="dayOfWeek">Day of Week</Label>
-              <select
-                id="dayOfWeek"
+              <MobileSelect
                 value={formData.day_of_week}
-                onChange={(e) => setFormData({ ...formData, day_of_week: e.target.value })}
-                className="w-full h-10 px-3 rounded-md border border-slate-200"
-              >
-                <option value="0">Sunday</option>
-                <option value="1">Monday</option>
-                <option value="2">Tuesday</option>
-                <option value="3">Wednesday</option>
-                <option value="4">Thursday</option>
-                <option value="5">Friday</option>
-                <option value="6">Saturday</option>
-              </select>
+                onValueChange={(value) => setFormData({ ...formData, day_of_week: value })}
+                options={[
+                  { value: '0', label: 'Sunday' },
+                  { value: '1', label: 'Monday' },
+                  { value: '2', label: 'Tuesday' },
+                  { value: '3', label: 'Wednesday' },
+                  { value: '4', label: 'Thursday' },
+                  { value: '5', label: 'Friday' },
+                  { value: '6', label: 'Saturday' }
+                ]}
+                placeholder="Select day"
+                label="Day of Week"
+              />
             </div>
           )}
 
@@ -808,25 +811,26 @@ function RecurringBillForm({ bill, bankAccounts, creditCards = [], onSubmit, isL
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="dueMonth">Month</Label>
-                <select
-                  id="dueMonth"
+                <MobileSelect
                   value={formData.due_month}
-                  onChange={(e) => setFormData({ ...formData, due_month: e.target.value })}
-                  className="w-full h-10 px-3 rounded-md border border-slate-200"
-                >
-                  <option value="1">January</option>
-                  <option value="2">February</option>
-                  <option value="3">March</option>
-                  <option value="4">April</option>
-                  <option value="5">May</option>
-                  <option value="6">June</option>
-                  <option value="7">July</option>
-                  <option value="8">August</option>
-                  <option value="9">September</option>
-                  <option value="10">October</option>
-                  <option value="11">November</option>
-                  <option value="12">December</option>
-                </select>
+                  onValueChange={(value) => setFormData({ ...formData, due_month: value })}
+                  options={[
+                    { value: '1', label: 'January' },
+                    { value: '2', label: 'February' },
+                    { value: '3', label: 'March' },
+                    { value: '4', label: 'April' },
+                    { value: '5', label: 'May' },
+                    { value: '6', label: 'June' },
+                    { value: '7', label: 'July' },
+                    { value: '8', label: 'August' },
+                    { value: '9', label: 'September' },
+                    { value: '10', label: 'October' },
+                    { value: '11', label: 'November' },
+                    { value: '12', label: 'December' }
+                  ]}
+                  placeholder="Select month"
+                  label="Month"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="billDueDate">Day</Label>
@@ -902,19 +906,20 @@ function RecurringBillForm({ bill, bankAccounts, creditCards = [], onSubmit, isL
       </div>
       <div className="space-y-2">
         <Label htmlFor="billCategory">Category</Label>
-        <select
-          id="billCategory"
+        <MobileSelect
           value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          className="w-full h-10 px-3 rounded-md border border-slate-200"
-        >
-          <option value="utilities">Utilities</option>
-          <option value="subscription">Subscription</option>
-          <option value="insurance">Insurance</option>
-          <option value="rent">Rent</option>
-          <option value="loan">Loan</option>
-          <option value="other">Other</option>
-        </select>
+          onValueChange={(value) => setFormData({ ...formData, category: value })}
+          options={[
+            { value: 'utilities', label: 'Utilities' },
+            { value: 'subscription', label: 'Subscription' },
+            { value: 'insurance', label: 'Insurance' },
+            { value: 'rent', label: 'Rent' },
+            { value: 'loan', label: 'Loan' },
+            { value: 'other', label: 'Other' }
+          ]}
+          placeholder="Select category"
+          label="Category"
+        />
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? 'Saving...' : bill ? 'Update Bill' : 'Add Bill'}

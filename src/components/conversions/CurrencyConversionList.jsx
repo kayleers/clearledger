@@ -13,6 +13,7 @@ import { formatCurrency } from '@/components/utils/calculations';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
+import { MobileSelect } from '@/components/ui/mobile-select';
 
 const FREQUENCY_LABELS = {
   one_time: 'One Time',
@@ -493,17 +494,18 @@ function ConversionForm({ conversion, bankAccounts, onSubmit, onCancel }) {
 
       <div>
         <Label>Frequency</Label>
-        <select
+        <MobileSelect
           value={formData.frequency}
-          onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-          className="w-full h-10 px-3 rounded-md border border-slate-200"
-          required
-        >
-          <option value="one_time">One Time</option>
-          <option value="weekly">Weekly</option>
-          <option value="bi_weekly">Bi-weekly</option>
-          <option value="monthly">Monthly</option>
-        </select>
+          onValueChange={(value) => setFormData({ ...formData, frequency: value })}
+          options={[
+            { value: 'one_time', label: 'One Time' },
+            { value: 'weekly', label: 'Weekly' },
+            { value: 'bi_weekly', label: 'Bi-weekly' },
+            { value: 'monthly', label: 'Monthly' }
+          ]}
+          placeholder="Select frequency"
+          label="Frequency"
+        />
       </div>
 
       {formData.frequency === 'monthly' && (
@@ -523,19 +525,21 @@ function ConversionForm({ conversion, bankAccounts, onSubmit, onCancel }) {
       {(formData.frequency === 'weekly' || formData.frequency === 'bi_weekly') && (
         <div>
           <Label>Day of Week</Label>
-          <select
-            value={formData.day_of_week}
-            onChange={(e) => setFormData({ ...formData, day_of_week: parseInt(e.target.value) })}
-            className="w-full h-10 px-3 rounded-md border border-slate-200"
-          >
-            <option value="0">Sunday</option>
-            <option value="1">Monday</option>
-            <option value="2">Tuesday</option>
-            <option value="3">Wednesday</option>
-            <option value="4">Thursday</option>
-            <option value="5">Friday</option>
-            <option value="6">Saturday</option>
-          </select>
+          <MobileSelect
+            value={formData.day_of_week.toString()}
+            onValueChange={(value) => setFormData({ ...formData, day_of_week: parseInt(value) })}
+            options={[
+              { value: '0', label: 'Sunday' },
+              { value: '1', label: 'Monday' },
+              { value: '2', label: 'Tuesday' },
+              { value: '3', label: 'Wednesday' },
+              { value: '4', label: 'Thursday' },
+              { value: '5', label: 'Friday' },
+              { value: '6', label: 'Saturday' }
+            ]}
+            placeholder="Select day"
+            label="Day of Week"
+          />
         </div>
       )}
 

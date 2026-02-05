@@ -13,6 +13,7 @@ import { formatCurrency } from '@/components/utils/calculations';
 import { format } from 'date-fns';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 import { Slider } from '@/components/ui/slider';
+import { MobileSelect } from '@/components/ui/mobile-select';
 
 const frequencyLabels = {
   one_time: 'One-Time',
@@ -313,7 +314,7 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-7 w-7"
+                                      className="h-11 w-11 p-0 flex items-center justify-center"
                                       onClick={() => setEditingTransfer(transfer)}
                                     >
                                       <Edit2 className="w-3.5 h-3.5" />
@@ -321,7 +322,7 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-7 w-7 text-red-500"
+                                      className="h-11 w-11 p-0 flex items-center justify-center text-red-500"
                                       onClick={() => {
                                         if (confirm('Delete this transfer?')) {
                                           deleteTransferMutation.mutate(transfer.id);
@@ -735,36 +736,38 @@ function BankTransferForm({ transfer, bankAccounts, onSubmit, isLoading }) {
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="transferFrequency">Frequency</Label>
-            <select
-              id="transferFrequency"
+            <MobileSelect
               value={formData.frequency}
-              onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-              className="w-full h-10 px-3 rounded-md border border-slate-200"
-            >
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="yearly">Yearly</option>
-            </select>
+              onValueChange={(value) => setFormData({ ...formData, frequency: value })}
+              options={[
+                { value: 'weekly', label: 'Weekly' },
+                { value: 'monthly', label: 'Monthly' },
+                { value: 'quarterly', label: 'Quarterly' },
+                { value: 'yearly', label: 'Yearly' }
+              ]}
+              placeholder="Select frequency"
+              label="Frequency"
+            />
           </div>
 
           {formData.frequency === 'weekly' && (
             <div className="space-y-2">
               <Label htmlFor="dayOfWeek">Day of Week</Label>
-              <select
-                id="dayOfWeek"
+              <MobileSelect
                 value={formData.day_of_week}
-                onChange={(e) => setFormData({ ...formData, day_of_week: e.target.value })}
-                className="w-full h-10 px-3 rounded-md border border-slate-200"
-              >
-                <option value="0">Sunday</option>
-                <option value="1">Monday</option>
-                <option value="2">Tuesday</option>
-                <option value="3">Wednesday</option>
-                <option value="4">Thursday</option>
-                <option value="5">Friday</option>
-                <option value="6">Saturday</option>
-              </select>
+                onValueChange={(value) => setFormData({ ...formData, day_of_week: value })}
+                options={[
+                  { value: '0', label: 'Sunday' },
+                  { value: '1', label: 'Monday' },
+                  { value: '2', label: 'Tuesday' },
+                  { value: '3', label: 'Wednesday' },
+                  { value: '4', label: 'Thursday' },
+                  { value: '5', label: 'Friday' },
+                  { value: '6', label: 'Saturday' }
+                ]}
+                placeholder="Select day"
+                label="Day of Week"
+              />
             </div>
           )}
 
@@ -789,25 +792,26 @@ function BankTransferForm({ transfer, bankAccounts, onSubmit, isLoading }) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="transferMonth">Month</Label>
-                <select
-                  id="transferMonth"
+                <MobileSelect
                   value={formData.transfer_month}
-                  onChange={(e) => setFormData({ ...formData, transfer_month: e.target.value })}
-                  className="w-full h-10 px-3 rounded-md border border-slate-200"
-                >
-                  <option value="1">January</option>
-                  <option value="2">February</option>
-                  <option value="3">March</option>
-                  <option value="4">April</option>
-                  <option value="5">May</option>
-                  <option value="6">June</option>
-                  <option value="7">July</option>
-                  <option value="8">August</option>
-                  <option value="9">September</option>
-                  <option value="10">October</option>
-                  <option value="11">November</option>
-                  <option value="12">December</option>
-                </select>
+                  onValueChange={(value) => setFormData({ ...formData, transfer_month: value })}
+                  options={[
+                    { value: '1', label: 'January' },
+                    { value: '2', label: 'February' },
+                    { value: '3', label: 'March' },
+                    { value: '4', label: 'April' },
+                    { value: '5', label: 'May' },
+                    { value: '6', label: 'June' },
+                    { value: '7', label: 'July' },
+                    { value: '8', label: 'August' },
+                    { value: '9', label: 'September' },
+                    { value: '10', label: 'October' },
+                    { value: '11', label: 'November' },
+                    { value: '12', label: 'December' }
+                  ]}
+                  placeholder="Select month"
+                  label="Month"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="transferDate">Day</Label>

@@ -152,7 +152,7 @@ export default function AccountSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800 dark:from-slate-950 dark:via-cyan-950 dark:to-emerald-950 p-4 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800 dark:from-slate-950 dark:via-cyan-950 dark:to-emerald-950 p-4 pb-24 safe-area-pt">
       <div className="max-w-2xl mx-auto py-8 safe-area-pt">
         <Link 
           to={createPageUrl('Dashboard')} 

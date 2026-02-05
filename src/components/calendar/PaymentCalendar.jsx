@@ -14,6 +14,7 @@ import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List, Lock
 import { formatCurrency } from '@/components/utils/calculations';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
+import { MobileSelect } from '@/components/ui/mobile-select';
 
 const BILL_CATEGORY_ICONS = {
   utilities: '⚡',
@@ -786,19 +787,19 @@ export default function PaymentCalendar() {
             </p>
             <div className="space-y-2">
               <Label htmlFor="paymentAccount">Pay from Bank Account</Label>
-              <select
-                id="paymentAccount"
+              <MobileSelect
                 value={selectedAccountId}
-                onChange={(e) => setSelectedAccountId(e.target.value)}
-                className="w-full h-10 px-3 rounded-md border border-slate-200"
-              >
-                <option value="">No bank account</option>
-                {bankAccounts.map(account => (
-                  <option key={account.id} value={account.id}>
-                    {account.name} - {formatCurrency(account.balance, account.currency)}
-                  </option>
-                ))}
-              </select>
+                onValueChange={(value) => setSelectedAccountId(value)}
+                options={[
+                  { value: '', label: 'No bank account' },
+                  ...bankAccounts.map(account => ({
+                    value: account.id,
+                    label: `${account.name} - ${formatCurrency(account.balance, account.currency)}`
+                  }))
+                ]}
+                placeholder="Select account"
+                label="Pay from Bank Account"
+              />
               <p className="text-xs text-slate-500">
                 Select a different account for one-time payment, or leave as default
               </p>

@@ -100,7 +100,7 @@ export default function BillDetail() {
   const linkedAccount = bankAccounts.find(a => a.id === bill.bank_account_id);
 
   return (
-    <div className="min-h-screen bg-slate-50 safe-area-pb">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 safe-area-pb safe-area-pt pb-24">
       <div className="max-w-4xl mx-auto p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -145,53 +145,53 @@ export default function BillDetail() {
           <CardContent className="space-y-4">
             {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-purple-50 rounded-xl text-center">
-                <DollarSign className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                <p className="text-2xl font-bold text-purple-900">{formatCurrency(bill.amount, bill.currency)}</p>
-                <p className="text-xs text-purple-600">Amount</p>
+              <div className="p-4 bg-purple-50 dark:bg-purple-950/20 rounded-xl text-center">
+                <DollarSign className="w-5 h-5 text-purple-600 dark:text-purple-400 mx-auto mb-1" />
+                <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">{formatCurrency(bill.amount, bill.currency)}</p>
+                <p className="text-xs text-purple-600 dark:text-purple-400">Amount</p>
               </div>
-              <div className="p-4 bg-blue-50 rounded-xl text-center">
-                <Calendar className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                <p className="text-2xl font-bold text-blue-900">{frequencyLabel}</p>
-                <p className="text-xs text-blue-600">Frequency</p>
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl text-center">
+                <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400 mx-auto mb-1" />
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{frequencyLabel}</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400">Frequency</p>
               </div>
             </div>
 
             {/* Details */}
-            <div className="space-y-3 pt-4 border-t">
+            <div className="space-y-3 pt-4 border-t dark:border-slate-700">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-600">Category</span>
-                <span className="text-sm font-medium text-slate-900 capitalize">{bill.category}</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">Category</span>
+                <span className="text-sm font-medium text-slate-900 dark:text-slate-100 capitalize">{bill.category}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-600">Frequency</span>
-                <span className="text-sm font-medium text-slate-900">{frequencyLabel}</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">Frequency</span>
+                <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{frequencyLabel}</span>
               </div>
               {bill.due_date && (
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-600">Due Date</span>
-                  <span className="text-sm font-medium text-slate-900">
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Due Date</span>
+                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {bill.due_date}{bill.due_date === 1 ? 'st' : bill.due_date === 2 ? 'nd' : bill.due_date === 3 ? 'rd' : 'th'} of month
                   </span>
                 </div>
               )}
               {bill.day_of_week !== undefined && bill.day_of_week !== null && (
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-600">Day of Week</span>
-                  <span className="text-sm font-medium text-slate-900">
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Day of Week</span>
+                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][bill.day_of_week]}
                   </span>
                 </div>
               )}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-600">Payment Account</span>
-                <span className="text-sm font-medium text-slate-900">
+                <span className="text-sm text-slate-600 dark:text-slate-400">Payment Account</span>
+                <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
                   {linkedAccount ? linkedAccount.name : 'Not linked'}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-600">Status</span>
-                <span className={`text-sm font-medium ${bill.is_active ? 'text-green-600' : 'text-slate-400'}`}>
+                <span className="text-sm text-slate-600 dark:text-slate-400">Status</span>
+                <span className={`text-sm font-medium ${bill.is_active ? 'text-green-600 dark:text-green-400' : 'text-slate-400'}`}>
                   {bill.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>

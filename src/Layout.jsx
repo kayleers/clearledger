@@ -1,12 +1,23 @@
 import React from 'react';
 import { EntitlementsProvider } from '@/components/access/EntitlementsProvider';
 import BottomNav from '@/components/layout/BottomNav';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Layout({ children, currentPageName }) {
   return (
     <EntitlementsProvider>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-teal-800 dark:from-slate-950 dark:via-blue-950 dark:to-teal-950">
-        {children}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentPageName}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
         <BottomNav />
 
         <style>{`

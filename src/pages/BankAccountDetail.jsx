@@ -291,9 +291,9 @@ export default function BankAccountDetail() {
   const monthlyProjections = calculateMonthlyProjections();
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 safe-area-pt">
       <div className="max-w-lg mx-auto p-6">
-        <Link to={createPageUrl('Dashboard')} className="inline-flex items-center gap-2 text-slate-600 mb-6 hover:text-slate-900">
+        <Link to={createPageUrl('Dashboard')} className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-6 hover:text-slate-900 dark:hover:text-slate-100">
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
         </Link>
@@ -302,25 +302,25 @@ export default function BankAccountDetail() {
           <CardHeader>
             <CardTitle className="text-2xl">{account.name}</CardTitle>
             <div className="mt-2">
-              <p className="text-3xl font-bold text-slate-900">
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
                 {formatCurrency(ongoingBalance + (account.stocks_investments || 0), account.currency)}
               </p>
-              <p className="text-sm text-slate-500">Total balance</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Total balance</p>
             </div>
             <div className="flex gap-4 mt-3 text-sm">
               <div>
-                <p className="text-slate-500">Cash</p>
-                <p className="font-semibold text-slate-900">{formatCurrency(ongoingBalance, account.currency)}</p>
+                <p className="text-slate-500 dark:text-slate-400">Cash</p>
+                <p className="font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(ongoingBalance, account.currency)}</p>
               </div>
               {(account.stocks_investments > 0) && (
                 <div>
-                  <p className="text-slate-500">Investments</p>
-                  <p className="font-semibold text-emerald-600">{formatCurrency(account.stocks_investments, account.currency)}</p>
+                  <p className="text-slate-500 dark:text-slate-400">Investments</p>
+                  <p className="font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(account.stocks_investments, account.currency)}</p>
                 </div>
               )}
             </div>
             {account.account_number && (
-              <p className="text-slate-500 mt-2">••••{account.account_number.slice(-4)}</p>
+              <p className="text-slate-500 dark:text-slate-400 mt-2">••••{account.account_number.slice(-4)}</p>
             )}
           </CardHeader>
           <CardContent>
@@ -431,7 +431,7 @@ export default function BankAccountDetail() {
             <div className="space-y-3">
               {sortedDeposits.length === 0 ? (
                 <Card>
-                  <CardContent className="p-6 text-center text-slate-500">
+                  <CardContent className="p-6 text-center text-slate-500 dark:text-slate-400">
                     No deposits yet
                   </CardContent>
                 </Card>
@@ -486,7 +486,7 @@ export default function BankAccountDetail() {
             <div className="space-y-3">
               {sortedWithdrawals.length === 0 ? (
                 <Card>
-                  <CardContent className="p-6 text-center text-slate-500">
+                  <CardContent className="p-6 text-center text-slate-500 dark:text-slate-400">
                     No withdrawals yet
                   </CardContent>
                 </Card>
@@ -541,7 +541,7 @@ export default function BankAccountDetail() {
             <div className="space-y-3">
               {recurringDeposits.length === 0 ? (
                 <Card>
-                  <CardContent className="p-6 text-center text-slate-500">
+                  <CardContent className="p-6 text-center text-slate-500 dark:text-slate-400">
                     No recurring deposits yet
                   </CardContent>
                 </Card>
@@ -604,7 +604,7 @@ export default function BankAccountDetail() {
             <div className="space-y-3">
               {recurringWithdrawals.length === 0 && recurringBills.length === 0 && creditCards.length === 0 && loans.length === 0 ? (
                 <Card>
-                  <CardContent className="p-6 text-center text-slate-500">
+                  <CardContent className="p-6 text-center text-slate-500 dark:text-slate-400">
                     No recurring withdrawals yet
                   </CardContent>
                 </Card>

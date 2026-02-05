@@ -871,11 +871,9 @@ function RecurringBillForm({ bill, bankAccounts, creditCards = [], onSubmit, isL
       )}
       <div className="space-y-2">
         <Label htmlFor="paymentSource">Payment Source (Optional)</Label>
-        <select
-          id="paymentSource"
+        <MobileSelect
           value={formData.payment_source_type === 'card' ? `card_${formData.credit_card_id}` : formData.bank_account_id}
-          onChange={(e) => {
-            const value = e.target.value;
+          onValueChange={(value) => {
             if (!value) {
               setFormData({ ...formData, payment_source_type: '', bank_account_id: '', credit_card_id: '' });
             } else if (value.startsWith('card_')) {
@@ -885,24 +883,20 @@ function RecurringBillForm({ bill, bankAccounts, creditCards = [], onSubmit, isL
               setFormData({ ...formData, payment_source_type: 'account', bank_account_id: value, credit_card_id: '' });
             }
           }}
-          className="w-full h-10 px-3 rounded-md border border-slate-200"
-        >
-          <option value="">Select payment source</option>
-          <optgroup label="Bank Accounts">
-            {bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => (
-              <option key={account.id} value={account.id}>
-                {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="Credit Cards">
-            {creditCards.filter(c => c.is_active !== false).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(card => (
-              <option key={card.id} value={`card_${card.id}`}>
-                {card.name} {card.card_last_four ? `(••••${card.card_last_four})` : ''} - {card.currency}
-              </option>
-            ))}
-          </optgroup>
-        </select>
+          options={[
+            { value: '', label: 'Select payment source' },
+            ...bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => ({
+              value: account.id,
+              label: `${account.name} ${account.account_number ? `(${account.account_number})` : ''} - ${account.currency}`
+            })),
+            ...creditCards.filter(c => c.is_active !== false).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(card => ({
+              value: `card_${card.id}`,
+              label: `${card.name} ${card.card_last_four ? `(••••${card.card_last_four})` : ''} - ${card.currency}`
+            }))
+          ]}
+          placeholder="Select payment source"
+          label="Payment Source"
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="billCategory">Category</Label>

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Download, RefreshCw } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ResponsiveDialog } from '@/components/ui/responsive-drawer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';

@@ -514,18 +514,21 @@ function QuickPaymentForm({ type, target, onSubmit, onCancel, isLoading, bankAcc
             <>
               <div className="space-y-2">
                 <Label htmlFor="frequency">Frequency</Label>
-                <select
-                  id="frequency"
+                <Select
                   value={formData.frequency}
-                  onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                  className="w-full h-10 px-3 rounded-md border border-slate-200"
+                  onValueChange={(value) => setFormData({ ...formData, frequency: value })}
                 >
-                  <option value="weekly">Weekly</option>
-                  <option value="bi_weekly">Bi-Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                  <option value="yearly">Yearly</option>
-                </select>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Select frequency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="bi_weekly">Bi-Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="quarterly">Quarterly</SelectItem>
+                    <SelectItem value="yearly">Yearly</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {(formData.frequency === 'monthly' || formData.frequency === 'quarterly' || formData.frequency === 'yearly') && (

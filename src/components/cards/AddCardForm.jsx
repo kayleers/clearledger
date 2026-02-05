@@ -273,28 +273,27 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
           {/* Primary Payment Source */}
           <div className="space-y-2">
             <Label htmlFor="bank_account">Primary Payment Source (Optional)</Label>
-            <select
-              id="bank_account"
+            <Select
               value={formData.bank_account_id}
-              onChange={(e) => updateField('bank_account_id', e.target.value)}
-              className="w-full h-12 px-3 rounded-md border border-slate-200"
+              onValueChange={(value) => updateField('bank_account_id', value)}
             >
-              <option value="">No payment source selected</option>
-              <optgroup label="Bank Accounts">
+              <SelectTrigger className="h-12">
+                <SelectValue placeholder="No payment source selected" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>No payment source selected</SelectItem>
                 {bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => (
-                  <option key={account.id} value={account.id}>
+                  <SelectItem key={account.id} value={account.id}>
                     {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
-                  </option>
+                  </SelectItem>
                 ))}
-              </optgroup>
-              <optgroup label="Credit Cards">
                 {creditCards.filter(c => c.is_active !== false && c.id !== card?.id).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(cc => (
-                  <option key={cc.id} value={cc.id}>
+                  <SelectItem key={cc.id} value={cc.id}>
                     {cc.name} {cc.card_last_four ? `(••••${cc.card_last_four})` : ''} - {cc.currency}
-                  </option>
+                  </SelectItem>
                 ))}
-              </optgroup>
-            </select>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Pay Full Balance Monthly */}
@@ -347,28 +346,27 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
 
                 <div className="space-y-2">
                   <Label htmlFor="additional_bank_account">Payment Source for Additional Payment</Label>
-                  <select
-                    id="additional_bank_account"
+                  <Select
                     value={formData.additional_payment_bank_account_id}
-                    onChange={(e) => updateField('additional_payment_bank_account_id', e.target.value)}
-                    className="w-full h-12 px-3 rounded-md border border-slate-200"
+                    onValueChange={(value) => updateField('additional_payment_bank_account_id', value)}
                   >
-                    <option value="">No payment source selected</option>
-                    <optgroup label="Bank Accounts">
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="No payment source selected" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>No payment source selected</SelectItem>
                       {bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => (
-                        <option key={account.id} value={account.id}>
+                        <SelectItem key={account.id} value={account.id}>
                           {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
-                        </option>
+                        </SelectItem>
                       ))}
-                    </optgroup>
-                    <optgroup label="Credit Cards">
                       {creditCards.filter(c => c.is_active !== false && c.id !== card?.id).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(cc => (
-                        <option key={cc.id} value={cc.id}>
+                        <SelectItem key={cc.id} value={cc.id}>
                           {cc.name} {cc.card_last_four ? `(••••${cc.card_last_four})` : ''} - {cc.currency}
-                        </option>
+                        </SelectItem>
                       ))}
-                    </optgroup>
-                  </select>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             )}

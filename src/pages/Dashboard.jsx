@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Download } from 'lucide-react';
+import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Download, RefreshCw } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ResponsiveDialog } from '@/components/ui/responsive-drawer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';
 import { AnimatePresence, motion } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { useIsMobile } from '@/components/utils/useIsMobile';
 
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import TotalDebtCard from '@/components/dashboard/TotalDebtCard';
@@ -39,8 +40,12 @@ export default function Dashboard() {
   const [upgradeContext, setUpgradeContext] = useState('general');
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [editingCard, setEditingCard] = useState(null);
+  const [isPullingToRefresh, setIsPullingToRefresh] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const touchStartY = useRef(0);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
+  const isMobile = useIsMobile();
 
   const { data: user } = useQuery({
     queryKey: ['current-user'],
@@ -515,12 +520,65 @@ export default function Dashboard() {
     }
   };
 
+  // Pull to refresh
+  const handleTouchStart = (e) => {
+    if (window.scrollY === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (window.scrollY === 0 && touchStartY.current > 0) {
+      const currentY = e.touches[0].clientY;
+      const distance = Math.max(0, currentY - touchStartY.current);
+      setPullDistance(Math.min(distance, 100));
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (pullDistance > 60) {
+      setIsPullingToRefresh(true);
+      await queryClient.refetchQueries();
+      setTimeout(() => {
+        setIsPullingToRefresh(false);
+      }, 500);
+    }
+    setPullDistance(0);
+    touchStartY.current = 0;
+  };
+
+  useEffect(() => {
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [pullDistance]);
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800 dark:from-slate-950 dark:via-cyan-950 dark:to-emerald-950">
+        {/* Pull to refresh indicator */}
+        {pullDistance > 0 && (
+          <div 
+            className="fixed top-0 left-0 right-0 flex items-center justify-center z-50 transition-all safe-area-pt"
+            style={{ 
+              transform: `translateY(${Math.min(pullDistance, 60)}px)`,
+              opacity: pullDistance / 60 
+            }}
+          >
+            <div className="bg-white dark:bg-slate-800 rounded-full p-2 shadow-lg">
+              <RefreshCw className={`w-5 h-5 text-emerald-500 ${isPullingToRefresh ? 'animate-spin' : ''}`} />
+            </div>
+          </div>
+        )}
+        
         <div className="max-w-lg mx-auto px-4 py-6 pb-24 relative z-0">
         {/* Header */}
-        <header className="mb-6">
+        <header className="mb-6 safe-area-pt">
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-emerald-400 drop-shadow-lg">ClearLedger</h1>
@@ -851,15 +909,15 @@ export default function Dashboard() {
               <Zap className="w-6 h-6" />
             </button>
 
-            <Dialog open={showQuickAdd} onOpenChange={(open) => {
-              setShowQuickAdd(open);
-              if (!open) setQuickAddCardId(null);
-            }}>
-              <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
-                <DialogHeader className="p-6 pb-4 flex-shrink-0">
-                  <DialogTitle>Quick Add</DialogTitle>
-                </DialogHeader>
-                <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <ResponsiveDialog
+              open={showQuickAdd}
+              onOpenChange={(open) => {
+                setShowQuickAdd(open);
+                if (!open) setQuickAddCardId(null);
+              }}
+              title="Quick Add"
+              className="max-w-md"
+            >
                 <QuickAddMenu
                   cards={cards}
                   bankAccounts={bankAccounts}
@@ -878,21 +936,22 @@ export default function Dashboard() {
                              createBillPaymentMutation.isPending || createLoanPaymentMutation.isPending ||
                              updateBankBalanceMutation.isPending || updateCardBalanceMutation.isPending}
                 />
-                </div>
-              </DialogContent>
-            </Dialog>
+            </ResponsiveDialog>
           </>
         )}
 
         {/* Add/Edit Card Dialog */}
-        <Dialog open={showAddCard || !!editingCard} onOpenChange={(open) => {
-          if (!open) {
-            setShowAddCard(false);
-            setEditingCard(null);
-          }
-        }}>
-          <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
-            <div className="overflow-y-auto px-6 pb-6 pt-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <ResponsiveDialog
+          open={showAddCard || !!editingCard}
+          onOpenChange={(open) => {
+            if (!open) {
+              setShowAddCard(false);
+              setEditingCard(null);
+            }
+          }}
+          title={editingCard ? 'Edit Credit Card' : 'Add Credit Card'}
+          className="max-w-md"
+        >
             <AddCardForm
               card={editingCard}
               bankAccounts={bankAccounts}
@@ -910,9 +969,7 @@ export default function Dashboard() {
               }}
               isLoading={createCardMutation.isPending || updateCardMutation.isPending}
             />
-            </div>
-          </DialogContent>
-        </Dialog>
+        </ResponsiveDialog>
 
         {/* Privacy Policy Dialog */}
         <Dialog open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy}>

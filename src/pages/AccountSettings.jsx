@@ -6,14 +6,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, User, Mail, LogOut, Shield, ArrowLeft, Lock, Eye, EyeOff } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Loader2, User, Mail, LogOut, Shield, ArrowLeft, Lock, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useEntitlements } from '@/components/access/EntitlementsProvider';
 import { TIER_DETAILS } from '@/components/access/tierConfig';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function AccountSettings() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { userTier } = useEntitlements();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -27,6 +38,8 @@ export default function AccountSettings() {
   const [error, setError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['current-user'],
@@ -97,6 +110,39 @@ export default function AccountSettings() {
     base44.auth.logout();
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      return;
+    }
+
+    try {
+      // Delete all user data
+      const userEmail = user?.email;
+      if (!userEmail) return;
+
+      await Promise.all([
+        base44.entities.CreditCard.filter({ created_by: userEmail }).then(cards => 
+          Promise.all(cards.map(c => base44.entities.CreditCard.delete(c.id)))
+        ),
+        base44.entities.BankAccount.filter({ created_by: userEmail }).then(accounts => 
+          Promise.all(accounts.map(a => base44.entities.BankAccount.delete(a.id)))
+        ),
+        base44.entities.RecurringBill.filter({ created_by: userEmail }).then(bills => 
+          Promise.all(bills.map(b => base44.entities.RecurringBill.delete(b.id)))
+        ),
+        base44.entities.MortgageLoan.filter({ created_by: userEmail }).then(loans => 
+          Promise.all(loans.map(l => base44.entities.MortgageLoan.delete(l.id)))
+        ),
+      ]);
+
+      // Logout and redirect
+      base44.auth.logout();
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+      alert('Failed to delete account. Please try again or contact support.');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800 flex items-center justify-center">
@@ -106,8 +152,8 @@ export default function AccountSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800 p-4">
-      <div className="max-w-2xl mx-auto py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800 dark:from-slate-950 dark:via-cyan-950 dark:to-emerald-950 p-4 pb-24">
+      <div className="max-w-2xl mx-auto py-8 safe-area-pt">
         <Link 
           to={createPageUrl('Dashboard')} 
           className="inline-flex items-center text-white hover:text-emerald-400 mb-6 transition-colors"
@@ -302,16 +348,60 @@ export default function AccountSettings() {
             <CardContent className="space-y-3">
               <Button 
                 variant="outline" 
-                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
                 onClick={handleLogout}
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
               </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-red-700 hover:text-red-900 hover:bg-red-100 dark:hover:bg-red-950 border-red-300"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Account
+              </Button>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Delete Account Confirmation */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Account</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>This action cannot be undone. This will permanently delete your account and all associated data including:</p>
+              <ul className="list-disc pl-6 space-y-1">
+                <li>All credit cards and transactions</li>
+                <li>All bank accounts and deposits</li>
+                <li>All loans and bills</li>
+                <li>All payment scenarios</li>
+              </ul>
+              <p className="font-semibold text-red-600 dark:text-red-400">Type "DELETE" to confirm:</p>
+              <Input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE here"
+                className="mt-2"
+              />
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteConfirmText('')}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmText !== 'DELETE'}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
+            >
+              Delete Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

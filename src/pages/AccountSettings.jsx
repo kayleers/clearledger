@@ -114,16 +114,12 @@ export default function AccountSettings() {
     base44.auth.logout();
   };
 
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== 'DELETE') {
-      return;
-    }
-
-    try {
-      // Delete all user data
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () => {
       const userEmail = user?.email;
-      if (!userEmail) return;
+      if (!userEmail) throw new Error('User email not found');
 
+      // Delete all user data
       await Promise.all([
         base44.entities.CreditCard.filter({ created_by: userEmail }).then(cards => 
           Promise.all(cards.map(c => base44.entities.CreditCard.delete(c.id)))
@@ -180,13 +176,22 @@ export default function AccountSettings() {
           Promise.all(syncs.map(s => base44.entities.SyncState.delete(s.id)))
         ),
       ]);
-
-      // Logout and redirect
+    },
+    onSuccess: () => {
+      // Logout and redirect after successful deletion
       base44.auth.logout();
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Failed to delete account:', error);
       alert('Failed to delete account. Please try again or contact support.');
     }
+  });
+
+  const handleDeleteAccount = () => {
+    if (deleteConfirmText !== 'DELETE') {
+      return;
+    }
+    deleteAccountMutation.mutate();
   };
 
   if (isLoading) {
@@ -440,10 +445,17 @@ export default function AccountSettings() {
             <AlertDialogCancel onClick={() => setDeleteConfirmText('')}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteAccount}
-              disabled={deleteConfirmText !== 'DELETE'}
+              disabled={deleteConfirmText !== 'DELETE' || deleteAccountMutation.isPending}
               className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
             >
-              Delete Account
+              {deleteAccountMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Account'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

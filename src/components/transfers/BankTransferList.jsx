@@ -299,9 +299,12 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
                                         )}
                                       </div>
                                       <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1 flex-wrap">
-                                        <span className="break-words">{fromAccount?.name || 'Unknown'}</span>
-                                        <ArrowRightLeft className="w-3 h-3 flex-shrink-0" />
-                                        <span className="break-words">{toAccount?.name || 'Unknown'}</span>
+                                       <span className="break-words">{fromAccount?.name || 'Unknown'} ({fromAccount?.currency || '?'})</span>
+                                       <ArrowRightLeft className="w-3 h-3 flex-shrink-0" />
+                                       <span className="break-words">{toAccount?.name || 'Unknown'} ({toAccount?.currency || '?'})</span>
+                                       {fromAccount?.currency !== toAccount?.currency && (
+                                         <span className="text-xs text-blue-600 font-medium ml-1">FX</span>
+                                       )}
                                       </div>
                                       {transfer.end_date && (
                                         <p className="text-xs text-orange-600 mt-1">
@@ -392,10 +395,13 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
                                         </>
                                       )}
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-                                      <span>{fromAccount?.name || 'Unknown'}</span>
+                                    <div className="flex items-center gap-2 text-xs text-slate-400 mt-1 flex-wrap">
+                                      <span>{fromAccount?.name || 'Unknown'} ({fromAccount?.currency || '?'})</span>
                                       <ArrowRightLeft className="w-3 h-3" />
-                                      <span>{toAccount?.name || 'Unknown'}</span>
+                                      <span>{toAccount?.name || 'Unknown'} ({toAccount?.currency || '?'})</span>
+                                      {fromAccount?.currency !== toAccount?.currency && (
+                                        <span className="text-xs text-blue-600 font-medium">FX</span>
+                                      )}
                                     </div>
                                     {transfer.end_date && (
                                       <p className="text-xs text-orange-600 mt-1">
@@ -521,12 +527,24 @@ function BankTransferForm({ transfer, bankAccounts, onSubmit, isLoading }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if accounts have different currencies
+    const fromAccount = bankAccounts.find(a => a.id === formData.from_account_id);
+    const toAccount = bankAccounts.find(a => a.id === formData.to_account_id);
+    
+    let transferCurrency = formData.currency;
+    
+    // If accounts have different currencies, auto-detect and use the source account's currency
+    if (fromAccount && toAccount && fromAccount.currency !== toAccount.currency) {
+      transferCurrency = fromAccount.currency;
+    }
+    
     const submitData = {
       name: formData.name,
       amount_type: formData.amount_type,
-      currency: formData.currency,
+      currency: transferCurrency,
       from_account_id: formData.from_account_id,
       to_account_id: formData.to_account_id,
       frequency: isRecurring ? formData.frequency : 'one_time'
@@ -678,14 +696,32 @@ function BankTransferForm({ transfer, bankAccounts, onSubmit, isLoading }) {
           )}
         </div>
       )}
-      <div className="space-y-2">
-        <Label htmlFor="transferCurrency">Currency</Label>
-        <CurrencySelector
-          value={formData.currency}
-          onChange={(currency) => setFormData({ ...formData, currency })}
-          className="w-full"
-        />
-      </div>
+      {(() => {
+        const fromAcc = bankAccounts.find(a => a.id === formData.from_account_id);
+        const toAcc = bankAccounts.find(a => a.id === formData.to_account_id);
+        const needsFX = fromAcc && toAcc && fromAcc.currency !== toAcc.currency;
+        
+        return (
+          <div className="space-y-2">
+            <Label htmlFor="transferCurrency">Transfer Currency</Label>
+            {needsFX && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+                <p className="text-xs text-blue-800">
+                  <strong>Currency Conversion:</strong> This transfer will automatically convert from {fromAcc.currency} to {toAcc.currency} using live exchange rates.
+                </p>
+              </div>
+            )}
+            <CurrencySelector
+              value={formData.currency}
+              onChange={(currency) => setFormData({ ...formData, currency })}
+              className="w-full"
+            />
+            <p className="text-xs text-slate-500">
+              Amount will be in {formData.currency}
+            </p>
+          </div>
+        );
+      })()}
       <div className="space-y-2">
         <Label htmlFor="fromAccount">From Account</Label>
         <select

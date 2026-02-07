@@ -103,7 +103,7 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-2">
                   <span>Pro Yearly</span>
-                  <span className="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-semibold">
+                  <span className="text-[10px] bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded-full font-semibold">
                     Save 30%
                   </span>
                 </div>

@@ -37,7 +37,7 @@ import SavedScenarios from '@/components/scenarios/SavedScenarios';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
-import { MobileSelect } from '@/components/ui/mobile-select';
+import MobileSelect from '@/components/ui/mobile-select';
 import { 
   formatCurrency, 
   calculateUtilization, 

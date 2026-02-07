@@ -14,7 +14,7 @@ import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List, Lock
 import { formatCurrency } from '@/components/utils/calculations';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
-import { MobileSelect } from '@/components/ui/mobile-select';
+import MobileSelect from '@/components/ui/mobile-select';
 
 const BILL_CATEGORY_ICONS = {
   utilities: '⚡',

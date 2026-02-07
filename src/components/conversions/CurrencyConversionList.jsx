@@ -13,7 +13,7 @@ import { formatCurrency } from '@/components/utils/calculations';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
-import { MobileSelect } from '@/components/ui/mobile-select';
+import MobileSelect from '@/components/ui/mobile-select';
 
 const FREQUENCY_LABELS = {
   one_time: 'One Time',

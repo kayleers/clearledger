@@ -1017,107 +1017,142 @@ export default function Dashboard() {
             </DialogHeader>
             <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="space-y-6 text-slate-700">
-              <p className="text-sm text-slate-500 italic">Last updated: January 29, 2026</p>
+              <p className="text-sm text-slate-500 italic">Last updated: Feb. 7, 2026</p>
               
               <section className="space-y-3">
                 <h3 className="text-lg font-bold text-emerald-600 flex items-center gap-2">
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                  About ClearLedger
-                </h3>
-                <p className="leading-relaxed">ClearLedger ("the app") is operated by <strong>Khaos</strong> (doing business as Khaos KRServices), located in <strong>The Netherlands</strong>.</p>
-                <p className="leading-relaxed">ClearLedger is a manual financial planning tool that allows users to track bills, loans, credit cards, bank accounts, and payment schedules across multiple currencies. We are committed to protecting your privacy and being transparent about how your data is handled.</p>
-              </section>
-
-              <section className="space-y-3">
-                <h3 className="text-lg font-bold text-emerald-600 flex items-center gap-2">
-                  <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">2</span>
                   Legal Basis for Processing
                 </h3>
-                <p className="leading-relaxed">We process personal data in accordance with applicable data protection laws, including the GDPR, based on:</p>
+                <p className="leading-relaxed">We process personal data in accordance with applicable data protection laws, including the General Data Protection Regulation (GDPR), based on:</p>
                 <ul className="list-disc pl-8 space-y-2">
-                  <li><strong>Contractual necessity:</strong> to provide the app's features and services.</li>
-                  <li><strong>Consent:</strong> where required, such as when you create an account and use the app.</li>
-                  <li><strong>Legitimate interests:</strong> to maintain and improve the app's functionality and security.</li>
+                  <li><strong>Contractual necessity</strong> – to provide app functionality and services</li>
+                  <li><strong>User consent</strong> – when creating an account and using the app</li>
+                  <li><strong>Legitimate interests</strong> – to maintain security, prevent abuse, and improve functionality</li>
+                  <li><strong>Legal obligations</strong> – where required by applicable law</li>
                 </ul>
               </section>
 
               <section className="space-y-3">
                 <h3 className="text-lg font-bold text-emerald-600 flex items-center gap-2">
-                  <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                  <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">2</span>
                   Data We Collect
                 </h3>
-                <p className="leading-relaxed">We collect only the information necessary to provide the service:</p>
                 <div className="bg-blue-50 rounded-lg p-4 space-y-2">
                   <p className="font-semibold text-blue-900">Information you provide:</p>
                   <ul className="list-disc pl-6 space-y-1 text-sm">
                     <li>Email address (for account creation and authentication)</li>
-                    <li>Financial data you manually enter (e.g. balances, transactions, bills, loans)</li>
+                    <li>Name (if provided)</li>
+                    <li>Financial data manually entered into the app, including: bills, loans, credit cards, bank accounts, balances, payment schedules, financial planning data</li>
                     <li>App preferences and settings</li>
                   </ul>
                 </div>
                 <div className="bg-slate-50 rounded-lg p-4 space-y-2">
                   <p className="font-semibold text-slate-900">Information we do NOT collect:</p>
                   <ul className="list-disc pl-6 space-y-1 text-sm">
-                    <li>Physical addresses or government identifiers</li>
                     <li>Bank login credentials</li>
                     <li>Full credit card numbers</li>
-                    <li>Transaction data from financial institutions</li>
-                    <li>Contacts, photos, or files</li>
+                    <li>Financial institution access tokens</li>
+                    <li>Government identifiers</li>
+                    <li>Physical addresses</li>
                     <li>Location data</li>
+                    <li>Contacts</li>
+                    <li>Photos or files</li>
                     <li>Advertising identifiers</li>
+                    <li>Device tracking identifiers</li>
+                    <li>Behavioral tracking data</li>
+                    <li>Cross-app or cross-site tracking data</li>
                   </ul>
                 </div>
-                <p className="leading-relaxed italic">We do not connect to banks, credit bureaus, or financial institutions.</p>
+                <p className="leading-relaxed italic font-semibold">ClearLedger does not connect to banks, credit bureaus, payment networks, or financial institutions. All financial data is manually entered by the user.</p>
+              </section>
+
+              <section className="space-y-3">
+                <h3 className="text-lg font-bold text-emerald-600 flex items-center gap-2">
+                  <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                  How We Store and Process Data
+                </h3>
+                <p className="leading-relaxed">Your data is securely stored using <strong>Base44</strong> cloud infrastructure, which acts as a data processor on our behalf.</p>
+                <ul className="list-disc pl-8 space-y-2">
+                  <li>Base44 servers are located in <strong>the United States</strong></li>
+                  <li>Data is encrypted in transit and at rest using industry-standard security practices</li>
+                  <li>Access is restricted to authorized systems and services only</li>
+                  <li>Data is processed solely to provide app functionality</li>
+                </ul>
+                <div className="bg-emerald-50 rounded-lg p-3 mt-3 space-y-1">
+                  <p className="text-sm font-semibold text-emerald-900">We do not:</p>
+                  <ul className="text-sm space-y-1 ml-4 list-disc">
+                    <li>Sell user data</li>
+                    <li>Share data for advertising</li>
+                    <li>Monetize user data</li>
+                    <li>Profile users for marketing purposes</li>
+                  </ul>
+                </div>
               </section>
 
               <section className="space-y-3">
                 <h3 className="text-lg font-bold text-emerald-600 flex items-center gap-2">
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">4</span>
-                  How We Store and Process Data
+                  Third-Party Services
                 </h3>
-                <p className="leading-relaxed">Your data is stored securely in the cloud using <strong>Base44</strong>, a cloud infrastructure provider that acts as a data processor on our behalf.</p>
-                <ul className="list-disc pl-8 space-y-2">
-                  <li>Base44 servers are located in <strong>the United States</strong>.</li>
-                  <li>Data is encrypted and protected using industry-standard security measures.</li>
-                  <li>Your data is accessible only through your account and processed only by authorized service providers necessary to operate the app.</li>
-                  <li>We do not sell your data or share it with third parties for advertising or marketing purposes.</li>
-                </ul>
+                <p className="leading-relaxed">We use the following service providers to operate ClearLedger:</p>
+                <div className="space-y-3">
+                  <div className="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50">
+                    <p className="font-semibold text-blue-900">Base44</p>
+                    <p className="text-sm">Cloud hosting and data storage, infrastructure services. Acts as a data processor.</p>
+                  </div>
+                  <div className="border-l-4 border-green-500 pl-4 py-2 bg-green-50">
+                    <p className="font-semibold text-green-900">Google Play Services</p>
+                    <p className="text-sm">App distribution, billing and payment processing, subscription management, purchase verification, licensing and entitlement validation.</p>
+                  </div>
+                </div>
+                <p className="leading-relaxed text-sm italic mt-2">ClearLedger does not receive or store your full payment card information. All payments are processed directly by Google Play Billing.</p>
               </section>
 
               <section className="space-y-3">
                 <h3 className="text-lg font-bold text-emerald-600 flex items-center gap-2">
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">5</span>
-                  Third-Party Service Providers
+                  Payments and Subscriptions
                 </h3>
-                <p className="leading-relaxed">We use the following service providers to operate the app:</p>
-                <div className="space-y-3">
-                  <div className="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50">
-                    <p className="font-semibold text-blue-900">Base44</p>
-                    <p className="text-sm">Cloud hosting and data storage (data processor).</p>
-                  </div>
-                  <div className="border-l-4 border-purple-500 pl-4 py-2 bg-purple-50">
-                    <p className="font-semibold text-purple-900">Stripe</p>
-                    <p className="text-sm">Payment processing for subscriptions. Stripe processes payment information. We do not receive or store your full payment card details.</p>
-                  </div>
+                <p className="leading-relaxed">ClearLedger offers optional paid plans through Google Play Billing, including:</p>
+                <ul className="list-disc pl-8 space-y-1">
+                  <li>Pro Monthly subscription</li>
+                  <li>Pro Yearly subscription</li>
+                  <li>Lifetime one-time purchase</li>
+                </ul>
+                <p className="leading-relaxed mt-3"><strong>All payments, subscriptions, refunds, and billing data are processed by Google Play.</strong> ClearLedger does not store payment card information.</p>
+                <div className="bg-blue-50 rounded-lg p-3 mt-2">
+                  <p className="text-sm font-semibold text-blue-900">ClearLedger only receives:</p>
+                  <ul className="text-sm space-y-1 ml-4 list-disc">
+                    <li>Purchase confirmation</li>
+                    <li>Entitlement status</li>
+                    <li>Subscription state</li>
+                    <li>Access rights</li>
+                  </ul>
                 </div>
-                <p className="leading-relaxed text-sm italic">These providers process data only as necessary to deliver their services and in accordance with applicable data protection laws.</p>
               </section>
 
               <section className="space-y-3">
                 <h3 className="text-lg font-bold text-emerald-600 flex items-center gap-2">
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">6</span>
-                  International Data Transfers
+                  Account System and Google Play Separation
                 </h3>
-                <p className="leading-relaxed">Your data may be transferred to and stored on servers located outside your country of residence, including in the United States.</p>
-                <p className="leading-relaxed">Such transfers are protected by appropriate safeguards, including contractual agreements and standard data protection clauses in accordance with GDPR.</p>
+                <p className="leading-relaxed">Your ClearLedger app account is <strong>separate from your Google Play account</strong>.</p>
+                <ul className="list-disc pl-8 space-y-1">
+                  <li>App login credentials are independent of Google Play</li>
+                  <li>Changing your email/password in the app does not affect Google Play</li>
+                  <li>Google Play billing identity is managed solely by Google</li>
+                  <li>Subscription access is determined by Google Play purchase status</li>
+                </ul>
               </section>
 
               <section className="space-y-3">
                 <h3 className="text-lg font-bold text-emerald-600 flex items-center gap-2">
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">7</span>
-                  Subscriptions and Payments
+                  International Data Transfers
                 </h3>
-                <p className="leading-relaxed">ClearLedger offers optional subscription features. Payments are processed securely through Stripe. ClearLedger does not store full payment card information.</p>
+                <p className="leading-relaxed">Your data may be transferred to and stored on servers outside your country of residence, including in the United States.</p>
+                <p className="leading-relaxed">Such transfers are protected by appropriate safeguards in accordance with GDPR, including contractual data protection agreements and standard contractual clauses.</p>
               </section>
 
               <section className="space-y-3">
@@ -1125,8 +1160,15 @@ export default function Dashboard() {
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">8</span>
                   Data Retention
                 </h3>
-                <p className="leading-relaxed">We retain your data only for as long as your account is active or as necessary to provide the app's services.</p>
-                <p className="leading-relaxed">If you delete your account, your data will be permanently deleted from our systems within 30 days, except where retention is required by law.</p>
+                <p className="leading-relaxed">We retain your data only as long as your account remains active or as necessary to provide services.</p>
+                <p className="leading-relaxed mt-2"><strong>When you delete your account:</strong></p>
+                <ul className="list-disc pl-8 space-y-1">
+                  <li>Your user profile is deleted</li>
+                  <li>Your financial data is deleted</li>
+                  <li>Your stored records are deleted</li>
+                  <li>Your app data is permanently removed</li>
+                </ul>
+                <p className="leading-relaxed mt-2">Data deletion occurs within 30 days, unless legal retention obligations apply.</p>
               </section>
 
               <section className="space-y-3">
@@ -1134,18 +1176,20 @@ export default function Dashboard() {
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">9</span>
                   Your Privacy Rights
                 </h3>
-                <p className="leading-relaxed">Depending on your location, you may have the following rights:</p>
+                <p className="leading-relaxed">Depending on your jurisdiction, you may have the right to:</p>
                 <ul className="list-disc pl-8 space-y-2">
-                  <li>Access your personal data</li>
-                  <li>Correct or update your data</li>
+                  <li>Access your data</li>
+                  <li>Correct your data</li>
                   <li>Delete your data</li>
-                  <li>Export your data in a commonly used format</li>
+                  <li>Export your data</li>
                   <li>Withdraw consent</li>
-                  <li>Object to certain processing</li>
+                  <li>Restrict processing</li>
+                  <li>Object to processing</li>
+                  <li>Data portability</li>
                 </ul>
                 <div className="bg-emerald-50 rounded-lg p-4 mt-3">
-                  <p className="leading-relaxed text-sm">You can exercise these rights through the app or by contacting us at: <strong className="text-emerald-700">khaoskrservices@gmail.com</strong></p>
-                  <p className="leading-relaxed text-sm mt-2">If you are located in the European Union, you also have the right to lodge a complaint with your local data protection authority.</p>
+                  <p className="leading-relaxed text-sm">You may exercise these rights within the app or by contacting: <strong className="text-emerald-700">khaoskrservices@gmail.com</strong></p>
+                  <p className="leading-relaxed text-sm mt-2">If you are located in the EU, you may also file a complaint with your local data protection authority.</p>
                 </div>
               </section>
 
@@ -1154,7 +1198,15 @@ export default function Dashboard() {
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">10</span>
                   Ads and Tracking
                 </h3>
-                <p className="leading-relaxed">ClearLedger does not display ads and does not use third-party advertising or tracking technologies. We do not track user behavior across apps or websites.</p>
+                <p className="leading-relaxed font-semibold">ClearLedger:</p>
+                <ul className="list-disc pl-8 space-y-1">
+                  <li>Does not display ads</li>
+                  <li>Does not use advertising SDKs</li>
+                  <li>Does not track users across apps or websites</li>
+                  <li>Does not use behavioral tracking</li>
+                  <li>Does not use third-party analytics for profiling</li>
+                  <li>Does not sell or monetize user data</li>
+                </ul>
               </section>
 
               <section className="space-y-3">
@@ -1162,7 +1214,15 @@ export default function Dashboard() {
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">11</span>
                   Security
                 </h3>
-                <p className="leading-relaxed">We use technical and organizational measures to protect your data, including encryption and secure cloud infrastructure. However, no system is completely secure, and we cannot guarantee absolute security.</p>
+                <p className="leading-relaxed">We implement appropriate technical and organizational security measures, including:</p>
+                <ul className="list-disc pl-8 space-y-1">
+                  <li>Encryption</li>
+                  <li>Secure cloud infrastructure</li>
+                  <li>Access controls</li>
+                  <li>Authentication safeguards</li>
+                  <li>Secure session handling</li>
+                </ul>
+                <p className="leading-relaxed mt-2 text-sm italic">While we take strong precautions, no system can guarantee absolute security.</p>
               </section>
 
               <section className="space-y-3">
@@ -1170,7 +1230,12 @@ export default function Dashboard() {
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">12</span>
                   Children's Privacy
                 </h3>
-                <p className="leading-relaxed">ClearLedger is not intended for children under the age of 13 (or 16 in the European Union). We do not knowingly collect personal data from children. If you believe a child has provided personal data, please contact us so we can delete it.</p>
+                <p className="leading-relaxed">ClearLedger is not intended for children under:</p>
+                <ul className="list-disc pl-8 space-y-1">
+                  <li>13 years old (globally)</li>
+                  <li>16 years old (European Union)</li>
+                </ul>
+                <p className="leading-relaxed mt-2">We do not knowingly collect data from children. If we become aware of such data, it will be deleted promptly.</p>
               </section>
 
               <section className="space-y-3">
@@ -1178,19 +1243,18 @@ export default function Dashboard() {
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">13</span>
                   Changes to This Policy
                 </h3>
-                <p className="leading-relaxed">We may update this privacy policy from time to time. Any changes will be reflected on this page with an updated revision date.</p>
+                <p className="leading-relaxed">This privacy policy may be updated periodically. Updates will be reflected with a revised date.</p>
               </section>
 
               <section className="space-y-3 border-t pt-6">
                 <h3 className="text-lg font-bold text-emerald-600 flex items-center gap-2">
                   <span className="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">14</span>
-                  Contact
+                  Contact Information
                 </h3>
-                <p className="leading-relaxed">If you have questions about this privacy policy or your data rights, contact us:</p>
                 <div className="bg-slate-100 rounded-lg p-4 space-y-1">
-                  <p><strong>Operator:</strong> Khaos (Khaos KRServices)</p>
+                  <p><strong>Operator:</strong> Khaos (doing business as Khaos KRServices)</p>
                   <p><strong>Country:</strong> The Netherlands</p>
-                  <p><strong>Email:</strong> <a href="mailto:khaoskrservices@gmail.com" className="text-emerald-600 hover:underline">khaoskrservices@gmail.com</a></p>
+                  <p><strong>Support Email:</strong> <a href="mailto:khaoskrservices@gmail.com" className="text-emerald-600 hover:underline">khaoskrservices@gmail.com</a></p>
                 </div>
               </section>
             </div>

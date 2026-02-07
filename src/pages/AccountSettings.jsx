@@ -59,8 +59,12 @@ export default function AccountSettings() {
   const updateUserMutation = useMutation({
     mutationFn: async (data) => {
       await base44.auth.updateMe(data);
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Update local state immediately to prevent reverting
+      setFullName(data.full_name);
+      setEmail(data.email);
       queryClient.invalidateQueries({ queryKey: ['current-user'] });
       setSuccess('Profile updated successfully');
       setTimeout(() => setSuccess(''), 3000);
@@ -124,14 +128,56 @@ export default function AccountSettings() {
         base44.entities.CreditCard.filter({ created_by: userEmail }).then(cards => 
           Promise.all(cards.map(c => base44.entities.CreditCard.delete(c.id)))
         ),
+        base44.entities.Purchase.filter({ created_by: userEmail }).then(purchases => 
+          Promise.all(purchases.map(p => base44.entities.Purchase.delete(p.id)))
+        ),
+        base44.entities.Payment.filter({ created_by: userEmail }).then(payments => 
+          Promise.all(payments.map(p => base44.entities.Payment.delete(p.id)))
+        ),
         base44.entities.BankAccount.filter({ created_by: userEmail }).then(accounts => 
           Promise.all(accounts.map(a => base44.entities.BankAccount.delete(a.id)))
+        ),
+        base44.entities.Deposit.filter({ created_by: userEmail }).then(deposits => 
+          Promise.all(deposits.map(d => base44.entities.Deposit.delete(d.id)))
+        ),
+        base44.entities.RecurringDeposit.filter({ created_by: userEmail }).then(deposits => 
+          Promise.all(deposits.map(d => base44.entities.RecurringDeposit.delete(d.id)))
+        ),
+        base44.entities.RecurringWithdrawal.filter({ created_by: userEmail }).then(withdrawals => 
+          Promise.all(withdrawals.map(w => base44.entities.RecurringWithdrawal.delete(w.id)))
         ),
         base44.entities.RecurringBill.filter({ created_by: userEmail }).then(bills => 
           Promise.all(bills.map(b => base44.entities.RecurringBill.delete(b.id)))
         ),
         base44.entities.MortgageLoan.filter({ created_by: userEmail }).then(loans => 
           Promise.all(loans.map(l => base44.entities.MortgageLoan.delete(l.id)))
+        ),
+        base44.entities.LoanPayment.filter({ created_by: userEmail }).then(payments => 
+          Promise.all(payments.map(p => base44.entities.LoanPayment.delete(p.id)))
+        ),
+        base44.entities.BankTransfer.filter({ created_by: userEmail }).then(transfers => 
+          Promise.all(transfers.map(t => base44.entities.BankTransfer.delete(t.id)))
+        ),
+        base44.entities.CurrencyConversion.filter({ created_by: userEmail }).then(conversions => 
+          Promise.all(conversions.map(c => base44.entities.CurrencyConversion.delete(c.id)))
+        ),
+        base44.entities.PayoffScenario.filter({ created_by: userEmail }).then(scenarios => 
+          Promise.all(scenarios.map(s => base44.entities.PayoffScenario.delete(s.id)))
+        ),
+        base44.entities.LoanPayoffScenario.filter({ created_by: userEmail }).then(scenarios => 
+          Promise.all(scenarios.map(s => base44.entities.LoanPayoffScenario.delete(s.id)))
+        ),
+        base44.entities.MultiPaymentScenario.filter({ created_by: userEmail }).then(scenarios => 
+          Promise.all(scenarios.map(s => base44.entities.MultiPaymentScenario.delete(s.id)))
+        ),
+        base44.entities.TransactionTemplate.filter({ created_by: userEmail }).then(templates => 
+          Promise.all(templates.map(t => base44.entities.TransactionTemplate.delete(t.id)))
+        ),
+        base44.entities.ScheduledPaymentStatus.filter({ created_by: userEmail }).then(statuses => 
+          Promise.all(statuses.map(s => base44.entities.ScheduledPaymentStatus.delete(s.id)))
+        ),
+        base44.entities.SyncState.filter({ created_by: userEmail }).then(syncs => 
+          Promise.all(syncs.map(s => base44.entities.SyncState.delete(s.id)))
         ),
       ]);
 

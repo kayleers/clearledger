@@ -36,6 +36,7 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
     loans: `You've reached the limit of ${FREE_LIMITS.loans} loan on the free plan.`,
     bankAccounts: `You've reached the limit of ${FREE_LIMITS.bankAccounts} bank account on the free plan.`,
     recurringBills: `You've reached the limit of ${FREE_LIMITS.recurringBills} recurring bills on the free plan.`,
+    currencyConversions: `You've reached the limit of ${FREE_LIMITS.currencyConversions} currency conversion on the free plan.`,
     general: 'Upgrade to Pro to unlock unlimited access.'
   };
 
@@ -70,6 +71,10 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
               <li className="flex items-start gap-2 text-sm">
                 <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                 <span>Unlimited recurring bills</span>
+              </li>
+              <li className="flex items-start gap-2 text-sm">
+                <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <span>Unlimited currency conversions</span>
               </li>
               <li className="flex items-start gap-2 text-sm">
                 <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />

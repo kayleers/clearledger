@@ -12,6 +12,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { formatCurrency } from '@/components/utils/calculations';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import MobileSelect from '@/components/ui/mobile-select';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 const FREQUENCY_LABELS = {
   one_time: 'One Time',
@@ -24,7 +26,14 @@ export default function CurrencyConversionList({ dragHandleProps }) {
   const [showForm, setShowForm] = useState(false);
   const [editingConversion, setEditingConversion] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const queryClient = useQueryClient();
+  const accessControl = useAccessControl();
+
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me()
+  });
 
   const { data: conversions = [] } = useQuery({
     queryKey: ['currency-conversions'],
@@ -66,6 +75,12 @@ export default function CurrencyConversionList({ dragHandleProps }) {
 
   const executeConversionMutation = useMutation({
     mutationFn: async (conversion) => {
+      // Check conversion limit for free users
+      const currentUsage = user?.currency_conversion_usage || 0;
+      if (!accessControl.canUseCurrencyConversion(currentUsage)) {
+        throw new Error('LIMIT_REACHED');
+      }
+
       let rate = conversion.manual_rate;
       
       if (conversion.use_live_rate) {
@@ -97,12 +112,28 @@ export default function CurrencyConversionList({ dragHandleProps }) {
         category: 'transfer'
       });
 
+      // Increment usage counter for free users
+      if (!accessControl.isPro) {
+        await base44.auth.updateMe({
+          currency_conversion_usage: currentUsage + 1
+        });
+      }
+
       return { rate, convertedAmount };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['deposits'] });
       queryClient.invalidateQueries({ queryKey: ['all-deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['current-user'] });
+    },
+    onError: (error) => {
+      if (error.message === 'LIMIT_REACHED') {
+        setShowUpgradeDialog(true);
+      } else {
+        console.error('Conversion failed:', error);
+        alert('Conversion failed. Please try again.');
+      }
     }
   });
 
@@ -130,6 +161,10 @@ export default function CurrencyConversionList({ dragHandleProps }) {
     return account ? account.name : 'Unknown';
   };
 
+  const currentUsage = user?.currency_conversion_usage || 0;
+  const limit = accessControl.getLimit('currencyConversions');
+  const remaining = accessControl.isPro ? Infinity : Math.max(0, limit - currentUsage);
+
   return (
     <>
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
@@ -141,7 +176,14 @@ export default function CurrencyConversionList({ dragHandleProps }) {
               </div>
             )}
             <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-              <h2 className="text-xl font-bold text-emerald-400">Currency FX</h2>
+              <div>
+                <h2 className="text-xl font-bold text-emerald-400">Currency FX</h2>
+                {!accessControl.isPro && (
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {remaining > 0 ? `${remaining} conversion${remaining !== 1 ? 's' : ''} remaining` : 'Limit reached'}
+                  </p>
+                )}
+              </div>
               {isExpanded ? (
                 <ChevronUp className="w-5 h-5 text-slate-500" />
               ) : (
@@ -284,6 +326,11 @@ export default function CurrencyConversionList({ dragHandleProps }) {
         </DialogContent>
       </Dialog>
 
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        context="currencyConversions"
+      />
     </>
   );
 }

@@ -83,16 +83,57 @@ export default function AccountSettings() {
     setError('');
     setSuccess('');
 
+    if (!fullName.trim()) {
+      setError('Name cannot be empty');
+      return;
+    }
+
+    if (!email.trim()) {
+      setError('Email cannot be empty');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     updateUserMutation.mutate({
       full_name: fullName,
       email: email
     });
   };
 
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data) => {
+      const response = await base44.functions.invoke('changePassword', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      setPasswordSuccess('Password changed successfully. Please sign in again with your new password.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      // Auto logout after 3 seconds to force re-authentication
+      setTimeout(() => {
+        base44.auth.logout();
+      }, 3000);
+    },
+    onError: (err) => {
+      setPasswordError(err.message || 'Failed to change password');
+    }
+  });
+
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setPasswordError('');
     setPasswordSuccess('');
+
+    if (!currentPassword) {
+      setPasswordError('Current password is required');
+      return;
+    }
 
     if (newPassword !== confirmPassword) {
       setPasswordError('New passwords do not match');
@@ -104,14 +145,15 @@ export default function AccountSettings() {
       return;
     }
 
-    try {
-      // Base44 handles password changes through the authentication system
-      // In a real implementation, this would call a password change endpoint
-      // For now, we'll show users how to reset their password
-      setPasswordError('Password change must be done through the login page. Please log out and use "Forgot Password"');
-    } catch (err) {
-      setPasswordError(err.message || 'Failed to change password');
+    if (currentPassword === newPassword) {
+      setPasswordError('New password must be different from current password');
+      return;
     }
+
+    changePasswordMutation.mutate({
+      currentPassword,
+      newPassword
+    });
   };
 
   const handleLogout = () => {
@@ -366,8 +408,20 @@ export default function AccountSettings() {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full" variant="outline">
-                  Change Password
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  variant="outline"
+                  disabled={changePasswordMutation.isPending}
+                >
+                  {changePasswordMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Changing Password...
+                    </>
+                  ) : (
+                    'Change Password'
+                  )}
                 </Button>
               </form>
             </CardContent>

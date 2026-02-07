@@ -73,10 +73,10 @@ export default function UpgradeBanner() {
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <span className="font-medium truncate">
-                  {PRODUCT_PRICING[GOOGLE_PLAY_PRODUCTS.PRO_YEARLY].name}
+                  Pro Yearly
                 </span>
-                <span className="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-semibold whitespace-nowrap flex-shrink-0">
-                  {PRODUCT_PRICING[GOOGLE_PLAY_PRODUCTS.PRO_YEARLY].savings}
+                <span className="text-[10px] bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded-full font-semibold whitespace-nowrap flex-shrink-0">
+                  Save 30%
                 </span>
               </div>
               <span className="font-bold whitespace-nowrap ml-2 flex-shrink-0">

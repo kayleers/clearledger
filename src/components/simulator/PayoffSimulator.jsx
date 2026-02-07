@@ -423,7 +423,17 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
         {/* Results */}
         {(parseFloat(fixedPayment) > 0 || parseFloat(defaultMonthlyPayment) > 0 || variablePayments.some(p => parseFloat(p.amount) > 0)) && (
           <div className="space-y-4 pt-4 border-t">
-            <h4 className="font-medium text-slate-700">Your Payoff Results</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-slate-700">Your Payoff Results</h4>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowBreakdown(!showBreakdown)}
+                className="text-xs"
+              >
+                {showBreakdown ? 'Hide Comparison' : 'Compare to Minimum'}
+              </Button>
+            </div>
             
             {currentScenario.months === Infinity ? (
               <div className="p-4 bg-red-50 rounded-xl text-center">
@@ -457,7 +467,7 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                   <div className="p-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl text-white">
                     <div className="flex items-center gap-2 mb-2">
                       <Sparkles className="w-5 h-5" />
-                      <span className="font-medium">You Save</span>
+                      <span className="font-medium">You Save vs. Minimum Payment</span>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -466,12 +476,21 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                       </div>
                       <div>
                         <p className="text-xl font-bold">{formatMonthsToYears(monthsSaved)}</p>
-                        <p className="text-xs text-emerald-100">faster</p>
+                        <p className="text-xs text-emerald-100">faster payoff</p>
                       </div>
                     </div>
-                    <p className="text-xs text-emerald-100 mt-2">
-                      vs. paying only the minimum
-                    </p>
+                    <div className="mt-3 pt-3 border-t border-emerald-400/30">
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="text-emerald-100">Your plan:</p>
+                          <p className="font-semibold">{formatMonthsToYears(currentScenario.months)}</p>
+                        </div>
+                        <div>
+                          <p className="text-emerald-100">Minimum only:</p>
+                          <p className="font-semibold">{formatMonthsToYears(minPaymentScenario.months)}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 

@@ -8,7 +8,7 @@ export default function BottomNav() {
 
   const tabs = [
     { name: 'Dashboard', path: createPageUrl('Dashboard'), icon: Home },
-    { name: 'Schedule', path: createPageUrl('PaymentCalendar'), icon: Calendar },
+    { name: 'Schedule', path: createPageUrl('Dashboard'), icon: Calendar },
     { name: 'Settings', path: createPageUrl('AccountSettings'), icon: User }
   ];
 

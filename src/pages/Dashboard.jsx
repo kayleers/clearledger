@@ -616,7 +616,7 @@ export default function Dashboard() {
               className="hover:opacity-80 transition-opacity"
             >
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/b93dade76_ClearLedgerIcon1.png" 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/0fe26be2d_ClearLedgerMainLogo.png" 
                 alt="ClearLedger Logo" 
                 className="w-16 h-16 rounded-xl shadow-lg object-cover"
               />

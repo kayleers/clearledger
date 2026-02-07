@@ -7,7 +7,6 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast";
-import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 export function Toaster() {
@@ -30,11 +29,12 @@ export function Toaster() {
         );
       })}
       <ToastViewport />
-      <Link to={createPageUrl('Dashboard')}>
-        <button className="fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg z-50">
-          Back to Dashboard
-        </button>
-      </Link>
+      <button 
+        onClick={() => window.location.href = createPageUrl('Dashboard')}
+        className="fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg z-50"
+      >
+        Back to Dashboard
+      </button>
     </ToastProvider>
   );
 }

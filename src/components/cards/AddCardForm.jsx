@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { X, CreditCard, HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import CurrencySelector from '@/components/currency/CurrencySelector';
 
 const cardColors = [
   { value: 'blue', label: 'Blue', class: 'bg-blue-600' },
@@ -31,6 +32,7 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
     statement_date: card?.statement_date?.toString() || '',
     due_date: card?.due_date?.toString() || '',
     color: card?.color || 'blue',
+    currency: card?.currency || 'USD',
     is_active: card?.is_active !== undefined ? card.is_active : true,
     bank_account_id: card?.bank_account_id || '',
     additional_payment_enabled: card?.additional_payment_enabled || false,
@@ -52,6 +54,7 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
       statement_date: parseInt(formData.statement_date) || null,
       due_date: parseInt(formData.due_date) || null,
       color: formData.color,
+      currency: formData.currency,
       is_active: formData.is_active,
       bank_account_id: formData.bank_account_id || null
     };
@@ -110,39 +113,42 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
             />
           </div>
 
+          {/* Currency */}
+          <div className="space-y-2">
+            <Label htmlFor="currency">Currency</Label>
+            <CurrencySelector
+              value={formData.currency}
+              onChange={(value) => updateField('currency', value)}
+            />
+          </div>
+
           {/* Balance & Limit */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="balance">Current Balance</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
-                <Input
-                  id="balance"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={formData.balance}
-                  onChange={(e) => updateField('balance', e.target.value)}
-                  required
-                  className="pl-7 h-12"
-                />
-              </div>
+              <Input
+                id="balance"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={formData.balance}
+                onChange={(e) => updateField('balance', e.target.value)}
+                required
+                className="h-12"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="credit_limit">Credit Limit</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
-                <Input
-                  id="credit_limit"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={formData.credit_limit}
-                  onChange={(e) => updateField('credit_limit', e.target.value)}
-                  required={formData.is_active}
-                  className="pl-7 h-12"
-                />
-              </div>
+              <Input
+                id="credit_limit"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={formData.credit_limit}
+                onChange={(e) => updateField('credit_limit', e.target.value)}
+                required={formData.is_active}
+                className="h-12"
+              />
             </div>
           </div>
 
@@ -329,19 +335,16 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
               <div className="space-y-3 pt-3 border-t">
                 <div className="space-y-2">
                   <Label htmlFor="additional_amount">Additional Payment Amount</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
-                    <Input
-                      id="additional_amount"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="100.00"
-                      value={formData.additional_payment_amount}
-                      onChange={(e) => updateField('additional_payment_amount', e.target.value)}
-                      className="pl-7 h-12"
-                    />
-                  </div>
+                  <Input
+                    id="additional_amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="100.00"
+                    value={formData.additional_payment_amount}
+                    onChange={(e) => updateField('additional_payment_amount', e.target.value)}
+                    className="h-12"
+                  />
                 </div>
 
                 <div className="space-y-2">

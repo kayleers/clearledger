@@ -5,7 +5,7 @@ import { useIsMobile } from '@/components/utils/useIsMobile';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
 
-export function MobileSelect({ value, onValueChange, options, placeholder, label, className = '' }) {
+export default function MobileSelect({ value, onValueChange, options, placeholder, label, className = '' }) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
 

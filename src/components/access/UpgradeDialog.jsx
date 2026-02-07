@@ -42,43 +42,43 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 border-0">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Crown className="w-6 h-6 text-yellow-500" />
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <Crown className="w-6 h-6 text-yellow-300" />
             Upgrade to Pro
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          <p className="text-slate-600">{contextMessages[context]}</p>
+          <p className="text-white/90">{contextMessages[context]}</p>
 
-          <div className="bg-slate-50 rounded-lg p-4">
-            <h4 className="font-semibold mb-3">Pro Features:</h4>
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+            <h4 className="font-semibold mb-3 text-white">Pro Features:</h4>
             <ul className="space-y-2">
               <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                <span>Unlimited credit cards</span>
+                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
+                <span className="text-white">Unlimited credit cards</span>
               </li>
               <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                <span>Unlimited bank accounts</span>
+                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
+                <span className="text-white">Unlimited bank accounts</span>
               </li>
               <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                <span>Unlimited loans</span>
+                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
+                <span className="text-white">Unlimited loans</span>
               </li>
               <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                <span>Unlimited recurring bills</span>
+                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
+                <span className="text-white">Unlimited recurring bills</span>
               </li>
               <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                <span>Unlimited currency conversions</span>
+                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
+                <span className="text-white">Unlimited currency conversions</span>
               </li>
               <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                <span>Full access to all features</span>
+                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
+                <span className="text-white">Full access to all features</span>
               </li>
             </ul>
           </div>
@@ -87,7 +87,7 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
             <Button
               onClick={() => handlePurchase(GOOGLE_PLAY_PRODUCTS.PRO_MONTHLY)}
               disabled={purchasing !== null}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30"
             >
               <div className="flex items-center justify-between w-full">
                 <span>Pro Monthly</span>
@@ -98,7 +98,7 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
             <Button
               onClick={() => handlePurchase(GOOGLE_PLAY_PRODUCTS.PRO_YEARLY)}
               disabled={purchasing !== null}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30"
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-2">
@@ -114,12 +114,12 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
             <Button
               onClick={() => handlePurchase(GOOGLE_PLAY_PRODUCTS.LIFETIME)}
               disabled={purchasing !== null}
-              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold"
+              className="w-full bg-yellow-400/90 hover:bg-yellow-400 text-yellow-900 font-bold border-0"
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-2">
                   <span>Lifetime Access</span>
-                  <span className="text-xs bg-white text-orange-600 px-2 py-0.5 rounded-full font-semibold">
+                  <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-semibold">
                     BEST VALUE
                   </span>
                 </div>
@@ -129,7 +129,7 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
           </div>
 
           {purchasing && (
-            <p className="text-sm text-slate-600 text-center">Processing purchase...</p>
+            <p className="text-sm text-white/80 text-center">Processing purchase...</p>
           )}
         </div>
       </DialogContent>

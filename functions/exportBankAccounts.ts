@@ -18,11 +18,39 @@ Deno.serve(async (req) => {
     const margin = 20;
 
     const formatCurrency = (amount, currency = 'USD') => {
-      return new Intl.NumberFormat('en-US', {
+      const formatted = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: currency,
         minimumFractionDigits: 2
       }).format(amount || 0);
+      
+      // Replace Unicode currency symbols with ASCII equivalents for PDF compatibility
+      return formatted
+        .replace(/€/g, 'EUR ')
+        .replace(/£/g, 'GBP ')
+        .replace(/¥/g, 'JPY ')
+        .replace(/₹/g, 'INR ')
+        .replace(/₽/g, 'RUB ')
+        .replace(/₩/g, 'KRW ')
+        .replace(/₪/g, 'ILS ')
+        .replace(/₱/g, 'PHP ')
+        .replace(/₺/g, 'TRY ')
+        .replace(/฿/g, 'THB ')
+        .replace(/₫/g, 'VND ')
+        .replace(/zł/g, 'PLN ')
+        .replace(/₴/g, 'UAH ')
+        .replace(/₡/g, 'CRC ')
+        .replace(/₦/g, 'NGN ')
+        .replace(/₨/g, 'PKR ')
+        .replace(/₲/g, 'PYG ')
+        .replace(/₵/g, 'GHS ')
+        .replace(/₸/g, 'KZT ')
+        .replace(/₼/g, 'AZN ')
+        .replace(/៛/g, 'KHR ')
+        .replace(/₮/g, 'MNT ')
+        .replace(/元/g, 'CNY ')
+        .replace(/円/g, 'JPY ')
+        .replace(/원/g, 'KRW ');
     };
 
     const getOngoingBalance = (account) => {

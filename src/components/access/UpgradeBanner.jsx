@@ -72,10 +72,10 @@ export default function UpgradeBanner() {
               size="sm"
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
-                <span className="font-medium truncate">
+                <span className="font-medium">
                   Pro Yearly
                 </span>
-                <span className="text-[10px] bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded-full font-semibold whitespace-nowrap flex-shrink-0">
+                <span className="text-[8px] bg-yellow-400 text-yellow-900 px-1 py-0.5 rounded-full font-semibold whitespace-nowrap flex-shrink-0">
                   Save 30%
                 </span>
               </div>

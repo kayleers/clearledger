@@ -62,12 +62,18 @@ export default function AccountSettings() {
       return data;
     },
     onSuccess: (data) => {
-      // Update local state immediately to prevent reverting
-      setFullName(data.full_name);
-      setEmail(data.email);
-      queryClient.invalidateQueries({ queryKey: ['current-user'] });
+      // Update the cache directly to prevent reverting
+      queryClient.setQueryData(['current-user'], (oldData) => ({
+        ...oldData,
+        full_name: data.full_name,
+        email: data.email
+      }));
       setSuccess('Profile updated successfully');
       setTimeout(() => setSuccess(''), 3000);
+      // Invalidate after a delay to ensure backend has processed
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['current-user'] });
+      }, 1000);
     },
     onError: (err) => {
       setError(err.message || 'Failed to update profile');

@@ -1,37 +1,23 @@
-import { useMemo } from 'react';
 import { useEntitlements } from './EntitlementsProvider';
-import { getLimit, canAdd, isAtLimit, hasFeature, TIER_DETAILS } from './tierConfig';
+import { isPro, getLimit, isAtLimit, canAdd } from './tierConfig';
 
 export function useAccessControl() {
-  const { userTier, isLoading } = useEntitlements();
+  const { userPlan, isLoading } = useEntitlements();
 
-  const accessControl = useMemo(() => {
-    return {
-      tier: userTier,
-      isLoading,
-      
-      // Limit checks
-      getLimit: (limitType) => getLimit(userTier, limitType),
-      isAtLimit: (currentCount, limitType) => isAtLimit(currentCount, userTier, limitType),
-      canAdd: (currentCount, limitType) => canAdd(currentCount, userTier, limitType),
-      
-      // Feature checks
-      hasFeature: (feature) => hasFeature(userTier, feature),
-      
-      // Tier info
-      getTierDetails: () => TIER_DETAILS[userTier],
-      
-      // Specific checks for common scenarios
-      canAddCreditCard: (currentCount) => canAdd(currentCount, userTier, 'creditCards'),
-      canAddLoan: (currentCount) => canAdd(currentCount, userTier, 'loans'),
-      canAddBankAccount: (currentCount) => canAdd(currentCount, userTier, 'bankAccounts'),
-      canAddRecurringBill: (currentCount) => canAdd(currentCount, userTier, 'recurringBills'),
-      canAddScenario: (currentCount) => canAdd(currentCount, userTier, 'savedScenarios'),
-      
-      // Calendar months
-      getCalendarMonthsLimit: () => getLimit(userTier, 'calendarMonths')
-    };
-  }, [userTier, isLoading]);
-
-  return accessControl;
+  return {
+    plan: userPlan,
+    isPro: isPro(userPlan),
+    isLoading,
+    
+    // Limit checks
+    getLimit: (limitType) => getLimit(userPlan, limitType),
+    isAtLimit: (currentCount, limitType) => isAtLimit(currentCount, userPlan, limitType),
+    canAdd: (currentCount, limitType) => canAdd(currentCount, userPlan, limitType),
+    
+    // Specific item checks
+    canAddCreditCard: (currentCount) => canAdd(currentCount, userPlan, 'creditCards'),
+    canAddLoan: (currentCount) => canAdd(currentCount, userPlan, 'loans'),
+    canAddBankAccount: (currentCount) => canAdd(currentCount, userPlan, 'bankAccounts'),
+    canAddRecurringBill: (currentCount) => canAdd(currentCount, userPlan, 'recurringBills')
+  };
 }

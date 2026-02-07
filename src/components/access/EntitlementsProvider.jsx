@@ -1,99 +1,90 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { TIERS, getHighestTier, GOOGLE_PLAY_PRODUCT_TO_TIER } from './tierConfig';
+import { PLAN_TYPES, GOOGLE_PLAY_PRODUCT_TO_PLAN } from './tierConfig';
 import { isAndroid } from '@/components/platform/platformDetection';
 import { googlePlayBilling } from '@/components/billing/GooglePlayBillingService';
 
 const EntitlementsContext = createContext(null);
 
 export function EntitlementsProvider({ children }) {
-  const [userTier, setUserTier] = useState(TIERS.FREE);
+  const [userPlan, setUserPlan] = useState(PLAN_TYPES.FREE);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadUserTier();
+    loadUserPlan();
+    
+    // Refresh entitlement on app visibility change
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadUserPlan();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-  const loadUserTier = async () => {
+  const loadUserPlan = async () => {
     try {
       const user = await base44.auth.me();
       
-      // On Android, check Google Play Billing first
+      // CRITICAL: Only Android users can use the app
+      // Check Google Play Billing for entitlement
       if (isAndroid()) {
         try {
           await googlePlayBilling.initialize();
           const subscriptions = await googlePlayBilling.getActiveSubscriptions();
           
+          // Determine plan from Google Play purchases
+          let plan = PLAN_TYPES.FREE;
           if (subscriptions.length > 0) {
-            // Find the highest tier subscription
-            let highestTier = TIERS.FREE;
-            for (const sub of subscriptions) {
-              const tier = GOOGLE_PLAY_PRODUCT_TO_TIER[sub.productId];
-              if (tier) {
-                highestTier = getHighestTier(highestTier, tier);
-              }
-            }
+            // Check if any active purchase grants Pro access
+            const hasPro = subscriptions.some(sub => 
+              GOOGLE_PLAY_PRODUCT_TO_PLAN[sub.productId] === PLAN_TYPES.PRO
+            );
             
-            if (highestTier !== TIERS.FREE) {
-              setUserTier(highestTier);
-              
-              // Sync with backend if different
-              if (user.subscription_tier !== highestTier) {
-                await base44.auth.updateMe({ subscription_tier: highestTier });
-              }
-              
-              setIsLoading(false);
-              return;
+            if (hasPro) {
+              plan = PLAN_TYPES.PRO;
             }
           }
+          
+          // Sync with backend if different
+          if (user.plan !== plan) {
+            await base44.auth.updateMe({ plan });
+          }
+          
+          setUserPlan(plan);
+          setIsLoading(false);
+          return;
         } catch (error) {
           console.error('Google Play Billing check failed:', error);
-          // Fall through to web-based tier check
+          // If billing check fails, default to free
+          setUserPlan(PLAN_TYPES.FREE);
+          setIsLoading(false);
+          return;
         }
       }
       
-      // Web or fallback: Use backend tier
-      const tier = user.subscription_tier || TIERS.FREE;
-      setUserTier(tier);
+      // Non-Android: Block app usage
+      // For web preview/development, use stored plan as fallback
+      const plan = user.plan || PLAN_TYPES.FREE;
+      setUserPlan(plan);
     } catch (error) {
-      console.error('Error loading user tier:', error);
-      setUserTier(TIERS.FREE);
+      console.error('Error loading user plan:', error);
+      setUserPlan(PLAN_TYPES.FREE);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const upgradeTier = async (newTier) => {
-    try {
-      const currentTier = userTier;
-      const bestTier = getHighestTier(currentTier, newTier);
-      
-      await base44.auth.updateMe({ subscription_tier: bestTier });
-      setUserTier(bestTier);
-      
-      return bestTier;
-    } catch (error) {
-      console.error('Error upgrading tier:', error);
-      throw error;
-    }
-  };
-
-  const downgradeTier = async (newTier) => {
-    try {
-      await base44.auth.updateMe({ subscription_tier: newTier });
-      setUserTier(newTier);
-    } catch (error) {
-      console.error('Error downgrading tier:', error);
-      throw error;
-    }
+  const refreshPlan = async () => {
+    await loadUserPlan();
   };
 
   const value = {
-    userTier,
+    userPlan,
     isLoading,
-    upgradeTier,
-    downgradeTier,
-    refreshTier: loadUserTier
+    refreshPlan
   };
 
   return (

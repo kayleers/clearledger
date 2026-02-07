@@ -1,116 +1,102 @@
-// Single source of truth for tier limits and features
-export const TIERS = {
-  FREE: 'FREE',
-  LIFETIME: 'LIFETIME',
-  PRO_SUBSCRIPTION: 'PRO_SUBSCRIPTION'
+// Google Play Billing Product IDs
+export const GOOGLE_PLAY_PRODUCTS = {
+  PRO_MONTHLY: 'clearledger_pro_monthly',
+  PRO_YEARLY: 'clearledger_pro_yearly',
+  LIFETIME: 'clearledger_lifetime'
 };
 
-// Google Play Product IDs mapping
-export const GOOGLE_PLAY_PRODUCT_TO_TIER = {
-  'clearledger_pro_monthly': TIERS.PRO_SUBSCRIPTION,
-  'clearledger_pro_yearly': TIERS.PRO_SUBSCRIPTION,
-  'clearledger_lifetime': TIERS.LIFETIME
+// Simplified tier system: free or pro
+export const PLAN_TYPES = {
+  FREE: 'free',
+  PRO: 'pro'
 };
 
-export const TIER_DETAILS = {
-  [TIERS.FREE]: {
+// Product to plan mapping
+export const GOOGLE_PLAY_PRODUCT_TO_PLAN = {
+  [GOOGLE_PLAY_PRODUCTS.PRO_MONTHLY]: PLAN_TYPES.PRO,
+  [GOOGLE_PLAY_PRODUCTS.PRO_YEARLY]: PLAN_TYPES.PRO,
+  [GOOGLE_PLAY_PRODUCTS.LIFETIME]: PLAN_TYPES.PRO
+};
+
+// Free tier limits
+export const FREE_LIMITS = {
+  bankAccounts: 1,
+  loans: 1,
+  recurringBills: 2,
+  creditCards: 2
+};
+
+// Plan details for upgrade UI
+export const PLAN_DETAILS = {
+  [PLAN_TYPES.FREE]: {
     name: 'Free',
     price: '$0.00',
-    description: 'Explore how ClearLedger works',
-    limits: {
-      creditCards: 2,
-      loans: 1,
-      bankAccounts: 1,
-      recurringBills: 2,
-      savedScenarios: 1,
-      calendarMonths: 2
-    },
-    features: {
-      paymentSimulator: true,
-      dashboard: true,
-      charts: true,
-      manualEntry: true,
-      multiCurrency: true,
-      payment_schedule: true,
-      unlimitedScenarios: false
-    }
+    limits: FREE_LIMITS,
+    features: [
+      'Up to 2 credit cards',
+      'Up to 1 bank account',
+      'Up to 1 loan',
+      'Up to 2 recurring bills',
+      'Full feature access'
+    ]
   },
-  [TIERS.LIFETIME]: {
-    name: 'Lifetime Access',
-    price: '$19.99',
-    description: 'For people who hate subscriptions',
-    limits: {
-      creditCards: 8,
-      loans: 5,
-      bankAccounts: 5,
-      recurringBills: 10,
-      savedScenarios: Infinity,
-      calendarMonths: Infinity
-    },
-    features: {
-      paymentSimulator: true,
-      dashboard: true,
-      charts: true,
-      manualEntry: true,
-      multiCurrency: true,
-      payment_schedule: true,
-      unlimitedScenarios: true
-    }
-  },
-  [TIERS.PRO_SUBSCRIPTION]: {
-    name: 'Pro Subscription',
-    monthlyPrice: '$3.99',
-    yearlyPrice: '$29.99',
-    description: 'Unlimited everything',
-    limits: {
-      creditCards: Infinity,
-      loans: Infinity,
-      bankAccounts: Infinity,
-      recurringBills: Infinity,
-      savedScenarios: Infinity,
-      calendarMonths: Infinity
-    },
-    features: {
-      paymentSimulator: true,
-      dashboard: true,
-      charts: true,
-      manualEntry: true,
-      multiCurrency: true,
-      payment_schedule: true,
-      unlimitedScenarios: true,
-      priorityFeatures: true
-    }
+  [PLAN_TYPES.PRO]: {
+    name: 'Pro',
+    features: [
+      'Unlimited credit cards',
+      'Unlimited bank accounts',
+      'Unlimited loans',
+      'Unlimited recurring bills',
+      'Full feature access',
+      'No restrictions'
+    ]
   }
 };
 
-export const TIER_HIERARCHY = {
-  [TIERS.FREE]: 1,
-  [TIERS.LIFETIME]: 2,
-  [TIERS.PRO_SUBSCRIPTION]: 3
+// Product pricing for purchase buttons
+export const PRODUCT_PRICING = {
+  [GOOGLE_PLAY_PRODUCTS.PRO_MONTHLY]: {
+    name: 'Pro Monthly',
+    price: '$2.99',
+    period: '/month',
+    productId: GOOGLE_PLAY_PRODUCTS.PRO_MONTHLY
+  },
+  [GOOGLE_PLAY_PRODUCTS.PRO_YEARLY]: {
+    name: 'Pro Yearly',
+    price: '$24.99',
+    period: '/year',
+    savings: 'Save 30%',
+    productId: GOOGLE_PLAY_PRODUCTS.PRO_YEARLY
+  },
+  [GOOGLE_PLAY_PRODUCTS.LIFETIME]: {
+    name: 'Lifetime',
+    price: '$49.99',
+    period: 'one-time',
+    bestValue: true,
+    productId: GOOGLE_PLAY_PRODUCTS.LIFETIME
+  }
 };
 
-export function getHighestTier(tier1, tier2) {
-  return TIER_HIERARCHY[tier1] > TIER_HIERARCHY[tier2] ? tier1 : tier2;
+// Helper functions
+export function isPro(plan) {
+  return plan === PLAN_TYPES.PRO;
 }
 
-export function canAccess(userTier, requiredTier) {
-  return TIER_HIERARCHY[userTier] >= TIER_HIERARCHY[requiredTier];
+export function isFree(plan) {
+  return plan === PLAN_TYPES.FREE;
 }
 
-export function getLimit(tier, limitType) {
-  return TIER_DETAILS[tier]?.limits?.[limitType] ?? 0;
+export function getLimit(plan, limitType) {
+  if (isPro(plan)) return Infinity;
+  return FREE_LIMITS[limitType] || 0;
 }
 
-export function hasFeature(tier, feature) {
-  return TIER_DETAILS[tier]?.features?.[feature] ?? false;
-}
-
-export function isAtLimit(currentCount, tier, limitType) {
-  const limit = getLimit(tier, limitType);
+export function isAtLimit(currentCount, plan, limitType) {
+  if (isPro(plan)) return false;
+  const limit = getLimit(plan, limitType);
   return currentCount >= limit;
 }
 
-export function canAdd(currentCount, tier, limitType) {
-  const limit = getLimit(tier, limitType);
-  return currentCount < limit;
+export function canAdd(currentCount, plan, limitType) {
+  return !isAtLimit(currentCount, plan, limitType);
 }

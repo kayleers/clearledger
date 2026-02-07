@@ -26,6 +26,9 @@ import PaymentCalendar from '@/components/calendar/PaymentCalendar';
 import QuickAddMenu from '@/components/quickadd/QuickAddMenu';
 import MultiPaymentSimulator from '@/components/simulator/MultiPaymentSimulator';
 import SyncManager from '@/components/sync/SyncManager';
+import UpgradeBanner from '@/components/access/UpgradeBanner';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
@@ -40,9 +43,12 @@ export default function Dashboard() {
   const [editingCard, setEditingCard] = useState(null);
   const [isPullingToRefresh, setIsPullingToRefresh] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [upgradeContext, setUpgradeContext] = useState('general');
   const touchStartY = useRef(0);
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+  const accessControl = useAccessControl();
 
   const { data: user } = useQuery({
     queryKey: ['current-user'],
@@ -281,6 +287,11 @@ export default function Dashboard() {
   }, [user]);
 
   const handleAddCardClick = () => {
+    if (!accessControl.canAddCreditCard(cards.length)) {
+      setUpgradeContext('creditCards');
+      setShowUpgradeDialog(true);
+      return;
+    }
     setShowAddCard(true);
   };
 
@@ -652,6 +663,11 @@ export default function Dashboard() {
               />
             </div>
 
+            {/* Upgrade Banner for Free Users */}
+            {!accessControl.isPro && (
+              <UpgradeBanner />
+            )}
+
             {/* Empty State Message */}
             {cards.length === 0 && bankAccounts.length === 0 && recurringBills.length === 0 && mortgageLoans.length === 0 && (
               <div className="mb-6 text-center py-8 bg-white/10 rounded-lg border border-white/20">
@@ -985,6 +1001,13 @@ export default function Dashboard() {
               isLoading={createCardMutation.isPending || updateCardMutation.isPending}
             />
         </ResponsiveDialog>
+
+        {/* Upgrade Dialog */}
+        <UpgradeDialog
+          open={showUpgradeDialog}
+          onOpenChange={setShowUpgradeDialog}
+          context={upgradeContext}
+        />
 
         {/* Privacy Policy Dialog */}
         <Dialog open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy}>

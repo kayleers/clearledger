@@ -56,10 +56,10 @@ export default function UpgradeBanner() {
               className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30 justify-between"
               size="sm"
             >
-              <span className="font-medium">
+              <span className="font-medium truncate">
                 {PRODUCT_PRICING[GOOGLE_PLAY_PRODUCTS.PRO_MONTHLY].name}
               </span>
-              <span className="font-bold">
+              <span className="font-bold whitespace-nowrap ml-2 flex-shrink-0">
                 {PRODUCT_PRICING[GOOGLE_PLAY_PRODUCTS.PRO_MONTHLY].price}{PRODUCT_PRICING[GOOGLE_PLAY_PRODUCTS.PRO_MONTHLY].period}
               </span>
             </Button>
@@ -71,15 +71,15 @@ export default function UpgradeBanner() {
               className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30 justify-between"
               size="sm"
             >
-              <div className="flex items-center gap-2">
-                <span className="font-medium">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span className="font-medium truncate">
                   {PRODUCT_PRICING[GOOGLE_PLAY_PRODUCTS.PRO_YEARLY].name}
                 </span>
-                <span className="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-semibold">
+                <span className="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-semibold whitespace-nowrap flex-shrink-0">
                   {PRODUCT_PRICING[GOOGLE_PLAY_PRODUCTS.PRO_YEARLY].savings}
                 </span>
               </div>
-              <span className="font-bold">
+              <span className="font-bold whitespace-nowrap ml-2 flex-shrink-0">
                 {PRODUCT_PRICING[GOOGLE_PLAY_PRODUCTS.PRO_YEARLY].price}{PRODUCT_PRICING[GOOGLE_PLAY_PRODUCTS.PRO_YEARLY].period}
               </span>
             </Button>
@@ -91,15 +91,15 @@ export default function UpgradeBanner() {
               className="bg-white hover:bg-white/90 text-purple-600 font-bold border-0 justify-between"
               size="sm"
             >
-              <div className="flex items-center gap-2">
-                <span className="font-bold">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span className="font-bold truncate">
                   {PRODUCT_PRICING[GOOGLE_PLAY_PRODUCTS.LIFETIME].name}
                 </span>
-                <span className="text-xs bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-2 py-0.5 rounded-full font-semibold">
+                <span className="text-xs bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-2 py-0.5 rounded-full font-semibold whitespace-nowrap flex-shrink-0">
                   BEST VALUE
                 </span>
               </div>
-              <span className="font-bold">
+              <span className="font-bold whitespace-nowrap ml-2 flex-shrink-0">
                 {PRODUCT_PRICING[GOOGLE_PLAY_PRODUCTS.LIFETIME].price}
               </span>
             </Button>

@@ -217,6 +217,13 @@ export default function PayoffSimulator({ card, onSaveScenario, payments = [] })
                 >
                   Aggressive
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFixedPayment('')}
+                >
+                  Custom
+                </Button>
               </div>
             </div>
           </TabsContent>

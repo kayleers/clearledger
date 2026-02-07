@@ -604,15 +604,23 @@ export default function Dashboard() {
         {/* Header */}
         <header className="mb-6 safe-area-pt">
           <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
+            <button 
+              onClick={() => window.location.reload()}
+              className="flex-1 text-left hover:opacity-80 transition-opacity"
+            >
               <h1 className="text-3xl font-bold text-emerald-400 drop-shadow-lg">ClearLedger</h1>
               <p className="text-white">Private bill & balance tracking. Smarter payment planning.</p>
-            </div>
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/b4ddf4f75_ClearLedgerSquareColorLogo.png" 
-              alt="ClearLedger Logo" 
-              className="w-16 h-16 rounded-xl shadow-lg object-cover"
-            />
+            </button>
+            <button 
+              onClick={() => window.location.reload()}
+              className="hover:opacity-80 transition-opacity"
+            >
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/b4ddf4f75_ClearLedgerSquareColorLogo.png" 
+                alt="ClearLedger Logo" 
+                className="w-16 h-16 rounded-xl shadow-lg object-cover"
+              />
+            </button>
           </div>
           <SyncManager 
             cards={cards} 

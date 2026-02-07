@@ -12,8 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List, Lock, Download } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
-import { useAccessControl } from '@/components/access/useAccessControl';
-import UpgradeDialog from '@/components/access/UpgradeDialog';
 import MobileSelect from '@/components/ui/mobile-select';
 
 const BILL_CATEGORY_ICONS = {
@@ -39,10 +37,8 @@ export default function PaymentCalendar() {
   const [view, setView] = useState('calendar'); // 'calendar' or 'list'
   const [listPeriod, setListPeriod] = useState('month'); // 'month' or 'year'
   const [expandedItems, setExpandedItems] = useState({});
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState(null); // { item, year, month, day }
   const [selectedAccountId, setSelectedAccountId] = useState('');
-  const accessControl = useAccessControl();
 
   const { data: user } = useQuery({
     queryKey: ['current-user'],
@@ -331,19 +327,11 @@ export default function PaymentCalendar() {
     return items;
   };
 
-  const getMonthsLimit = () => {
-    const limit = accessControl.getCalendarMonthsLimit();
-    return limit === Infinity ? Infinity : limit;
-  };
-
-  const monthsLimit = getMonthsLimit();
-  const hasFullAccess = monthsLimit === Infinity;
-
   const getAllItems = () => {
     const items = [];
     const startMonth = currentMonth.getMonth();
     const startYear = currentMonth.getFullYear();
-    const endMonth = hasFullAccess ? startMonth : Math.min(startMonth + monthsLimit - 1, 11);
+    const endMonth = startMonth;
     
     for (let m = startMonth; m <= endMonth; m++) {
       const monthDate = new Date(startYear, m, 1);
@@ -372,7 +360,7 @@ export default function PaymentCalendar() {
     const items = [];
     const currentYear = currentMonth.getFullYear();
     const startMonth = currentMonth.getMonth();
-    const maxMonths = hasFullAccess ? 12 : Math.min(startMonth + monthsLimit, 12);
+    const maxMonths = 12;
 
     for (let month = startMonth; month < maxMonths; month++) {
       const monthDate = new Date(currentYear, month, 1);
@@ -662,15 +650,12 @@ export default function PaymentCalendar() {
   };
 
   const navigateMonth = (direction) => {
-    if (!hasFullAccess) return; // Free users can't navigate
     setCurrentMonth(prev => {
       const newDate = new Date(prev);
       newDate.setMonth(newDate.getMonth() + direction);
       return newDate;
     });
   };
-
-  const canNavigate = hasFullAccess;
 
   return (
     <Card>
@@ -721,14 +706,13 @@ export default function PaymentCalendar() {
           </Button>
         </div>
         <div className="flex items-center justify-between mt-4">
-          <Button variant="outline" size="sm" onClick={() => navigateMonth(-1)} disabled={!canNavigate}>
+          <Button variant="outline" size="sm" onClick={() => navigateMonth(-1)}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <h3 className="font-semibold">
             {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
-            {!hasFullAccess && <span className="text-xs text-slate-500 ml-2">(Limited to {monthsLimit} months)</span>}
           </h3>
-          <Button variant="outline" size="sm" onClick={() => navigateMonth(1)} disabled={!canNavigate}>
+          <Button variant="outline" size="sm" onClick={() => navigateMonth(1)}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
@@ -740,40 +724,22 @@ export default function PaymentCalendar() {
               onClick={() => setListPeriod('month')}
               className="flex-1"
             >
-              {hasFullAccess ? 'Month' : `${monthsLimit} Months`}
+              Month
             </Button>
-            {hasFullAccess && (
-              <Button 
-                variant={listPeriod === 'year' ? 'default' : 'outline'} 
-                size="sm"
-                onClick={() => setListPeriod('year')}
-                className="flex-1"
-              >
-                Year
-              </Button>
-            )}
+            <Button 
+              variant={listPeriod === 'year' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setListPeriod('year')}
+              className="flex-1"
+            >
+              Year
+            </Button>
           </div>
         )}
       </CardHeader>
       <CardContent>
-        {!hasFullAccess && (
-          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-slate-700 mb-2">
-              🔒 Free tier limited to {monthsLimit} months. Upgrade for unlimited access!
-            </p>
-            <Button size="sm" onClick={() => setShowUpgradeDialog(true)} className="bg-blue-600 hover:bg-blue-700">
-              Upgrade Now
-            </Button>
-          </div>
-        )}
         {view === 'calendar' ? renderCalendarView() : renderListView()}
       </CardContent>
-
-      <UpgradeDialog
-        open={showUpgradeDialog}
-        onOpenChange={setShowUpgradeDialog}
-        context="paymentSchedule"
-      />
 
       <Dialog open={!!paymentDialog} onOpenChange={(open) => !open && setPaymentDialog(null)}>
         <DialogContent>

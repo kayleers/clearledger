@@ -11,8 +11,6 @@ import { Plus, ArrowRightLeft, Trash2, Play, RefreshCw, GripVertical, ChevronDow
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatCurrency } from '@/components/utils/calculations';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { useAccessControl } from '@/components/access/useAccessControl';
-import UpgradeDialog from '@/components/access/UpgradeDialog';
 import MobileSelect from '@/components/ui/mobile-select';
 
 const FREQUENCY_LABELS = {
@@ -25,10 +23,8 @@ const FREQUENCY_LABELS = {
 export default function CurrencyConversionList({ dragHandleProps }) {
   const [showForm, setShowForm] = useState(false);
   const [editingConversion, setEditingConversion] = useState(null);
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const queryClient = useQueryClient();
-  const accessControl = useAccessControl();
 
   const { data: conversions = [] } = useQuery({
     queryKey: ['currency-conversions'],
@@ -45,11 +41,6 @@ export default function CurrencyConversionList({ dragHandleProps }) {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const canCreate = await accessControl.canCreateBankTransfer();
-      if (!canCreate) {
-        setShowUpgradeDialog(true);
-        throw new Error('Upgrade required');
-      }
       return base44.entities.CurrencyConversion.create(data);
     },
     onSuccess: () => {
@@ -293,11 +284,6 @@ export default function CurrencyConversionList({ dragHandleProps }) {
         </DialogContent>
       </Dialog>
 
-      <UpgradeDialog
-        open={showUpgradeDialog}
-        onOpenChange={setShowUpgradeDialog}
-        context="bankTransfer"
-      />
     </>
   );
 }

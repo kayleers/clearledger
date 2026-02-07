@@ -25,27 +25,23 @@ import CurrencyConversionList from '@/components/conversions/CurrencyConversionL
 import PaymentCalendar from '@/components/calendar/PaymentCalendar';
 import QuickAddMenu from '@/components/quickadd/QuickAddMenu';
 import MultiPaymentSimulator from '@/components/simulator/MultiPaymentSimulator';
-import { useAccessControl } from '@/components/access/useAccessControl';
-import UpgradeDialog from '@/components/access/UpgradeDialog';
 import SyncManager from '@/components/sync/SyncManager';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'deposits', 'transfers', 'loans', 'pricing', 'privacy']);
+  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'deposits', 'transfers', 'loans', 'privacy']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(false);
   const [simulatorExpanded, setSimulatorExpanded] = useState(false);
   const [cardsExpanded, setCardsExpanded] = useState(false);
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-  const [upgradeContext, setUpgradeContext] = useState('general');
+
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [editingCard, setEditingCard] = useState(null);
   const [isPullingToRefresh, setIsPullingToRefresh] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const touchStartY = useRef(0);
   const queryClient = useQueryClient();
-  const accessControl = useAccessControl();
   const isMobile = useIsMobile();
 
   const { data: user } = useQuery({
@@ -115,24 +111,12 @@ export default function Dashboard() {
 
   const createCardMutation = useMutation({
     mutationFn: async (cardData) => {
-      // Check limit one more time before creating
-      if (!accessControl.canAddCreditCard(cards.length)) {
-        throw new Error('Credit card limit reached');
-      }
       return await base44.entities.CreditCard.create(cardData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       setShowAddCard(false);
       setEditingCard(null);
-    },
-    onError: (error) => {
-      if (error.message === 'Credit card limit reached') {
-        setUpgradeContext('creditCards');
-        setShowUpgradeDialog(true);
-        setShowAddCard(false);
-        setEditingCard(null);
-      }
     }
   });
 
@@ -241,8 +225,9 @@ export default function Dashboard() {
             updated = true;
           }
 
-          if (!newOrder.includes('pricing')) {
-            newOrder.push('pricing');
+          // Remove pricing section if it exists
+          if (newOrder.includes('pricing')) {
+            newOrder = newOrder.filter(s => s !== 'pricing');
             updated = true;
           }
 
@@ -295,15 +280,8 @@ export default function Dashboard() {
     fetchSectionOrder();
   }, [user]);
 
-  const canAddCard = accessControl.canAddCreditCard(cards.length);
-
   const handleAddCardClick = () => {
-    if (canAddCard) {
-      setShowAddCard(true);
-    } else {
-      setUpgradeContext('creditCards');
-      setShowUpgradeDialog(true);
-    }
+    setShowAddCard(true);
   };
 
   const createPurchaseMutation = useMutation({
@@ -884,24 +862,7 @@ export default function Dashboard() {
                             {section === 'transfers' && <BankTransferList transfers={bankTransfers} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'conversions' && <CurrencyConversionList dragHandleProps={provided.dragHandleProps} />}
                             {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} creditCards={cards} dragHandleProps={provided.dragHandleProps} />}
-                            {section === 'pricing' && (
-                              <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                                <div className="flex items-center gap-2 p-4">
-                                  <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                    <GripVertical className="w-5 h-5 text-slate-400" />
-                                  </div>
-                                  <a 
-                                    href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69502fff0681a8caf0666aa0/179f909b9_PricingChart.png"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex-1 hover:bg-slate-50 transition-colors -m-4 p-4"
-                                  >
-                                    <h2 className="text-xl font-bold text-slate-800 mb-2">Pricing</h2>
-                                    <p className="text-slate-500 text-sm">View our pricing plans and features</p>
-                                  </a>
-                                </div>
-                              </div>
-                            )}
+
                             {section === 'privacy' && (
                               <div className="space-y-3">
                                 <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">

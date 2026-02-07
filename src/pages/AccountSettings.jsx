@@ -9,8 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, User, Mail, LogOut, Shield, ArrowLeft, Lock, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { useEntitlements } from '@/components/access/EntitlementsProvider';
-import { TIER_DETAILS } from '@/components/access/tierConfig';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +24,6 @@ import {
 export default function AccountSettings() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { userTier } = useEntitlements();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -283,29 +281,7 @@ export default function AccountSettings() {
             </CardContent>
           </Card>
 
-          {/* Subscription Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Subscription
-              </CardTitle>
-              <CardDescription>Your current subscription tier</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="font-semibold text-lg">{TIER_DETAILS[userTier].name}</p>
-                  <p className="text-sm text-slate-600">{TIER_DETAILS[userTier].description}</p>
-                </div>
-                {userTier === 'free' && (
-                  <Button size="sm">
-                    Upgrade
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+
 
           {/* Change Password */}
           <Card>

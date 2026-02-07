@@ -1,9 +1,11 @@
 import React from 'react';
 import BottomNav from '@/components/layout/BottomNav';
 import { AnimatePresence, motion } from 'framer-motion';
+import { EntitlementsProvider } from '@/components/access/EntitlementsProvider';
 
 export default function Layout({ children, currentPageName }) {
   return (
+    <EntitlementsProvider>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-teal-800 dark:from-slate-950 dark:via-blue-950 dark:to-teal-950">
       <AnimatePresence mode="wait">
         <motion.div
@@ -56,9 +58,10 @@ export default function Layout({ children, currentPageName }) {
           @media (prefers-color-scheme: dark) {
             :root {
               color-scheme: dark;
-            }
-          }
-        `}</style>
-    </div>
-  );
-}
+              }
+              }
+              `}</style>
+              </div>
+              </EntitlementsProvider>
+              );
+              }

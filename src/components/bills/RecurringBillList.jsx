@@ -13,8 +13,6 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { formatCurrency } from '@/components/utils/calculations';
 import { format } from 'date-fns';
 import CurrencySelector from '@/components/currency/CurrencySelector';
-import { useAccessControl } from '@/components/access/useAccessControl';
-import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 const categoryIcons = {
   utilities: '⚡',
@@ -36,29 +34,17 @@ const frequencyLabels = {
 export default function RecurringBillList({ bills = [], bankAccounts = [], creditCards = [], dragHandleProps }) {
   const [showAddBill, setShowAddBill] = useState(false);
   const [editingBill, setEditingBill] = useState(null);
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [viewMode, setViewMode] = useState('default'); // 'default', 'by-account', 'by-date', 'by-currency'
   const queryClient = useQueryClient();
-  const accessControl = useAccessControl();
 
   const createBillMutation = useMutation({
     mutationFn: async (data) => {
-      // Check limit one more time before creating
-      if (!accessControl.canAddRecurringBill(bills.length)) {
-        throw new Error('Recurring bill limit reached');
-      }
       return await base44.entities.RecurringBill.create(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-bills'] });
       setShowAddBill(false);
-    },
-    onError: (error) => {
-      if (error.message === 'Recurring bill limit reached') {
-        setShowUpgradeDialog(true);
-        setShowAddBill(false);
-      }
     }
   });
 
@@ -99,14 +85,8 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], credi
     });
   };
 
-  const canAddBill = accessControl.canAddRecurringBill(bills.length);
-
   const handleAddBillClick = () => {
-    if (canAddBill) {
-      setShowAddBill(true);
-    } else {
-      setShowUpgradeDialog(true);
-    }
+    setShowAddBill(true);
   };
 
   const getSortedBills = () => {
@@ -523,12 +503,6 @@ export default function RecurringBillList({ bills = [], bankAccounts = [], credi
           </div>
         </DialogContent>
       </Dialog>
-
-      <UpgradeDialog
-        open={showUpgradeDialog}
-        onOpenChange={setShowUpgradeDialog}
-        context="recurringBills"
-      />
     </div>
   );
 }

@@ -15,7 +15,7 @@ import { formatCurrency } from '@/components/utils/calculations';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
-import { MobileSelect } from '@/components/ui/mobile-select';
+import MobileSelect from '@/components/ui/mobile-select';
 
 const loanTypeIcons = {
   mortgage: '🏠',

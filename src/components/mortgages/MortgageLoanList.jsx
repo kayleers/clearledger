@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Home, Plus, Edit2, Trash2, TrendingDown, GripVertical, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { Home, Plus, Edit2, Trash2, TrendingDown, GripVertical, ChevronDown, ChevronUp, Download, Edit3 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatCurrency } from '@/components/utils/calculations';
 import CurrencySelector from '@/components/currency/CurrencySelector';
@@ -35,7 +35,7 @@ const loanTypeLabels = {
   other: 'Other Loan'
 };
 
-export default function MortgageLoanList({ loans = [], bankAccounts = [], creditCards = [], dragHandleProps }) {
+export default function MortgageLoanList({ loans = [], bankAccounts = [], creditCards = [], dragHandleProps, onUpdateBalance }) {
   const [showAddLoan, setShowAddLoan] = useState(false);
   const [editingLoan, setEditingLoan] = useState(null);
   const [editingProjected, setEditingProjected] = useState(null);
@@ -166,7 +166,21 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
 
         <CollapsibleContent>
           {loans.length > 0 && (
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4 flex justify-end gap-2">
+              {onUpdateBalance && loans.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    const loan = loans[0];
+                    onUpdateBalance(loan.id, loan.current_balance);
+                  }}
+                  className="text-xs text-slate-500 hover:text-slate-700"
+                >
+                  <Edit3 className="w-3 h-3 mr-1" />
+                  Update Balance
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="ghost"

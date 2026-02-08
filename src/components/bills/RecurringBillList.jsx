@@ -847,9 +847,9 @@ function RecurringBillForm({ bill, bankAccounts, creditCards = [], onSubmit, isL
       <div className="space-y-2">
         <Label htmlFor="paymentSource">Payment Source (Optional)</Label>
         <MobileSelect
-          value={formData.payment_source_type === 'card' ? `card_${formData.credit_card_id}` : formData.bank_account_id}
+          value={formData.payment_source_type === 'card' ? `card_${formData.credit_card_id}` : (formData.bank_account_id || 'none')}
           onValueChange={(value) => {
-            if (!value) {
+            if (value === 'none') {
               setFormData({ ...formData, payment_source_type: '', bank_account_id: '', credit_card_id: '' });
             } else if (value.startsWith('card_')) {
               const cardId = value.substring(5);
@@ -859,7 +859,7 @@ function RecurringBillForm({ bill, bankAccounts, creditCards = [], onSubmit, isL
             }
           }}
           options={[
-            { value: '', label: 'Select payment source' },
+            { value: 'none', label: 'Select payment source' },
             ...bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => ({
               value: account.id,
               label: `${account.name} ${account.account_number ? `(${account.account_number})` : ''} - ${account.currency}`

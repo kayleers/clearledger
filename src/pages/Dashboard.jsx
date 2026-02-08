@@ -904,18 +904,6 @@ export default function Dashboard() {
                                     </button>
                                   </div>
                                 </div>
-                                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden p-4">
-                                  <Button
-                                    onClick={handleExportData}
-                                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                                  >
-                                    <Download className="w-4 h-4 mr-2" />
-                                    Export All Data to PDF
-                                  </Button>
-                                  <p className="text-xs text-slate-500 text-center mt-2">
-                                    Export everything in your account to one comprehensive PDF
-                                  </p>
-                                </div>
                               </div>
                             )}
                           </div>

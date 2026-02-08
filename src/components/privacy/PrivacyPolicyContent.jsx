@@ -8,32 +8,63 @@ import { usePrivacyPolicy } from './usePrivacyPolicy';
 export default function PrivacyPolicyContent() {
   const { content, lastUpdated, isLoading, isError, isOffline, refetch } = usePrivacyPolicy();
 
+  // Runtime verification logs
+  React.useEffect(() => {
+    if (content) {
+      console.log('[Privacy Policy Render] ✓ Component mounted with content');
+      console.log('[Privacy Policy Render] Source: GitHub RAW');
+      console.log('[Privacy Policy Render] Display mode: Rendered Document (ReactMarkdown)');
+      console.log('[Privacy Policy Render] Content length:', content.length);
+      console.log('[Privacy Policy Render] Content preview:', content.substring(0, 100) + '...');
+      console.log('[Privacy Policy Render] ✓ Render success');
+    }
+  }, [content]);
+
   if (isLoading) {
+    console.log('[Privacy Policy Render] Loading state...');
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-        <span className="ml-3 text-slate-600">Loading Privacy Policy...</span>
+        <span className="ml-3 text-slate-600">Loading Privacy Policy from GitHub...</span>
       </div>
     );
   }
 
   if (isError && !isOffline) {
+    console.error('[Privacy Policy Render] Error state - no content available');
     return (
       <div className="py-6">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Unable to load Privacy Policy. Please check your connection and try again.
+            Unable to load Privacy Policy from GitHub. Please check your connection and try again.
           </AlertDescription>
         </Alert>
         <Button
-          onClick={() => refetch()}
+          onClick={() => {
+            console.log('[Privacy Policy Render] Retry button clicked');
+            refetch();
+          }}
           className="mt-4 w-full"
           variant="outline"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
-          Retry
+          Retry Fetching from GitHub
         </Button>
+      </div>
+    );
+  }
+
+  if (!content || content.length === 0) {
+    console.error('[Privacy Policy Render] No content available to render');
+    return (
+      <div className="py-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Privacy Policy content is empty. Retrying...
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -44,15 +75,21 @@ export default function PrivacyPolicyContent() {
         <Alert className="bg-amber-50 border-amber-200">
           <WifiOff className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800">
-            Showing cached version. Updates will sync when online.
+            Offline mode: Showing cached version from GitHub. Updates will sync when online.
           </AlertDescription>
         </Alert>
       )}
 
       <div className="flex items-center justify-between text-sm text-slate-500">
-        <span className="italic">Last updated: {lastUpdated}</span>
+        <div className="flex flex-col">
+          <span className="italic">Last updated: {lastUpdated}</span>
+          <span className="text-xs text-slate-400">Source: GitHub RAW • Auto-synced</span>
+        </div>
         <Button
-          onClick={() => refetch()}
+          onClick={() => {
+            console.log('[Privacy Policy Render] Manual refresh triggered');
+            refetch();
+          }}
           variant="ghost"
           size="sm"
           className="h-8"

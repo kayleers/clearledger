@@ -13,17 +13,26 @@ const extractLastUpdated = (content) => {
 
 // Fetch privacy policy from GitHub
 const fetchPrivacyPolicy = async () => {
+  console.log('[Privacy Policy] Fetching from GitHub RAW:', GITHUB_PRIVACY_URL);
+  
   const response = await fetch(GITHUB_PRIVACY_URL, {
     cache: 'no-cache',
     headers: { 'Cache-Control': 'no-cache' }
   });
   
   if (!response.ok) {
+    console.error('[Privacy Policy] Fetch failed:', response.status, response.statusText);
     throw new Error('Failed to fetch privacy policy');
   }
   
   const content = await response.text();
+  console.log('[Privacy Policy] ✓ Fetch success');
+  console.log('[Privacy Policy] Content length:', content.length, 'characters');
+  console.log('[Privacy Policy] File size:', new Blob([content]).size, 'bytes');
+  
   const lastUpdated = extractLastUpdated(content);
+  console.log('[Privacy Policy] Last updated date:', lastUpdated || 'Not found');
+  console.log('[Privacy Policy] ✓ Parse success');
   
   return { content, lastUpdated, fetchedAt: new Date().toISOString() };
 };
@@ -32,8 +41,16 @@ const fetchPrivacyPolicy = async () => {
 const getCachedPolicy = () => {
   try {
     const cached = localStorage.getItem(CACHE_KEY);
-    return cached ? JSON.parse(cached) : null;
-  } catch {
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      console.log('[Privacy Policy] ✓ Cache read success');
+      console.log('[Privacy Policy] Cached content length:', parsed.content?.length || 0);
+      return parsed;
+    }
+    console.log('[Privacy Policy] No cache found');
+    return null;
+  } catch (error) {
+    console.error('[Privacy Policy] Cache read failed:', error);
     return null;
   }
 };
@@ -45,8 +62,10 @@ const savePolicyToCache = (policy) => {
     if (policy.lastUpdated) {
       localStorage.setItem(VERSION_KEY, policy.lastUpdated);
     }
+    console.log('[Privacy Policy] ✓ Cache write success');
+    console.log('[Privacy Policy] Cached content length:', policy.content?.length || 0);
   } catch (error) {
-    console.error('Failed to cache privacy policy:', error);
+    console.error('[Privacy Policy] Cache write failed:', error);
   }
 };
 

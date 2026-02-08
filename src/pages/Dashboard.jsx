@@ -858,28 +858,17 @@ export default function Dashboard() {
                               </Collapsible>
                             )}
                             {section === 'simulator' && (
-                              <Collapsible open={simulatorExpanded} onOpenChange={setSimulatorExpanded}>
-                                <div className="flex items-center justify-between mb-4">
-                                  <div className="flex items-center gap-2">
-                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                      <GripVertical className="w-5 h-5 text-slate-400" />
-                                    </div>
-                                    <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                                      <h2 className="text-xl font-bold text-emerald-400">Payment Simulator</h2>
-                                      {simulatorExpanded ? (
-                                        <ChevronUp className="w-5 h-5 text-slate-500" />
-                                      ) : (
-                                        <ChevronDown className="w-5 h-5 text-slate-500" />
-                                      )}
-                                    </CollapsibleTrigger>
+                              <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                                <div className="flex items-center gap-2 p-4 border-b border-slate-200">
+                                  <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                                    <GripVertical className="w-5 h-5 text-slate-400" />
                                   </div>
+                                  <h2 className="text-xl font-bold text-slate-800">Payment Simulator</h2>
                                 </div>
-                                <CollapsibleContent>
-                                  <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden p-4">
-                                    <MultiPaymentSimulator cards={cards} loans={mortgageLoans} />
-                                  </div>
-                                </CollapsibleContent>
-                              </Collapsible>
+                                <div className="p-4">
+                                  <MultiPaymentSimulator cards={cards} loans={mortgageLoans} />
+                                </div>
+                              </div>
                             )}
                             {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} creditCards={cards} dragHandleProps={provided.dragHandleProps} />}

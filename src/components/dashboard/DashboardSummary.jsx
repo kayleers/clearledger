@@ -21,9 +21,13 @@ import {
   Landmark,
   GripVertical,
   TrendingUp,
-  Calendar
+  Calendar,
+  Edit3,
+  HelpCircle
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   formatCurrency, 
   calculateUtilization,
@@ -52,7 +56,7 @@ const BILL_CATEGORY_ICONS = {
 
 const DEFAULT_SECTION_ORDER = ['projections', 'banks', 'bills', 'cards', 'loans'];
 
-export default function DashboardSummary({ cards, bankAccounts = [], recurringBills = [], mortgageLoans = [] }) {
+export default function DashboardSummary({ cards, bankAccounts = [], recurringBills = [], mortgageLoans = [], onUpdateCardBalance, onUpdateBankBalance, onUpdateLoanBalance }) {
   const [overviewExpanded, setOverviewExpanded] = useState(true);
   const [expandedCards, setExpandedCards] = useState(false);
   const [expandedBills, setExpandedBills] = useState(false);
@@ -826,6 +830,79 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
       </div>
 
       <CollapsibleContent>
+        {/* Quick Balance Update Controls */}
+        {(cards.length > 0 || bankAccounts.length > 0 || mortgageLoans.length > 0) && (
+          <div className="mb-4 p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-white">Quick Balance Updates</h3>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="text-white/60 hover:text-white transition-colors">
+                        <HelpCircle className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-sm">
+                        Update your balance to reflect cashflow changes not tracked by ClearLedger
+                        (such as daily spending, groceries, cash withdrawals, or external income).
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {bankAccounts.length > 0 && onUpdateBankBalance && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const account = bankAccounts[0];
+                    const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
+                    const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
+                    const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
+                    const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
+                    onUpdateBankBalance(account.id, ongoingBalance);
+                  }}
+                  className="bg-white/80 hover:bg-white border-emerald-300 text-slate-700 hover:text-slate-900"
+                >
+                  <Building2 className="w-3.5 h-3.5 mr-1.5" />
+                  Update Bank Balance
+                </Button>
+              )}
+              {cards.length > 0 && onUpdateCardBalance && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const card = cards[0];
+                    onUpdateCardBalance(card.id, card.balance);
+                  }}
+                  className="bg-white/80 hover:bg-white border-blue-300 text-slate-700 hover:text-slate-900"
+                >
+                  <CreditCard className="w-3.5 h-3.5 mr-1.5" />
+                  Update Card Balance
+                </Button>
+              )}
+              {mortgageLoans.length > 0 && onUpdateLoanBalance && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const loan = mortgageLoans[0];
+                    onUpdateLoanBalance(loan.id, loan.current_balance);
+                  }}
+                  className="bg-white/80 hover:bg-white border-orange-300 text-slate-700 hover:text-slate-900"
+                >
+                  <Landmark className="w-3.5 h-3.5 mr-1.5" />
+                  Update Loan Balance
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="overview-sections">
             {(provided) => (

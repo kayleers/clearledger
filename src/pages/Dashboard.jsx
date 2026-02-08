@@ -680,6 +680,18 @@ export default function Dashboard() {
                 bankAccounts={bankAccounts}
                 recurringBills={recurringBills}
                 mortgageLoans={mortgageLoans}
+                onUpdateCardBalance={(cardId, currentBalance) => {
+                  setShowUpdateCardBalance(cardId);
+                  setNewBalance(currentBalance.toString());
+                }}
+                onUpdateBankBalance={(accountId, currentBalance) => {
+                  setShowUpdateBankBalance(accountId);
+                  setNewBalance(currentBalance.toString());
+                }}
+                onUpdateLoanBalance={(loanId, currentBalance) => {
+                  setShowUpdateLoanBalance(loanId);
+                  setNewBalance(currentBalance.toString());
+                }}
               />
             </div>
 

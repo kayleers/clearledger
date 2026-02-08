@@ -14,6 +14,8 @@ import { format } from 'date-fns';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 import { Slider } from '@/components/ui/slider';
 import MobileSelect from '@/components/ui/mobile-select';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 const frequencyLabels = {
   one_time: 'One-Time',
@@ -28,7 +30,10 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
   const [editingTransfer, setEditingTransfer] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [viewMode, setViewMode] = useState('default');
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [upgradeContext, setUpgradeContext] = useState('bank_transfers');
   const queryClient = useQueryClient();
+  const { canAddBankTransfer, isPro } = useAccessControl();
 
   const createTransferMutation = useMutation({
     mutationFn: (data) => base44.entities.BankTransfer.create(data),
@@ -182,7 +187,14 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
             </div>
             <Button
               size="sm"
-              onClick={() => setShowAddTransfer(true)}
+              onClick={() => {
+                if (!canAddBankTransfer(transfers.length)) {
+                  setUpgradeContext('bank_transfers');
+                  setShowUpgradeDialog(true);
+                } else {
+                  setShowAddTransfer(true);
+                }
+              }}
               className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
             >
               <Plus className="w-4 h-4 mr-1" />
@@ -458,6 +470,12 @@ export default function BankTransferList({ transfers = [], bankAccounts = [], dr
           )}
         </CollapsibleContent>
       </Collapsible>
+
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        context={upgradeContext}
+      />
 
       <Dialog open={showAddTransfer} onOpenChange={setShowAddTransfer}>
         <DialogContent className="max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">

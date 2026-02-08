@@ -543,41 +543,45 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
             {/* Results */}
             {allScenarios.length > 0 && (
               <div className="space-y-4 pt-4 border-t">
-                <h4 className="font-medium text-slate-700">Combined Payoff Results</h4>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 bg-blue-50 rounded-xl text-center">
-                    <Calendar className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                    <p className="text-xl font-bold text-blue-900">
-                      {formatMonthsToYears(longestMonths)}
-                    </p>
-                    <p className="text-xs text-blue-600">to pay off</p>
-                  </div>
-                  {Object.keys(interestByCurrency).length === 1 ? (
-                    <div className="p-4 bg-purple-50 rounded-xl text-center">
-                      <DollarSign className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                      <p className="text-2xl font-bold text-purple-900">
-                        {formatCurrency(Object.values(interestByCurrency)[0], Object.keys(interestByCurrency)[0])}
-                      </p>
-                      <p className="text-xs text-purple-600">total interest</p>
-                    </div>
-                  ) : (
-                    <div className="p-4 bg-purple-50 rounded-xl">
-                      <DollarSign className="w-5 h-5 text-purple-600 mx-auto mb-2" />
-                      <p className="text-xs text-purple-600 text-center mb-2">total interest</p>
-                      <div className="space-y-1">
-                        {Object.entries(interestByCurrency).map(([currency, amount]) => (
-                          <p key={currency} className="text-lg font-bold text-purple-900 text-center">
-                            {formatCurrency(amount, currency)}
-                          </p>
-                        ))}
+                {allScenarios.length > 1 && (
+                  <>
+                    <h4 className="font-medium text-slate-700">Combined Payoff Results</h4>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-4 bg-blue-50 rounded-xl text-center">
+                        <Calendar className="w-5 h-5 text-blue-600 mx-auto mb-1" />
+                        <p className="text-xl font-bold text-blue-900">
+                          {formatMonthsToYears(longestMonths)}
+                        </p>
+                        <p className="text-xs text-blue-600">to pay off</p>
                       </div>
+                      {Object.keys(interestByCurrency).length === 1 ? (
+                        <div className="p-4 bg-purple-50 rounded-xl text-center">
+                          <DollarSign className="w-5 h-5 text-purple-600 mx-auto mb-1" />
+                          <p className="text-2xl font-bold text-purple-900">
+                            {formatCurrency(Object.values(interestByCurrency)[0], Object.keys(interestByCurrency)[0])}
+                          </p>
+                          <p className="text-xs text-purple-600">total interest</p>
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-purple-50 rounded-xl">
+                          <DollarSign className="w-5 h-5 text-purple-600 mx-auto mb-2" />
+                          <p className="text-xs text-purple-600 text-center mb-2">total interest</p>
+                          <div className="space-y-1">
+                            {Object.entries(interestByCurrency).map(([currency, amount]) => (
+                              <p key={currency} className="text-lg font-bold text-purple-900 text-center">
+                                {formatCurrency(amount, currency)}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
 
                 {/* Savings Comparison */}
-                {interestSaved > 0 && (
+                {allScenarios.length > 1 && interestSaved > 0 && (
                   <div className="p-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl text-white">
                     <div className="flex items-center gap-2 mb-2">
                       <Sparkles className="w-5 h-5" />
@@ -608,7 +612,7 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
 
                 {/* Individual Debt Progress */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-slate-700">Individual Progress</h4>
+                  <h4 className="text-sm font-medium text-slate-700">{allScenarios.length > 1 ? 'Individual Progress' : 'Payoff Results'}</h4>
                   {allScenarios.map(scenario => (
                     <div key={scenario.id} className="bg-white rounded-lg p-3 border border-slate-200">
                       <div className="flex items-start justify-between mb-2">

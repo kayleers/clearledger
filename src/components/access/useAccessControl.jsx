@@ -19,6 +19,7 @@ export function useAccessControl() {
     canAddLoan: (currentCount) => canAdd(currentCount, userPlan, 'loans'),
     canAddBankAccount: (currentCount) => canAdd(currentCount, userPlan, 'bankAccounts'),
     canAddRecurringBill: (currentCount) => canAdd(currentCount, userPlan, 'recurringBills'),
-    canUseCurrencyConversion: (currentCount) => canAdd(currentCount, userPlan, 'currencyConversions')
+    canUseCurrencyConversion: (currentCount) => canAdd(currentCount, userPlan, 'currencyConversions'),
+    canAddScenario: (currentCount) => canAdd(currentCount, userPlan, 'scenarios')
   };
 }

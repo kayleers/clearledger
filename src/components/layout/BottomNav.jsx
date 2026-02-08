@@ -8,12 +8,39 @@ export default function BottomNav() {
 
   const tabs = [
     { name: 'Dashboard', path: createPageUrl('Dashboard'), icon: Home },
-    { name: 'Schedule', path: createPageUrl('Dashboard'), icon: Calendar },
     { name: 'Settings', path: createPageUrl('AccountSettings'), icon: User }
   ];
 
   const isActive = (path) => {
     return location.pathname === path;
+  };
+
+  const handleScheduleClick = () => {
+    // Navigate to dashboard if not already there
+    if (location.pathname !== createPageUrl('Dashboard')) {
+      window.location.href = createPageUrl('Dashboard');
+      setTimeout(() => {
+        const calendarSection = document.querySelector('[data-section="calendar"]');
+        if (calendarSection) {
+          calendarSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Trigger expand if collapsed
+          const trigger = calendarSection.querySelector('button[data-state]');
+          if (trigger && trigger.getAttribute('data-state') === 'closed') {
+            trigger.click();
+          }
+        }
+      }, 300);
+    } else {
+      const calendarSection = document.querySelector('[data-section="calendar"]');
+      if (calendarSection) {
+        calendarSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Trigger expand if collapsed
+        const trigger = calendarSection.querySelector('button[data-state]');
+        if (trigger && trigger.getAttribute('data-state') === 'closed') {
+          trigger.click();
+        }
+      }
+    }
   };
 
   return (
@@ -37,6 +64,13 @@ export default function BottomNav() {
             </Link>
           );
         })}
+        <button
+          onClick={handleScheduleClick}
+          className="flex flex-col items-center justify-center flex-1 h-full transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+        >
+          <Calendar className="w-6 h-6 transition-transform" />
+          <span className="text-xs mt-1 font-medium">Schedule</span>
+        </button>
       </div>
     </nav>
   );

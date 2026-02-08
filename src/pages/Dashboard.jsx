@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Download, RefreshCw, Edit3 } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
+import { exportPDF, showExportSuccess } from '@/components/utils/exportHelper';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -549,26 +550,10 @@ export default function Dashboard() {
   const handleExportData = async () => {
     try {
       const response = await base44.functions.invoke('exportAllData', {});
+      const filename = `ClearLedger_Export_${new Date().toISOString().split('T')[0]}.pdf`;
       
-      // Check if response.data is already a Blob or ArrayBuffer
-      let blobData;
-      if (response.data instanceof Blob) {
-        blobData = response.data;
-      } else if (response.data instanceof ArrayBuffer) {
-        blobData = new Blob([response.data], { type: 'application/pdf' });
-      } else {
-        // Axios response returns data directly
-        blobData = new Blob([response.data], { type: 'application/pdf' });
-      }
-      
-      const url = window.URL.createObjectURL(blobData);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `ClearLedger_Export_${new Date().toISOString().split('T')[0]}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
+      await exportPDF(response.data, filename);
+      showExportSuccess(filename);
     } catch (error) {
       console.error('Export failed:', error);
       alert('Failed to export data. Please try again.');
@@ -800,28 +785,23 @@ export default function Dashboard() {
                                         Update Balance
                                       </Button>
                                       <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={async () => {
-                                          try {
-                                            const response = await base44.functions.invoke('exportCreditCards', {});
-                                            const blob = new Blob([response.data], { type: 'application/pdf' });
-                                            const url = window.URL.createObjectURL(blob);
-                                            const a = document.createElement('a');
-                                            a.href = url;
-                                            a.download = `Credit_Cards_${new Date().toISOString().split('T')[0]}.pdf`;
-                                            document.body.appendChild(a);
-                                            a.click();
-                                            window.URL.revokeObjectURL(url);
-                                            a.remove();
-                                          } catch (error) {
-                                            console.error('Export failed:', error);
-                                          }
-                                        }}
-                                        className="text-xs text-slate-500 hover:text-slate-700"
+                                       size="sm"
+                                       variant="ghost"
+                                       onClick={async () => {
+                                         try {
+                                           const response = await base44.functions.invoke('exportCreditCards', {});
+                                           const filename = `Credit_Cards_${new Date().toISOString().split('T')[0]}.pdf`;
+                                           await exportPDF(response.data, filename);
+                                           showExportSuccess(filename);
+                                         } catch (error) {
+                                           console.error('Export failed:', error);
+                                           alert('Export failed. Please try again.');
+                                         }
+                                       }}
+                                       className="text-xs text-slate-500 hover:text-slate-700"
                                       >
-                                        <Download className="w-3 h-3 mr-1" />
-                                        Export PDF
+                                       <Download className="w-3 h-3 mr-1" />
+                                       Export PDF
                                       </Button>
                                     </div>
                                   )}

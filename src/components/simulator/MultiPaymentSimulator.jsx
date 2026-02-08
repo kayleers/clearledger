@@ -329,20 +329,17 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
   };
 
   if (cards.length === 0 && loans.length === 0) {
-    return null;
+    return (
+      <div className="text-center py-8 text-slate-500">
+        <Calculator className="w-12 h-12 mx-auto mb-3 opacity-50" />
+        <p className="text-sm">Add credit cards or loans to start simulating payments</p>
+      </div>
+    );
   }
 
   return (
-    <Card className="border-0 shadow-lg">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Calculator className="w-5 h-5 text-purple-600" />
-            Payment Simulator
-          </CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent>
+    <div className="space-y-4">
+      <CardContent className="p-0">
         <Tabs defaultValue="simulator">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="simulator">Simulator</TabsTrigger>
@@ -821,17 +818,17 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
               </div>
             )}
           </TabsContent>
-          </Tabs>
+        </Tabs>
 
-          <UpgradeDialog
+        <UpgradeDialog
           open={showUpgradeDialog}
           onOpenChange={setShowUpgradeDialog}
           context="savedScenarios"
-          />
-          </CardContent>
-          </Card>
-          );
-          }
+        />
+      </CardContent>
+    </div>
+  );
+}
 
 function CardFixedInput({ card, payment, onPaymentChange }) {
   // Calculate additional payment scenario if enabled

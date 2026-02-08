@@ -37,7 +37,7 @@ export default function Dashboard() {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(false);
-  const [simulatorExpanded, setSimulatorExpanded] = useState(false);
+  const [simulatorExpanded, setSimulatorExpanded] = useState(true);
   const [cardsExpanded, setCardsExpanded] = useState(false);
 
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);

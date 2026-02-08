@@ -313,18 +313,29 @@ export default function AccountSettings() {
         </div>
       </div>
 
+      {/* Privacy Policy Dialog */}
+      <Dialog open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Privacy Policy & Terms of Service</DialogTitle>
+          </DialogHeader>
+          <PrivacyPolicyContent />
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Account Confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Account</AlertDialogTitle>
+            <AlertDialogTitle>Delete Account & All Data</AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
               <p>This action cannot be undone. This will permanently delete your account and all associated data including:</p>
               <ul className="list-disc pl-6 space-y-1">
                 <li>All credit cards and transactions</li>
                 <li>All bank accounts and deposits</li>
                 <li>All loans and bills</li>
-                <li>All payment scenarios</li>
+                <li>All payment scenarios and simulations</li>
+                <li>All recurring payments and transfers</li>
               </ul>
               <p className="font-semibold text-red-600 dark:text-red-400">Type "DELETE" to confirm:</p>
               <Input
@@ -348,7 +359,7 @@ export default function AccountSettings() {
                   Deleting...
                 </>
               ) : (
-                'Delete Account'
+                'Delete Account & All Data'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Download, RefreshCw } from 'lucide-react';
+import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Download, RefreshCw, Edit3 } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ResponsiveDialog } from '@/components/ui/responsive-drawer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import AddPurchaseForm from '@/components/transactions/AddPurchaseForm';
@@ -46,6 +48,10 @@ export default function Dashboard() {
   const [pullDistance, setPullDistance] = useState(0);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [upgradeContext, setUpgradeContext] = useState('general');
+  const [showUpdateCardBalance, setShowUpdateCardBalance] = useState(null);
+  const [showUpdateBankBalance, setShowUpdateBankBalance] = useState(null);
+  const [showUpdateLoanBalance, setShowUpdateLoanBalance] = useState(null);
+  const [newBalance, setNewBalance] = useState('');
   const touchStartY = useRef(0);
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
@@ -517,6 +523,19 @@ export default function Dashboard() {
     }
   });
 
+  const updateLoanBalanceMutation = useMutation({
+    mutationFn: async ({ amount, targetId }) => {
+      await base44.entities.MortgageLoan.update(targetId, {
+        current_balance: parseFloat(amount),
+        last_balance_override: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mortgage-loans'] });
+      setShowQuickAdd(false);
+    }
+  });
+
   const handleQuickAdd = () => {
     if (cards.length === 1) {
       setQuickAddCardId(cards[0].id);
@@ -742,7 +761,20 @@ export default function Dashboard() {
                                   </div>
                                   <CollapsibleContent>
                                   {cards.length > 0 && (
-                                    <div className="mb-4 flex justify-end">
+                                    <div className="mb-4 flex justify-end gap-2">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          const cardToUpdate = cards[0];
+                                          setShowUpdateCardBalance(cardToUpdate.id);
+                                          setNewBalance(cardToUpdate.balance.toString());
+                                        }}
+                                        className="text-xs text-slate-500 hover:text-slate-700"
+                                      >
+                                        <Edit3 className="w-3 h-3 mr-1" />
+                                        Update Balance
+                                      </Button>
                                       <Button
                                         size="sm"
                                         variant="ghost"
@@ -881,12 +913,32 @@ export default function Dashboard() {
                                 </CollapsibleContent>
                               </Collapsible>
                             )}
-                            {section === 'banks' && <BankAccountList bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
+                            {section === 'banks' && (
+                              <BankAccountList 
+                                bankAccounts={bankAccounts} 
+                                dragHandleProps={provided.dragHandleProps}
+                                onUpdateBalance={(accountId, currentBalance) => {
+                                  setShowUpdateBankBalance(accountId);
+                                  setNewBalance(currentBalance.toString());
+                                }}
+                              />
+                            )}
                             {section === 'bills' && <RecurringBillList bills={recurringBills} bankAccounts={bankAccounts} creditCards={cards} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'deposits' && <RecurringDepositList deposits={recurringDeposits} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'transfers' && <BankTransferList transfers={bankTransfers} bankAccounts={bankAccounts} dragHandleProps={provided.dragHandleProps} />}
                             {section === 'conversions' && <CurrencyConversionList dragHandleProps={provided.dragHandleProps} />}
-                            {section === 'loans' && <MortgageLoanList loans={mortgageLoans} bankAccounts={bankAccounts} creditCards={cards} dragHandleProps={provided.dragHandleProps} />}
+                            {section === 'loans' && (
+                              <MortgageLoanList 
+                                loans={mortgageLoans} 
+                                bankAccounts={bankAccounts} 
+                                creditCards={cards} 
+                                dragHandleProps={provided.dragHandleProps}
+                                onUpdateBalance={(loanId, currentBalance) => {
+                                  setShowUpdateLoanBalance(loanId);
+                                  setNewBalance(currentBalance.toString());
+                                }}
+                              />
+                            )}
 
                             {section === 'privacy' && (
                               <div className="space-y-3">
@@ -955,10 +1007,139 @@ export default function Dashboard() {
                              createBankPaymentMutation.isPending || createCardPaymentMutation.isPending || 
                              createBillPaymentMutation.isPending || createLoanPaymentMutation.isPending ||
                              updateBankBalanceMutation.isPending || updateCardBalanceMutation.isPending}
-                />
-            </ResponsiveDialog>
-          </>
-        )}
+                  />
+                  </ResponsiveDialog>
+                  </>
+                  )}
+
+                  {/* Update Card Balance Dialog */}
+                  <Dialog open={!!showUpdateCardBalance} onOpenChange={() => setShowUpdateCardBalance(null)}>
+                  <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                  <DialogTitle>Update Card Balance</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                  <div className="space-y-2">
+                  <Label>New Balance</Label>
+                  <Input
+                  type="number"
+                  step="0.01"
+                  value={newBalance}
+                  onChange={(e) => setNewBalance(e.target.value)}
+                  placeholder="Enter new balance"
+                  />
+                  </div>
+                  <div className="flex gap-2">
+                  <Button
+                  variant="outline"
+                  onClick={() => setShowUpdateCardBalance(null)}
+                  className="flex-1"
+                  >
+                  Cancel
+                  </Button>
+                  <Button
+                  onClick={() => {
+                    updateCardBalanceMutation.mutate({
+                      targetId: showUpdateCardBalance,
+                      amount: newBalance
+                    });
+                    setShowUpdateCardBalance(null);
+                  }}
+                  disabled={!newBalance || updateCardBalanceMutation.isPending}
+                  className="flex-1"
+                  >
+                  {updateCardBalanceMutation.isPending ? 'Updating...' : 'Update'}
+                  </Button>
+                  </div>
+                  </div>
+                  </DialogContent>
+                  </Dialog>
+
+                  {/* Update Bank Balance Dialog */}
+                  <Dialog open={!!showUpdateBankBalance} onOpenChange={() => setShowUpdateBankBalance(null)}>
+                  <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                  <DialogTitle>Update Account Balance</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                  <div className="space-y-2">
+                  <Label>New Balance</Label>
+                  <Input
+                  type="number"
+                  step="0.01"
+                  value={newBalance}
+                  onChange={(e) => setNewBalance(e.target.value)}
+                  placeholder="Enter new balance"
+                  />
+                  </div>
+                  <div className="flex gap-2">
+                  <Button
+                  variant="outline"
+                  onClick={() => setShowUpdateBankBalance(null)}
+                  className="flex-1"
+                  >
+                  Cancel
+                  </Button>
+                  <Button
+                  onClick={() => {
+                    updateBankBalanceMutation.mutate({
+                      targetId: showUpdateBankBalance,
+                      amount: newBalance
+                    });
+                    setShowUpdateBankBalance(null);
+                  }}
+                  disabled={!newBalance || updateBankBalanceMutation.isPending}
+                  className="flex-1"
+                  >
+                  {updateBankBalanceMutation.isPending ? 'Updating...' : 'Update'}
+                  </Button>
+                  </div>
+                  </div>
+                  </DialogContent>
+                  </Dialog>
+
+                  {/* Update Loan Balance Dialog */}
+                  <Dialog open={!!showUpdateLoanBalance} onOpenChange={() => setShowUpdateLoanBalance(null)}>
+                  <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                  <DialogTitle>Update Loan Balance</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                  <div className="space-y-2">
+                  <Label>New Balance</Label>
+                  <Input
+                  type="number"
+                  step="0.01"
+                  value={newBalance}
+                  onChange={(e) => setNewBalance(e.target.value)}
+                  placeholder="Enter new balance"
+                  />
+                  </div>
+                  <div className="flex gap-2">
+                  <Button
+                  variant="outline"
+                  onClick={() => setShowUpdateLoanBalance(null)}
+                  className="flex-1"
+                  >
+                  Cancel
+                  </Button>
+                  <Button
+                  onClick={() => {
+                    updateLoanBalanceMutation.mutate({
+                      targetId: showUpdateLoanBalance,
+                      amount: newBalance
+                    });
+                    setShowUpdateLoanBalance(null);
+                  }}
+                  disabled={!newBalance || updateLoanBalanceMutation.isPending}
+                  className="flex-1"
+                  >
+                  {updateLoanBalanceMutation.isPending ? 'Updating...' : 'Update'}
+                  </Button>
+                  </div>
+                  </div>
+                  </DialogContent>
+                  </Dialog>
 
         {/* Add/Edit Card Dialog */}
         <ResponsiveDialog

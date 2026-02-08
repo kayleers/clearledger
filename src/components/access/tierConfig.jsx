@@ -25,7 +25,9 @@ export const FREE_LIMITS = {
   recurringBills: 2,
   creditCards: 2,
   currencyConversions: 1,
-  scenarios: 2
+  scenarios: 2,
+  bankTransfers: 1,
+  recurringDeposits: 1
 };
 
 // Plan details for upgrade UI

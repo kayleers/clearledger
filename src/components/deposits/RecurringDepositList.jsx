@@ -13,6 +13,8 @@ import { formatCurrency } from '@/components/utils/calculations';
 import { format } from 'date-fns';
 import CurrencySelector from '@/components/currency/CurrencySelector';
 import { Slider } from '@/components/ui/slider';
+import { useAccessControl } from '@/components/access/useAccessControl';
+import UpgradeDialog from '@/components/access/UpgradeDialog';
 
 const frequencyLabels = {
   weekly: 'Weekly',
@@ -27,7 +29,10 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
   const [editingDeposit, setEditingDeposit] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [viewMode, setViewMode] = useState('default');
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [upgradeContext, setUpgradeContext] = useState('recurring_deposits');
   const queryClient = useQueryClient();
+  const { canAddRecurringDeposit, isPro } = useAccessControl();
 
   const createDepositMutation = useMutation({
     mutationFn: (data) => base44.entities.RecurringDeposit.create(data),
@@ -181,7 +186,14 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
             </div>
             <Button
               size="sm"
-              onClick={() => setShowAddDeposit(true)}
+              onClick={() => {
+                if (!canAddRecurringDeposit(deposits.length)) {
+                  setUpgradeContext('recurring_deposits');
+                  setShowUpgradeDialog(true);
+                } else {
+                  setShowAddDeposit(true);
+                }
+              }}
               className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white"
             >
               <Plus className="w-4 h-4 mr-1" />
@@ -445,6 +457,12 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
           )}
         </CollapsibleContent>
       </Collapsible>
+
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        context={upgradeContext}
+      />
 
       <Dialog open={showAddDeposit} onOpenChange={setShowAddDeposit}>
         <DialogContent className="max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">

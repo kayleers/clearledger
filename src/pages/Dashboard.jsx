@@ -835,7 +835,7 @@ export default function Dashboard() {
                                         )}
                             {section === 'calendar' && (
                               <Collapsible open={calendarExpanded} onOpenChange={setCalendarExpanded}>
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center justify-between mb-4" data-section="calendar">
                                   <div className="flex items-center gap-2">
                                     <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
                                       <GripVertical className="w-5 h-5 text-slate-400" />

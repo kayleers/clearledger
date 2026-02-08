@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, Plus, Edit2, Trash2, GripVertical, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { Building2, Plus, Edit2, Trash2, GripVertical, ChevronDown, ChevronUp, Download, Edit3 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useQuery } from '@tanstack/react-query';
@@ -15,7 +15,7 @@ import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
 import { formatCurrency } from '@/components/utils/calculations';
 
-export default function BankAccountList({ bankAccounts = [], dragHandleProps }) {
+export default function BankAccountList({ bankAccounts = [], dragHandleProps, onUpdateBalance }) {
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
@@ -154,7 +154,21 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps }) 
 
         <CollapsibleContent>
           {bankAccounts.length > 0 && (
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4 flex justify-end gap-2">
+              {onUpdateBalance && bankAccounts.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    const account = bankAccounts[0];
+                    onUpdateBalance(account.id, getOngoingBalance(account));
+                  }}
+                  className="text-xs text-slate-500 hover:text-slate-700"
+                >
+                  <Edit3 className="w-3 h-3 mr-1" />
+                  Update Balance
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="ghost"

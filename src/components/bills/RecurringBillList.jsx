@@ -13,6 +13,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { formatCurrency } from '@/components/utils/calculations';
 import { format } from 'date-fns';
 import CurrencySelector from '@/components/currency/CurrencySelector';
+import MobileSelect from '@/components/ui/mobile-select';
 
 const categoryIcons = {
   utilities: '⚡',

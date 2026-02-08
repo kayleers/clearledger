@@ -142,13 +142,22 @@ export default function AccountSettings() {
     deleteAccountMutation.mutate();
   };
 
-  if (isLoading) {
+  if (isLoading || entitlementsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-white" />
       </div>
     );
   }
+
+  const getPlanDisplayName = () => {
+    if (plan === 'pro_monthly') return 'Pro Monthly';
+    if (plan === 'pro_yearly') return 'Pro Yearly';
+    if (plan === 'pro_lifetime') return 'Pro Lifetime';
+    return 'Free';
+  };
+
+  const isPro = plan && plan.startsWith('pro_');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-emerald-800 dark:from-slate-950 dark:via-cyan-950 dark:to-emerald-950 p-4 pb-24 safe-area-pt">
@@ -162,170 +171,117 @@ export default function AccountSettings() {
         </Link>
 
         <div className="space-y-6">
-          {/* Profile Information */}
+          {/* Account Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
-                Profile Information
+                <Mail className="w-5 h-5" />
+                Account Information
               </CardTitle>
-              <CardDescription>Update your account details</CardDescription>
+              <CardDescription>Your account details (managed by authentication provider)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {success && (
-                <Alert className="bg-green-50 border-green-200">
-                  <AlertDescription className="text-green-800">{success}</AlertDescription>
-                </Alert>
-              )}
-              
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              <form onSubmit={handleUpdateProfile} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Your full name"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                  />
-                </div>
-
-                <Button 
-                  type="submit" 
-                  disabled={updateUserMutation.isPending}
-                  className="w-full"
-                >
-                  {updateUserMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Changes'
-                  )}
-                </Button>
-              </form>
+              <div className="space-y-2">
+                <p className="text-sm text-slate-600 dark:text-slate-400">Email Address</p>
+                <p className="text-base font-medium">{user?.email}</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-slate-600 dark:text-slate-400">Account Role</p>
+                <p className="text-base font-medium capitalize">{user?.role || 'User'}</p>
+              </div>
             </CardContent>
           </Card>
 
-
-
-          {/* Change Password */}
+          {/* Subscription Status */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Lock className="w-5 h-5" />
-                Change Password
+                <Crown className="w-5 h-5" />
+                Subscription
               </CardTitle>
-              <CardDescription>Update your password to keep your account secure</CardDescription>
+              <CardDescription>Your current subscription plan</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {passwordSuccess && (
-                <Alert className="bg-green-50 border-green-200">
-                  <AlertDescription className="text-green-800">{passwordSuccess}</AlertDescription>
-                </Alert>
-              )}
-              
-              {passwordError && (
-                <Alert variant="destructive">
-                  <AlertDescription>{passwordError}</AlertDescription>
-                </Alert>
-              )}
-
-              <form onSubmit={handleChangePassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="currentPassword"
-                      type={showCurrentPassword ? "text" : "password"}
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="Enter current password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-                    >
-                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Current Plan</p>
+                  <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{getPlanDisplayName()}</p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="newPassword"
-                      type={showNewPassword ? "text" : "password"}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password (min 8 characters)"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-                    >
-                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+                {isPro && (
+                  <div className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-medium">
+                    Active
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm new password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full" 
+                )}
+              </div>
+              {isPro && (
+                <Button
                   variant="outline"
-                  disabled={changePasswordMutation.isPending}
+                  className="w-full"
+                  onClick={() => window.open('https://play.google.com/store/account/subscriptions', '_blank')}
                 >
-                  {changePasswordMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Changing Password...
-                    </>
-                  ) : (
-                    'Change Password'
-                  )}
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Manage Subscription in Google Play
                 </Button>
-              </form>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Data Export */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Download className="w-5 h-5" />
+                Data Export
+              </CardTitle>
+              <CardDescription>Export all your financial data</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={handleExportData}
+                disabled={isExporting}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Export All Data to PDF
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Privacy & Terms */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Privacy & Legal
+              </CardTitle>
+              <CardDescription>Review our policies and terms</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setShowPrivacyPolicy(true)}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Privacy Policy
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setShowPrivacyPolicy(true)}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Terms of Service
+              </Button>
             </CardContent>
           </Card>
 
@@ -350,7 +306,7 @@ export default function AccountSettings() {
                 onClick={() => setShowDeleteDialog(true)}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete Account
+                Delete Account & All Data
               </Button>
             </CardContent>
           </Card>

@@ -982,7 +982,7 @@ export default function Dashboard() {
             }
           }}
           title={editingCard ? 'Edit Credit Card' : 'Add Credit Card'}
-          className="max-w-md"
+          className="max-w-md max-h-[90vh] overflow-y-auto"
         >
             <AddCardForm
               card={editingCard}

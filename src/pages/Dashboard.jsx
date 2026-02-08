@@ -653,13 +653,25 @@ export default function Dashboard() {
               />
             </button>
           </div>
-          <SyncManager 
-            cards={cards} 
-            bankAccounts={bankAccounts} 
-            bills={recurringBills}
-            loans={mortgageLoans}
-            onExportData={handleExportData}
-          />
+          <div className="flex items-center gap-2">
+            <SyncManager 
+              cards={cards} 
+              bankAccounts={bankAccounts} 
+              bills={recurringBills}
+              loans={mortgageLoans}
+              onExportData={handleExportData}
+            />
+            {(cards.length > 0 || bankAccounts.length > 0 || recurringBills.length > 0 || mortgageLoans.length > 0) && (
+              <Button
+                onClick={() => setShowQuickAdd(true)}
+                size="sm"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md"
+              >
+                <Zap className="w-4 h-4 mr-1.5" />
+                Quick Add
+              </Button>
+            )}
+          </div>
         </header>
 
         {/* Loading State */}
@@ -982,17 +994,9 @@ export default function Dashboard() {
           </>
         )}
 
-        {/* Quick Add FAB */}
+        {/* Quick Add Dialog */}
         {(cards.length > 0 || bankAccounts.length > 0 || recurringBills.length > 0 || mortgageLoans.length > 0) && (
           <>
-            <button
-              onClick={() => setShowQuickAdd(true)}
-              className="fixed bottom-20 right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center z-50"
-              aria-label="Quick add transaction"
-            >
-              <Zap className="w-6 h-6" />
-            </button>
-
             <ResponsiveDialog
               open={showQuickAdd}
               onOpenChange={(open) => {

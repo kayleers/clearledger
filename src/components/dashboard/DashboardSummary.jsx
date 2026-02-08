@@ -839,24 +839,22 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
             <div className="p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
               <CollapsibleTrigger className="w-full">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-white">Quick Balance Updates</h3>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button className="text-white/60 hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
-                            <HelpCircle className="w-4 h-4" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <p className="text-sm">
-                            Update your balance to reflect cashflow changes not tracked by ClearLedger
-                            (such as daily spending, groceries, cash withdrawals, or external income).
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-2 cursor-help">
+                          <h3 className="text-sm font-semibold text-white">Quick Balance Updates</h3>
+                          <HelpCircle className="w-4 h-4 text-white/60" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-sm">
+                          Update your balance to reflect cashflow changes not tracked by ClearLedger
+                          (such as daily spending, groceries, cash withdrawals, or external income).
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   {quickUpdatesExpanded ? (
                     <ChevronUp className="w-4 h-4 text-white/60" />
                   ) : (

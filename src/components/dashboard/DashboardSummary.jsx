@@ -28,6 +28,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   formatCurrency, 
   calculateUtilization,
@@ -63,6 +64,8 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
   const [expandedLoans, setExpandedLoans] = useState(false);
   const [expandedBanks, setExpandedBanks] = useState(false);
   const [expandedProjections, setExpandedProjections] = useState(true);
+  const [quickUpdatesExpanded, setQuickUpdatesExpanded] = useState(true);
+  const [showAccountSelector, setShowAccountSelector] = useState(null);
   
   // Load section order from localStorage
   const [sectionOrder, setSectionOrder] = useState(() => {
@@ -832,77 +835,180 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
       <CollapsibleContent>
         {/* Quick Balance Update Controls */}
         {(cards.length > 0 || bankAccounts.length > 0 || mortgageLoans.length > 0) && (
-          <div className="mb-4 p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-white">Quick Balance Updates</h3>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="text-white/60 hover:text-white transition-colors">
-                        <HelpCircle className="w-4 h-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-sm">
-                        Update your balance to reflect cashflow changes not tracked by ClearLedger
-                        (such as daily spending, groceries, cash withdrawals, or external income).
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+          <Collapsible open={quickUpdatesExpanded} onOpenChange={setQuickUpdatesExpanded} className="mb-4">
+            <div className="p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-white">Quick Balance Updates</h3>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button className="text-white/60 hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
+                            <HelpCircle className="w-4 h-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="text-sm">
+                            Update your balance to reflect cashflow changes not tracked by ClearLedger
+                            (such as daily spending, groceries, cash withdrawals, or external income).
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  {quickUpdatesExpanded ? (
+                    <ChevronUp className="w-4 h-4 text-white/60" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-white/60" />
+                  )}
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="flex flex-wrap gap-2">
+                  {bankAccounts.length > 0 && onUpdateBankBalance && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        if (bankAccounts.length > 1) {
+                          setShowAccountSelector('bank');
+                        } else {
+                          const account = bankAccounts[0];
+                          const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
+                          const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
+                          const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
+                          const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
+                          onUpdateBankBalance(account.id, ongoingBalance);
+                        }
+                      }}
+                      className="bg-white/80 hover:bg-white border-emerald-300 text-slate-700 hover:text-slate-900"
+                    >
+                      <Building2 className="w-3.5 h-3.5 mr-1.5" />
+                      Update Bank Balance
+                    </Button>
+                  )}
+                  {cards.length > 0 && onUpdateCardBalance && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        if (cards.length > 1) {
+                          setShowAccountSelector('card');
+                        } else {
+                          const card = cards[0];
+                          onUpdateCardBalance(card.id, card.balance);
+                        }
+                      }}
+                      className="bg-white/80 hover:bg-white border-blue-300 text-slate-700 hover:text-slate-900"
+                    >
+                      <CreditCard className="w-3.5 h-3.5 mr-1.5" />
+                      Update Card Balance
+                    </Button>
+                  )}
+                  {mortgageLoans.length > 0 && onUpdateLoanBalance && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        if (mortgageLoans.length > 1) {
+                          setShowAccountSelector('loan');
+                        } else {
+                          const loan = mortgageLoans[0];
+                          onUpdateLoanBalance(loan.id, loan.current_balance);
+                        }
+                      }}
+                      className="bg-white/80 hover:bg-white border-orange-300 text-slate-700 hover:text-slate-900"
+                    >
+                      <Landmark className="w-3.5 h-3.5 mr-1.5" />
+                      Update Loan Balance
+                    </Button>
+                  )}
+                </div>
+              </CollapsibleContent>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {bankAccounts.length > 0 && onUpdateBankBalance && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const account = bankAccounts[0];
-                    const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
-                    const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
-                    const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
-                    const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
-                    onUpdateBankBalance(account.id, ongoingBalance);
-                  }}
-                  className="bg-white/80 hover:bg-white border-emerald-300 text-slate-700 hover:text-slate-900"
-                >
-                  <Building2 className="w-3.5 h-3.5 mr-1.5" />
-                  Update Bank Balance
-                </Button>
-              )}
-              {cards.length > 0 && onUpdateCardBalance && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const card = cards[0];
-                    onUpdateCardBalance(card.id, card.balance);
-                  }}
-                  className="bg-white/80 hover:bg-white border-blue-300 text-slate-700 hover:text-slate-900"
-                >
-                  <CreditCard className="w-3.5 h-3.5 mr-1.5" />
-                  Update Card Balance
-                </Button>
-              )}
-              {mortgageLoans.length > 0 && onUpdateLoanBalance && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const loan = mortgageLoans[0];
-                    onUpdateLoanBalance(loan.id, loan.current_balance);
-                  }}
-                  className="bg-white/80 hover:bg-white border-orange-300 text-slate-700 hover:text-slate-900"
-                >
-                  <Landmark className="w-3.5 h-3.5 mr-1.5" />
-                  Update Loan Balance
-                </Button>
-              )}
-            </div>
-          </div>
+          </Collapsible>
         )}
+
+        {/* Account Selector Dialog */}
+        <Dialog open={!!showAccountSelector} onOpenChange={() => setShowAccountSelector(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                Select {showAccountSelector === 'bank' ? 'Bank Account' : showAccountSelector === 'card' ? 'Credit Card' : 'Loan'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+              {showAccountSelector === 'bank' && bankAccounts.map(account => {
+                const accountDeposits = allDeposits.filter(d => d.bank_account_id === account.id);
+                const totalDeposits = accountDeposits.filter(d => d.amount > 0).reduce((sum, d) => sum + d.amount, 0);
+                const totalWithdrawals = Math.abs(accountDeposits.filter(d => d.amount < 0).reduce((sum, d) => sum + d.amount, 0));
+                const ongoingBalance = (account.balance || 0) + totalDeposits - totalWithdrawals;
+                
+                return (
+                  <Button
+                    key={account.id}
+                    variant="outline"
+                    className="w-full justify-between h-auto py-3"
+                    onClick={() => {
+                      onUpdateBankBalance(account.id, ongoingBalance);
+                      setShowAccountSelector(null);
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4" />
+                      <div className="text-left">
+                        <p className="font-medium">{account.name}</p>
+                        <p className="text-xs text-slate-500">{account.account_type}</p>
+                      </div>
+                    </div>
+                    <p className="font-semibold">{formatCurrency(ongoingBalance, account.currency)}</p>
+                  </Button>
+                );
+              })}
+              {showAccountSelector === 'card' && cards.map(card => (
+                <Button
+                  key={card.id}
+                  variant="outline"
+                  className="w-full justify-between h-auto py-3"
+                  onClick={() => {
+                    onUpdateCardBalance(card.id, card.balance);
+                    setShowAccountSelector(null);
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4" />
+                    <div className="text-left">
+                      <p className="font-medium">{card.name}</p>
+                      <p className="text-xs text-slate-500">{card.apr * 100}% APR</p>
+                    </div>
+                  </div>
+                  <p className="font-semibold">{formatCurrency(card.balance, card.currency)}</p>
+                </Button>
+              ))}
+              {showAccountSelector === 'loan' && mortgageLoans.map(loan => (
+                <Button
+                  key={loan.id}
+                  variant="outline"
+                  className="w-full justify-between h-auto py-3"
+                  onClick={() => {
+                    onUpdateLoanBalance(loan.id, loan.current_balance);
+                    setShowAccountSelector(null);
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <Landmark className="w-4 h-4" />
+                    <div className="text-left">
+                      <p className="font-medium">{loan.name}</p>
+                      <p className="text-xs text-slate-500">{(loan.interest_rate * 100).toFixed(2)}% APR</p>
+                    </div>
+                  </div>
+                  <p className="font-semibold">{formatCurrency(loan.current_balance, loan.currency)}</p>
+                </Button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="overview-sections">
             {(provided) => (

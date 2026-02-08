@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, User, Mail, LogOut, Shield, ArrowLeft, Lock, Eye, EyeOff, Trash2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Loader2, Mail, LogOut, ArrowLeft, Trash2, FileText, Download, Shield, ExternalLink, Crown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { useEntitlements } from '@/components/access/EntitlementsProvider';
+import PrivacyPolicyContent from '@/components/privacy/PrivacyPolicyContent';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 import {
   AlertDialog,
@@ -22,22 +23,11 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function AccountSettings() {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
-  const [passwordError, setPasswordError] = useState('');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const { plan, isLoading: entitlementsLoading } = useEntitlements();
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['current-user'],
@@ -47,117 +37,29 @@ export default function AccountSettings() {
     }
   });
 
-  React.useEffect(() => {
-    if (user) {
-      setFullName(user.full_name || '');
-      setEmail(user.email || '');
-    }
-  }, [user]);
-
-  const updateUserMutation = useMutation({
-    mutationFn: async (data) => {
-      await base44.auth.updateMe(data);
-      return data;
-    },
-    onSuccess: (data) => {
-      // Update the cache directly to prevent reverting
-      queryClient.setQueryData(['current-user'], (oldData) => ({
-        ...oldData,
-        full_name: data.full_name,
-        email: data.email
-      }));
-      setSuccess('Profile updated successfully');
-      setTimeout(() => setSuccess(''), 3000);
-      // Invalidate after a delay to ensure backend has processed
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['current-user'] });
-      }, 1000);
-    },
-    onError: (err) => {
-      setError(err.message || 'Failed to update profile');
-    }
-  });
-
-  const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    if (!fullName.trim()) {
-      setError('Name cannot be empty');
-      return;
-    }
-
-    if (!email.trim()) {
-      setError('Email cannot be empty');
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
-    updateUserMutation.mutate({
-      full_name: fullName,
-      email: email
-    });
-  };
-
-  const changePasswordMutation = useMutation({
-    mutationFn: async (data) => {
-      const response = await base44.functions.invoke('changePassword', data);
-      return response.data;
-    },
-    onSuccess: () => {
-      setPasswordSuccess('Password changed successfully. Please sign in again with your new password.');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      // Auto logout after 3 seconds to force re-authentication
-      setTimeout(() => {
-        base44.auth.logout();
-      }, 3000);
-    },
-    onError: (err) => {
-      setPasswordError(err.message || 'Failed to change password');
-    }
-  });
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    setPasswordError('');
-    setPasswordSuccess('');
-
-    if (!currentPassword) {
-      setPasswordError('Current password is required');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setPasswordError('New passwords do not match');
-      return;
-    }
-
-    if (newPassword.length < 8) {
-      setPasswordError('Password must be at least 8 characters');
-      return;
-    }
-
-    if (currentPassword === newPassword) {
-      setPasswordError('New password must be different from current password');
-      return;
-    }
-
-    changePasswordMutation.mutate({
-      currentPassword,
-      newPassword
-    });
-  };
-
   const handleLogout = () => {
     base44.auth.logout();
+  };
+
+  const handleExportData = async () => {
+    try {
+      setIsExporting(true);
+      const response = await base44.functions.invoke('exportAllData', {});
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `financial-data-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export data. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const deleteAccountMutation = useMutation({

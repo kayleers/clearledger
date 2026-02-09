@@ -83,7 +83,7 @@ export default function PrivacyPolicyContent() {
       <div className="flex items-center justify-between text-sm text-slate-500">
         <div className="flex flex-col">
           <span className="italic">Last updated: {lastUpdated}</span>
-          <span className="text-xs text-slate-400">Source: GitHub RAW • Auto-synced</span>
+          <span className="text-xs text-slate-400">Source: GitHub Pages • Auto-synced</span>
         </div>
         <Button
           onClick={() => {

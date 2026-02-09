@@ -11,13 +11,79 @@ const extractLastUpdated = (content) => {
   return match ? match[1].trim() : null;
 };
 
-// Fetch privacy policy from GitHub
+// Parse HTML to extract readable content
+const parseHTMLToMarkdown = (html) => {
+  console.log('[Privacy Policy] Parsing HTML to readable format...');
+  
+  // Create a temporary DOM element to parse HTML
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  
+  // Remove script, style, and nav elements
+  doc.querySelectorAll('script, style, nav, header, footer').forEach(el => el.remove());
+  
+  // Get the main content area or body
+  const mainContent = doc.querySelector('main') || doc.querySelector('article') || doc.body;
+  
+  let markdown = '';
+  
+  // Process each element
+  const processElement = (element) => {
+    const tag = element.tagName?.toLowerCase();
+    
+    if (tag === 'h1') {
+      markdown += `# ${element.textContent.trim()}\n\n`;
+    } else if (tag === 'h2') {
+      markdown += `## ${element.textContent.trim()}\n\n`;
+    } else if (tag === 'h3') {
+      markdown += `### ${element.textContent.trim()}\n\n`;
+    } else if (tag === 'h4') {
+      markdown += `#### ${element.textContent.trim()}\n\n`;
+    } else if (tag === 'p') {
+      const text = element.textContent.trim();
+      if (text) markdown += `${text}\n\n`;
+    } else if (tag === 'ul' || tag === 'ol') {
+      element.querySelectorAll('li').forEach(li => {
+        markdown += `- ${li.textContent.trim()}\n`;
+      });
+      markdown += '\n';
+    } else if (tag === 'a') {
+      const href = element.getAttribute('href');
+      const text = element.textContent.trim();
+      if (href && text) {
+        markdown += `[${text}](${href})`;
+      }
+    } else if (tag === 'strong' || tag === 'b') {
+      markdown += `**${element.textContent.trim()}**`;
+    } else if (tag === 'em' || tag === 'i') {
+      markdown += `*${element.textContent.trim()}*`;
+    }
+  };
+  
+  // Traverse all elements
+  const traverse = (element) => {
+    for (const child of element.children) {
+      processElement(child);
+      if (child.children.length > 0) {
+        traverse(child);
+      }
+    }
+  };
+  
+  traverse(mainContent);
+  
+  console.log('[Privacy Policy] ✓ HTML parsed to markdown, length:', markdown.length);
+  return markdown.trim();
+};
+
+// Fetch privacy policy from GitHub Pages
 const fetchPrivacyPolicy = async () => {
   console.log('[Privacy Policy] === FETCH START ===');
-  console.log('[Privacy Policy] Request URL:', GITHUB_PRIVACY_URL);
+  console.log('[Privacy Policy] Source: GitHub Pages');
+  console.log('[Privacy Policy] Request URL:', GITHUB_PAGES_URL);
   console.log('[Privacy Policy] Timestamp:', new Date().toISOString());
   
-  const response = await fetch(GITHUB_PRIVACY_URL, {
+  const response = await fetch(GITHUB_PAGES_URL, {
     cache: 'no-cache',
     headers: { 
       'Cache-Control': 'no-cache',
@@ -35,25 +101,35 @@ const fetchPrivacyPolicy = async () => {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
   
-  const content = await response.text();
-  const contentSize = new Blob([content]).size;
+  const html = await response.text();
+  const htmlSize = new Blob([html]).size;
   
-  console.log('[Privacy Policy] Response body size:', contentSize, 'bytes');
-  console.log('[Privacy Policy] Content length:', content.length, 'characters');
-  console.log('[Privacy Policy] Content preview (first 200 chars):', content.substring(0, 200));
+  console.log('[Privacy Policy] HTML response size:', htmlSize, 'bytes');
+  console.log('[Privacy Policy] HTML length:', html.length, 'characters');
+  
+  if (!html || html.length === 0) {
+    console.error('[Privacy Policy] ❌ Empty response body');
+    throw new Error('GitHub Pages returned empty content');
+  }
+  
+  if (htmlSize < 100) {
+    console.warn('[Privacy Policy] ⚠️ Suspiciously small file size:', htmlSize, 'bytes');
+  }
+  
+  console.log('[Privacy Policy] ✓ HTML fetch success');
+  
+  // Parse HTML to markdown
+  const content = parseHTMLToMarkdown(html);
   
   if (!content || content.length === 0) {
-    console.error('[Privacy Policy] ❌ Empty response body');
-    throw new Error('GitHub returned empty content');
+    console.error('[Privacy Policy] ❌ HTML parsing resulted in empty content');
+    throw new Error('Failed to extract content from HTML');
   }
   
-  if (contentSize < 100) {
-    console.warn('[Privacy Policy] ⚠️ Suspiciously small file size:', contentSize, 'bytes');
-  }
+  console.log('[Privacy Policy] Content length after parsing:', content.length, 'characters');
+  console.log('[Privacy Policy] Content preview (first 200 chars):', content.substring(0, 200));
   
-  console.log('[Privacy Policy] ✓ Fetch success - Valid content received');
-  
-  const lastUpdated = extractLastUpdated(content);
+  const lastUpdated = extractLastUpdated(content) || extractLastUpdated(html);
   console.log('[Privacy Policy] Last updated date:', lastUpdated || 'Not found in content');
   console.log('[Privacy Policy] ✓ Parse success');
   console.log('[Privacy Policy] === FETCH COMPLETE ===');

@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useEntitlements } from '@/components/access/EntitlementsProvider';
 import PrivacyPolicyContent from '@/components/privacy/PrivacyPolicyContent';
+import TermsOfServiceContent from '@/components/privacy/TermsOfServiceContent';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 import {
@@ -26,6 +27,7 @@ export default function AccountSettings() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const { plan, isLoading: entitlementsLoading } = useEntitlements();
 
@@ -277,7 +279,7 @@ export default function AccountSettings() {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => setShowPrivacyPolicy(true)}
+                onClick={() => setShowTermsOfService(true)}
               >
                 <FileText className="w-4 h-4 mr-2" />
                 Terms of Service
@@ -317,9 +319,19 @@ export default function AccountSettings() {
       <Dialog open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Privacy Policy & Terms of Service</DialogTitle>
+            <DialogTitle>Privacy Policy</DialogTitle>
           </DialogHeader>
           <PrivacyPolicyContent />
+        </DialogContent>
+      </Dialog>
+
+      {/* Terms of Service Dialog */}
+      <Dialog open={showTermsOfService} onOpenChange={setShowTermsOfService}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Terms of Service</DialogTitle>
+          </DialogHeader>
+          <TermsOfServiceContent />
         </DialogContent>
       </Dialog>
 

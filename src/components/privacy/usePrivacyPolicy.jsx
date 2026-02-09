@@ -13,26 +13,50 @@ const extractLastUpdated = (content) => {
 
 // Fetch privacy policy from GitHub
 const fetchPrivacyPolicy = async () => {
-  console.log('[Privacy Policy] Fetching from GitHub RAW:', GITHUB_PRIVACY_URL);
+  console.log('[Privacy Policy] === FETCH START ===');
+  console.log('[Privacy Policy] Request URL:', GITHUB_PRIVACY_URL);
+  console.log('[Privacy Policy] Timestamp:', new Date().toISOString());
   
   const response = await fetch(GITHUB_PRIVACY_URL, {
     cache: 'no-cache',
-    headers: { 'Cache-Control': 'no-cache' }
+    headers: { 
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
+    }
   });
   
+  console.log('[Privacy Policy] HTTP Status:', response.status, response.statusText);
+  console.log('[Privacy Policy] Content-Type:', response.headers.get('content-type'));
+  console.log('[Privacy Policy] Content-Length:', response.headers.get('content-length'));
+  
   if (!response.ok) {
-    console.error('[Privacy Policy] Fetch failed:', response.status, response.statusText);
-    throw new Error('Failed to fetch privacy policy');
+    console.error('[Privacy Policy] ❌ HTTP Error:', response.status, response.statusText);
+    console.error('[Privacy Policy] Response URL:', response.url);
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
   
   const content = await response.text();
-  console.log('[Privacy Policy] ✓ Fetch success');
+  const contentSize = new Blob([content]).size;
+  
+  console.log('[Privacy Policy] Response body size:', contentSize, 'bytes');
   console.log('[Privacy Policy] Content length:', content.length, 'characters');
-  console.log('[Privacy Policy] File size:', new Blob([content]).size, 'bytes');
+  console.log('[Privacy Policy] Content preview (first 200 chars):', content.substring(0, 200));
+  
+  if (!content || content.length === 0) {
+    console.error('[Privacy Policy] ❌ Empty response body');
+    throw new Error('GitHub returned empty content');
+  }
+  
+  if (contentSize < 100) {
+    console.warn('[Privacy Policy] ⚠️ Suspiciously small file size:', contentSize, 'bytes');
+  }
+  
+  console.log('[Privacy Policy] ✓ Fetch success - Valid content received');
   
   const lastUpdated = extractLastUpdated(content);
-  console.log('[Privacy Policy] Last updated date:', lastUpdated || 'Not found');
+  console.log('[Privacy Policy] Last updated date:', lastUpdated || 'Not found in content');
   console.log('[Privacy Policy] ✓ Parse success');
+  console.log('[Privacy Policy] === FETCH COMPLETE ===');
   
   return { content, lastUpdated, fetchedAt: new Date().toISOString() };
 };
@@ -72,11 +96,25 @@ const savePolicyToCache = (policy) => {
 export const usePrivacyPolicy = () => {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['privacy-policy'],
-    queryFn: fetchPrivacyPolicy,
+    queryFn: async () => {
+      try {
+        return await fetchPrivacyPolicy();
+      } catch (error) {
+        console.error('[Privacy Policy] Query function error:', error.message);
+        throw error;
+      }
+    },
     staleTime: 1000 * 60 * 60, // 1 hour
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: (failureCount, error) => {
+      console.log('[Privacy Policy] Retry attempt:', failureCount, 'Error:', error.message);
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => {
+      const delay = Math.min(1000 * 2 ** attemptIndex, 30000);
+      console.log('[Privacy Policy] Retry delay:', delay, 'ms');
+      return delay;
+    },
     placeholderData: getCachedPolicy(),
   });
 
@@ -110,9 +148,22 @@ export const usePrivacyPolicy = () => {
   const cachedPolicy = getCachedPolicy();
   const isOffline = isError && cachedPolicy;
   
+  const finalContent = data?.content || cachedPolicy?.content || '';
+  const finalLastUpdated = data?.lastUpdated || cachedPolicy?.lastUpdated || 'Unknown';
+  
+  console.log('[Privacy Policy Hook] Current state:', {
+    hasData: !!data,
+    hasCachedPolicy: !!cachedPolicy,
+    contentLength: finalContent.length,
+    isLoading,
+    isError,
+    isOffline,
+    errorMessage: error?.message
+  });
+  
   return {
-    content: data?.content || cachedPolicy?.content || '',
-    lastUpdated: data?.lastUpdated || cachedPolicy?.lastUpdated || 'Unknown',
+    content: finalContent,
+    lastUpdated: finalLastUpdated,
     isLoading: isLoading && !cachedPolicy,
     isError: isError && !cachedPolicy,
     isOffline,

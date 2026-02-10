@@ -678,6 +678,7 @@ export default function Dashboard() {
                 bankAccounts={bankAccounts}
                 recurringBills={recurringBills}
                 mortgageLoans={mortgageLoans}
+                isPro={accessControl.isPro}
                 onUpdateCardBalance={(cardId, currentBalance) => {
                   setShowUpdateCardBalance(cardId);
                   setNewBalance(currentBalance.toString());
@@ -692,11 +693,6 @@ export default function Dashboard() {
                 }}
               />
             </div>
-
-            {/* Upgrade Banner for Free Users */}
-            {!accessControl.isPro && (
-              <UpgradeBanner />
-            )}
 
             {/* Empty State Message */}
             {cards.length === 0 && bankAccounts.length === 0 && recurringBills.length === 0 && mortgageLoans.length === 0 && (

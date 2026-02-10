@@ -36,6 +36,7 @@ import {
   getUtilizationColor,
   getUtilizationBgColor
 } from '@/components/utils/calculations';
+import UpgradeBanner from '@/components/access/UpgradeBanner';
 
 const LOAN_TYPE_ICONS = {
   mortgage: '🏠',
@@ -57,7 +58,7 @@ const BILL_CATEGORY_ICONS = {
 
 const DEFAULT_SECTION_ORDER = ['projections', 'banks', 'bills', 'cards', 'loans'];
 
-export default function DashboardSummary({ cards, bankAccounts = [], recurringBills = [], mortgageLoans = [], onUpdateCardBalance, onUpdateBankBalance, onUpdateLoanBalance }) {
+export default function DashboardSummary({ cards, bankAccounts = [], recurringBills = [], mortgageLoans = [], onUpdateCardBalance, onUpdateBankBalance, onUpdateLoanBalance, isPro }) {
   const [overviewExpanded, setOverviewExpanded] = useState(true);
   const [expandedCards, setExpandedCards] = useState(false);
   const [expandedBills, setExpandedBills] = useState(false);
@@ -1007,6 +1008,14 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Upgrade Banner for Free Users */}
+        {!isPro && (
+          <div className="mb-4">
+            <UpgradeBanner />
+          </div>
+        )}
+
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="overview-sections">
             {(provided) => (

@@ -33,7 +33,6 @@ import UpgradeBanner from '@/components/access/UpgradeBanner';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
 import PrivacyPolicyContent from '@/components/privacy/PrivacyPolicyContent';
-import TermsOfServiceContent from '@/components/privacy/TermsOfServiceContent';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
@@ -45,7 +44,6 @@ export default function Dashboard() {
   const [cardsExpanded, setCardsExpanded] = useState(false);
 
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
-  const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [editingCard, setEditingCard] = useState(null);
   const [isPullingToRefresh, setIsPullingToRefresh] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
@@ -962,15 +960,6 @@ export default function Dashboard() {
                                     </button>
                                   </div>
                                 </div>
-                                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                                  <button 
-                                    onClick={() => setShowTermsOfService(true)}
-                                    className="flex-1 w-full text-left hover:bg-slate-50 transition-colors p-4"
-                                  >
-                                    <h2 className="text-xl font-bold text-slate-800 mb-2">Terms of Service</h2>
-                                    <p className="text-slate-500 text-sm">View our terms of service</p>
-                                  </button>
-                                </div>
                               </div>
                             )}
                           </div>
@@ -1194,18 +1183,6 @@ export default function Dashboard() {
             </DialogHeader>
             <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
               <PrivacyPolicyContent />
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Terms of Service Dialog */}
-        <Dialog open={showTermsOfService} onOpenChange={setShowTermsOfService}>
-          <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">
-            <DialogHeader className="p-6 pb-4 flex-shrink-0">
-              <DialogTitle>Terms of Service</DialogTitle>
-            </DialogHeader>
-            <div className="overflow-y-auto px-6 pb-6 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
-              <TermsOfServiceContent />
             </div>
           </DialogContent>
         </Dialog>

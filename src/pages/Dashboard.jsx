@@ -36,7 +36,7 @@ import PrivacyPolicyContent from '@/components/privacy/PrivacyPolicyContent';
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'deposits', 'transfers', 'loans', 'privacy']);
+  const [sectionOrder, setSectionOrder] = useState(['summary', 'cards', 'calendar', 'simulator', 'banks', 'bills', 'deposits', 'transfers', 'loans']);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickAddCardId, setQuickAddCardId] = useState(null);
   const [calendarExpanded, setCalendarExpanded] = useState(false);
@@ -245,8 +245,9 @@ export default function Dashboard() {
             updated = true;
           }
 
-          if (!newOrder.includes('privacy')) {
-            newOrder.push('privacy');
+          // Remove privacy section if it exists
+          if (newOrder.includes('privacy')) {
+            newOrder = newOrder.filter(s => s !== 'privacy');
             updated = true;
           }
 
@@ -944,24 +945,7 @@ export default function Dashboard() {
                               />
                             )}
 
-                            {section === 'privacy' && (
-                              <div className="space-y-3">
-                                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                                  <div className="flex items-center gap-2 p-4">
-                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                      <GripVertical className="w-5 h-5 text-slate-400" />
-                                    </div>
-                                    <button 
-                                      onClick={() => setShowPrivacyPolicy(true)}
-                                      className="flex-1 text-left hover:bg-slate-50 transition-colors"
-                                    >
-                                      <h2 className="text-xl font-bold text-slate-800 mb-2">Privacy Policy</h2>
-                                      <p className="text-slate-500 text-sm">View our privacy policy</p>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
+
                           </div>
                         )}
                       </Draggable>

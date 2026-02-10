@@ -953,7 +953,7 @@ export default function Dashboard() {
                                     </div>
                                     <button 
                                       onClick={() => setShowPrivacyPolicy(true)}
-                                      className="flex-1 text-left hover:bg-slate-50 transition-colors -m-4 p-4"
+                                      className="flex-1 text-left hover:bg-slate-50 transition-colors"
                                     >
                                       <h2 className="text-xl font-bold text-slate-800 mb-2">Privacy Policy</h2>
                                       <p className="text-slate-500 text-sm">View our privacy policy</p>

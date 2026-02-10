@@ -39,6 +39,7 @@ export function EntitlementsProvider({ children }) {
           let plan = PLAN_TYPES.FREE;
           if (subscriptions.length > 0) {
             // Check if any active purchase grants Pro access
+            // This includes: monthly, yearly subscriptions, and lifetime one-time purchase
             const hasPro = subscriptions.some(sub => 
               GOOGLE_PLAY_PRODUCT_TO_PLAN[sub.productId] === PLAN_TYPES.PRO
             );
@@ -48,9 +49,13 @@ export function EntitlementsProvider({ children }) {
             }
           }
           
-          // Sync with backend if different
+          // IMPORTANT: Sync entitlement with backend for cross-device support
+          // Backend stores the entitlement, so other devices can access it
           if (user.plan !== plan) {
-            await base44.auth.updateMe({ plan });
+            await base44.auth.updateMe({ 
+              plan,
+              last_entitlement_sync: new Date().toISOString()
+            });
           }
           
           setUserPlan(plan);
@@ -58,15 +63,18 @@ export function EntitlementsProvider({ children }) {
           return;
         } catch (error) {
           console.error('Google Play Billing check failed:', error);
-          // If billing check fails, default to free
-          setUserPlan(PLAN_TYPES.FREE);
+          
+          // Fallback: Check backend for persisted entitlement
+          // This ensures lifetime purchases work across devices
+          const plan = user.plan || PLAN_TYPES.FREE;
+          setUserPlan(plan);
           setIsLoading(false);
           return;
         }
       }
       
-      // Non-Android: Block app usage
-      // For web preview/development, use stored plan as fallback
+      // Non-Android: Use stored plan from backend
+      // This allows testing in web preview and cross-device sync
       const plan = user.plan || PLAN_TYPES.FREE;
       setUserPlan(plan);
     } catch (error) {

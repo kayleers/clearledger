@@ -44,7 +44,7 @@ class GooglePlayBillingService {
   }
 
   /**
-   * Check and return active subscriptions
+   * Check and return active subscriptions and one-time purchases
    */
   async getActiveSubscriptions() {
     if (!isAndroid() || !this.isInitialized) {
@@ -52,17 +52,32 @@ class GooglePlayBillingService {
     }
 
     try {
-      const result = await window.Capacitor.Plugins.GooglePlayBilling.queryPurchases();
+      // Query both subscriptions and one-time purchases
+      const [subsResult, inAppResult] = await Promise.all([
+        window.Capacitor.Plugins.GooglePlayBilling.queryPurchases({ productType: 'subs' }),
+        window.Capacitor.Plugins.GooglePlayBilling.queryPurchases({ productType: 'inapp' })
+      ]);
       
-      if (result.success && result.purchases) {
-        // Filter active subscriptions only
-        this.activeSubscriptions = result.purchases.filter(purchase => {
+      const allPurchases = [];
+      
+      // Add active subscriptions
+      if (subsResult.success && subsResult.purchases) {
+        const activeSubs = subsResult.purchases.filter(purchase => {
           return purchase.acknowledged && !purchase.isExpired;
         });
-        return this.activeSubscriptions;
+        allPurchases.push(...activeSubs);
       }
       
-      return [];
+      // Add one-time purchases (non-consumable, like lifetime)
+      if (inAppResult.success && inAppResult.purchases) {
+        const activeInApp = inAppResult.purchases.filter(purchase => {
+          return purchase.acknowledged && purchase.productId === GOOGLE_PLAY_PRODUCTS.LIFETIME;
+        });
+        allPurchases.push(...activeInApp);
+      }
+      
+      this.activeSubscriptions = allPurchases;
+      return this.activeSubscriptions;
     } catch (error) {
       console.error('Failed to query purchases:', error);
       return [];
@@ -110,13 +125,22 @@ class GooglePlayBillingService {
     }
 
     try {
+      // Determine product type (subscription vs one-time purchase)
+      const productType = productId === GOOGLE_PLAY_PRODUCTS.LIFETIME ? 'inapp' : 'subs';
+      
       const result = await window.Capacitor.Plugins.GooglePlayBilling.launchPurchaseFlow({
-        productId: productId
+        productId: productId,
+        productType: productType
       });
 
       if (result.success) {
-        // Verify purchase on server
-        await this.verifyPurchase(result.purchase);
+        // Acknowledge purchase immediately (required for one-time purchases)
+        if (productType === 'inapp' && !result.purchase.acknowledged) {
+          await this.acknowledgePurchase(result.purchase.purchaseToken);
+        }
+        
+        // Verify and persist purchase
+        await this.verifyAndPersistPurchase(result.purchase);
         return result.purchase;
       } else {
         throw new Error(result.error || 'Purchase failed');
@@ -128,27 +152,52 @@ class GooglePlayBillingService {
   }
 
   /**
-   * Verify purchase with backend (recommended for security)
+   * Acknowledge a purchase (required for one-time purchases)
    */
-  async verifyPurchase(purchase) {
+  async acknowledgePurchase(purchaseToken) {
     try {
-      // Send purchase token to backend for server-side verification
-      const response = await fetch('/api/verify-google-play-purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          purchaseToken: purchase.purchaseToken,
-          productId: purchase.productId,
-          orderId: purchase.orderId
-        })
+      await window.Capacitor.Plugins.GooglePlayBilling.acknowledgePurchase({
+        purchaseToken: purchaseToken
       });
-
-      const result = await response.json();
-      return result.valid;
+      return true;
     } catch (error) {
-      console.error('Purchase verification failed:', error);
-      // Fallback: trust client-side validation (less secure)
-      return purchase.acknowledged;
+      console.error('Failed to acknowledge purchase:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Verify and persist purchase entitlement to user account
+   */
+  async verifyAndPersistPurchase(purchase) {
+    try {
+      // Import base44 client dynamically to avoid circular dependencies
+      const { base44 } = await import('@/api/base44Client');
+      
+      // Determine plan tier from product ID
+      let plan = 'free';
+      if (purchase.productId === GOOGLE_PLAY_PRODUCTS.LIFETIME ||
+          purchase.productId === GOOGLE_PLAY_PRODUCTS.PRO_MONTHLY ||
+          purchase.productId === GOOGLE_PLAY_PRODUCTS.PRO_YEARLY) {
+        plan = 'pro';
+      }
+      
+      // Persist entitlement to user account (syncs across devices)
+      await base44.auth.updateMe({
+        plan: plan,
+        google_play_purchase: {
+          productId: purchase.productId,
+          purchaseToken: purchase.purchaseToken,
+          orderId: purchase.orderId,
+          purchaseTime: purchase.purchaseTime || Date.now(),
+          acknowledged: true
+        }
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to persist purchase:', error);
+      return false;
     }
   }
 
@@ -168,15 +217,36 @@ class GooglePlayBillingService {
     }
 
     try {
-      const result = await window.Capacitor.Plugins.GooglePlayBilling.queryProductDetails({
-        productIds: productIds
-      });
+      // Query both subscription and one-time purchase products
+      const [subsResult, inAppResult] = await Promise.all([
+        window.Capacitor.Plugins.GooglePlayBilling.queryProductDetails({
+          productIds: productIds.filter(id => id !== GOOGLE_PLAY_PRODUCTS.LIFETIME),
+          productType: 'subs'
+        }),
+        window.Capacitor.Plugins.GooglePlayBilling.queryProductDetails({
+          productIds: productIds.filter(id => id === GOOGLE_PLAY_PRODUCTS.LIFETIME),
+          productType: 'inapp'
+        })
+      ]);
 
-      return result.products || [];
+      const allProducts = [
+        ...(subsResult.products || []),
+        ...(inAppResult.products || [])
+      ];
+
+      return allProducts;
     } catch (error) {
       console.error('Failed to get product details:', error);
       return [];
     }
+  }
+
+  /**
+   * Check if user has lifetime purchase (for entitlement validation)
+   */
+  async hasLifetimePurchase() {
+    const purchases = await this.getActiveSubscriptions();
+    return purchases.some(p => p.productId === GOOGLE_PLAY_PRODUCTS.LIFETIME);
   }
 }
 

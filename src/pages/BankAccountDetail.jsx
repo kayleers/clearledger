@@ -915,16 +915,13 @@ function DepositForm({ accountId, onSubmit, onCancel, isLoading }) {
       </div>
       <div>
         <Label>Category</Label>
-        <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {DEPOSIT_CATEGORIES.map(cat => (
-              <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <MobileSelect
+          value={formData.category}
+          onValueChange={(value) => setFormData({ ...formData, category: value })}
+          options={DEPOSIT_CATEGORIES.map(cat => ({ value: cat.value, label: cat.label }))}
+          placeholder="Select category"
+          label="Category"
+        />
       </div>
       <div className="flex gap-2">
         <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
@@ -986,16 +983,13 @@ function WithdrawalForm({ accountId, onSubmit, onCancel, isLoading }) {
       </div>
       <div>
         <Label>Category</Label>
-        <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {DEPOSIT_CATEGORIES.map(cat => (
-              <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <MobileSelect
+          value={formData.category}
+          onValueChange={(value) => setFormData({ ...formData, category: value })}
+          options={DEPOSIT_CATEGORIES.map(cat => ({ value: cat.value, label: cat.label }))}
+          placeholder="Select category"
+          label="Category"
+        />
       </div>
       <div className="flex gap-2">
         <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
@@ -1051,16 +1045,13 @@ function RecurringDepositForm({ accountId, onSubmit, onCancel, isLoading }) {
       </div>
       <div>
         <Label>Frequency</Label>
-        <Select value={formData.frequency} onValueChange={(value) => setFormData({ ...formData, frequency: value })}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {FREQUENCY_OPTIONS.map(freq => (
-              <SelectItem key={freq.value} value={freq.value}>{freq.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <MobileSelect
+          value={formData.frequency}
+          onValueChange={(value) => setFormData({ ...formData, frequency: value })}
+          options={FREQUENCY_OPTIONS}
+          placeholder="Select frequency"
+          label="Frequency"
+        />
       </div>
       {(formData.frequency === 'monthly' || formData.frequency === 'quarterly' || formData.frequency === 'yearly') && (
         <div>
@@ -1077,16 +1068,13 @@ function RecurringDepositForm({ accountId, onSubmit, onCancel, isLoading }) {
       )}
       <div>
         <Label>Category</Label>
-        <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {DEPOSIT_CATEGORIES.map(cat => (
-              <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <MobileSelect
+          value={formData.category}
+          onValueChange={(value) => setFormData({ ...formData, category: value })}
+          options={DEPOSIT_CATEGORIES.map(cat => ({ value: cat.value, label: cat.label }))}
+          placeholder="Select category"
+          label="Category"
+        />
       </div>
       <div className="flex gap-2">
         <Button type="button" variant="outline" onClick={onCancel} className="flex-1">

@@ -51,36 +51,20 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
         </DialogHeader>
 
         <div className="space-y-4">
-          <p className="text-white/90">{contextMessages[context]}</p>
-
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-            <h4 className="font-semibold mb-3 text-white">Pro Features:</h4>
-            <ul className="space-y-2">
-              <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
-                <span className="text-white">Unlimited credit cards</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
-                <span className="text-white">Unlimited bank accounts</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
-                <span className="text-white">Unlimited loans</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
-                <span className="text-white">Unlimited recurring bills</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
-                <span className="text-white">Unlimited currency conversions</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-300 mt-0.5 flex-shrink-0" />
-                <span className="text-white">Full access to all features</span>
-              </li>
+            <h4 className="font-semibold mb-2 text-white">Free Tier Limits:</h4>
+            <ul className="space-y-1 text-sm text-white/90 mb-3">
+              <li>• 2 credit cards</li>
+              <li>• 2 bank accounts</li>
+              <li>• 2 recurring bills</li>
+              <li>• 2 deposits</li>
+              <li>• 2 bank transfers</li>
+              <li>• 2 loans</li>
+              <li>• 2 currency conversions</li>
             </ul>
+            <p className="text-white font-medium text-center pt-2 border-t border-white/20">
+              Upgrade to Pro for unlimited access.
+            </p>
           </div>
 
           <div className="space-y-2">

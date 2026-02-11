@@ -188,14 +188,7 @@ export default function CurrencyConversionList({ dragHandleProps }) {
               </div>
             )}
             <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-              <div>
-                <h2 className="text-xl font-bold text-emerald-400">Currency FX</h2>
-                {!accessControl.isPro && (
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {remaining > 0 ? `${remaining} conversion${remaining !== 1 ? 's' : ''} remaining` : 'Limit reached'}
-                  </p>
-                )}
-              </div>
+              <h2 className="text-xl font-bold text-emerald-400">Currency FX</h2>
               {isExpanded ? (
                 <ChevronUp className="w-5 h-5 text-slate-500" />
               ) : (

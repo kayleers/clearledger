@@ -1,19 +1,20 @@
 import { isAndroid } from '@/components/platform/platformDetection';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { FileOpener } from '@capacitor-community/file-opener';
 
 /**
- * Production Android PDF export - compatible with Google Play builds
- * Uses native Android file sharing and storage APIs via Web Share
+ * Production Android PDF export using native filesystem APIs
+ * Saves to public Downloads/ClearLedger/ folder and auto-opens
  * 
  * @param {Blob|ArrayBuffer} data - PDF data
  * @param {string} filename - Desired filename
- * @returns {Promise<void>}
+ * @returns {Promise<{success: boolean, path?: string, uri?: string}>}
  */
 export const exportPDF = async (data, filename) => {
   console.log('[PDF Export] ═══════════════════════════════════');
   console.log('[PDF Export] START');
   console.log('[PDF Export] Filename:', filename);
   console.log('[PDF Export] Platform:', isAndroid() ? 'Android' : 'Web/Preview');
-  console.log('[PDF Export] OS:', navigator.userAgent);
   
   // Convert data to Blob
   let blobData;
@@ -33,94 +34,72 @@ export const exportPDF = async (data, filename) => {
     throw new Error('PDF generation failed - file is empty');
   }
 
-  // Android production environment
-  if (isAndroid()) {
-    console.log('[PDF Export] Android detected - using native file sharing');
+  // Android native filesystem
+  if (isAndroid() && window.Capacitor) {
+    console.log('[PDF Export] Android Capacitor - using native filesystem');
     
     try {
-      // Create File object (required for Web Share API)
-      const file = new File([blobData], filename, { 
-        type: 'application/pdf',
-        lastModified: Date.now()
+      // Convert Blob to base64
+      const base64Data = await blobToBase64(blobData);
+      console.log('[PDF Export] Converted to base64:', base64Data.substring(0, 50) + '...');
+      
+      // Save to Downloads/ClearLedger/ directory
+      const path = `Download/ClearLedger/${filename}`;
+      console.log('[PDF Export] Saving to:', path);
+      
+      const result = await Filesystem.writeFile({
+        path: path,
+        data: base64Data,
+        directory: Directory.External,
+        recursive: true
       });
       
-      console.log('[PDF Export] File object created:', file.name, file.size, 'bytes');
-      console.log('[PDF Export] File type:', file.type);
+      console.log('[PDF Export] ✓ File saved successfully');
+      console.log('[PDF Export] URI:', result.uri);
       
-      // Check Web Share API support
-      const hasShare = typeof navigator.share === 'function';
-      const hasCanShare = typeof navigator.canShare === 'function';
-      const canShareFiles = hasCanShare && navigator.canShare({ files: [file] });
-      
-      console.log('[PDF Export] Web Share API available:', hasShare);
-      console.log('[PDF Export] Can share files:', canShareFiles);
-      
-      // Method 1: Web Share API (preferred for Android)
-      if (hasShare && canShareFiles) {
-        console.log('[PDF Export] Using Web Share API...');
-        
-        await navigator.share({
-          files: [file],
-          title: 'ClearLedger Export',
-          text: `Financial report - ${filename}`
+      // Auto-open the PDF
+      try {
+        console.log('[PDF Export] Opening PDF...');
+        await FileOpener.open({
+          filePath: result.uri,
+          contentType: 'application/pdf',
+          openWithDefault: true
         });
-        
-        console.log('[PDF Export] ✓ Web Share API success');
-        console.log('[PDF Export] User selected app for sharing/saving');
-        console.log('[PDF Export] ═══════════════════════════════════');
-        return;
+        console.log('[PDF Export] ✓ PDF opened');
+      } catch (openError) {
+        console.error('[PDF Export] ⚠ Failed to auto-open:', openError);
+        // Continue - file is saved even if open fails
       }
       
-      // Method 2: Blob URL with download attribute (Android Download Manager)
-      console.log('[PDF Export] Fallback: Using blob URL + download link');
-      const url = window.URL.createObjectURL(blobData);
-      console.log('[PDF Export] Blob URL created:', url.substring(0, 50) + '...');
-      
-      // Create temporary download link
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      
-      console.log('[PDF Export] Triggering download...');
-      a.click();
-      
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        console.log('[PDF Export] ✓ Cleanup complete');
-      }, 1000);
-      
-      console.log('[PDF Export] ✓ Download triggered - check Android Downloads folder');
       console.log('[PDF Export] ═══════════════════════════════════');
+      return { success: true, path, uri: result.uri };
       
     } catch (error) {
-      console.error('[PDF Export] ❌ Android export error:', error);
-      console.error('[PDF Export] Error name:', error.name);
-      console.error('[PDF Export] Error message:', error.message);
+      console.error('[PDF Export] ❌ Native filesystem error:', error);
       
-      // Method 3: Last resort - open in new tab
-      console.log('[PDF Export] Fallback: Opening in new tab...');
-      const url = window.URL.createObjectURL(blobData);
-      const newTab = window.open(url, '_blank');
-      
-      if (!newTab) {
-        console.error('[PDF Export] ❌ Popup blocked');
-        alert('Please enable popups to download PDFs.\n\nGo to Settings > Site Settings > Popups and allow popups for this app.');
-        throw new Error('Popup blocked - cannot download PDF');
+      // Fallback to Web Share API
+      try {
+        console.log('[PDF Export] Fallback: Web Share API...');
+        const file = new File([blobData], filename, { type: 'application/pdf' });
+        
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'ClearLedger Export',
+            text: `Financial report - ${filename}`
+          });
+          console.log('[PDF Export] ✓ Web Share success');
+          return { success: true };
+        }
+      } catch (shareError) {
+        console.error('[PDF Export] ❌ Web Share failed:', shareError);
       }
       
-      console.log('[PDF Export] ✓ Opened in new tab');
-      console.log('[PDF Export] User can save from browser controls');
-      
-      setTimeout(() => window.URL.revokeObjectURL(url), 30000);
-      console.log('[PDF Export] ═══════════════════════════════════');
+      throw error;
     }
   } else {
     // Web/Preview environment
-    console.log('[PDF Export] Web/Preview mode - standard download');
+    console.log('[PDF Export] Web mode - standard download');
     
     const url = window.URL.createObjectURL(blobData);
     const a = document.createElement('a');
@@ -129,7 +108,6 @@ export const exportPDF = async (data, filename) => {
     a.style.display = 'none';
     document.body.appendChild(a);
     
-    console.log('[PDF Export] Triggering download...');
     a.click();
     
     setTimeout(() => {
@@ -139,30 +117,67 @@ export const exportPDF = async (data, filename) => {
     }, 100);
     
     console.log('[PDF Export] ═══════════════════════════════════');
+    return { success: true, path: `Downloads/${filename}` };
   }
+};
+
+/**
+ * Convert Blob to base64 string
+ */
+const blobToBase64 = (blob) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 };
 
 /**
  * Show platform-appropriate export success message
  */
-export const showExportSuccess = (filename) => {
+export const showExportSuccess = (filename, path = null, uri = null) => {
   console.log('[PDF Export] Showing success message for:', filename);
   
   if (isAndroid()) {
+    const location = path || 'Download/ClearLedger/' + filename;
     const message = `✓ PDF Exported Successfully\n\n` +
       `File: ${filename}\n\n` +
-      `Location:\n` +
-      `• Check your Downloads folder\n` +
-      `• Or the app you selected to save it\n\n` +
-      `You can now:\n` +
-      `• Open the file\n` +
-      `• Share it\n` +
-      `• Upload to cloud storage\n` +
-      `• Email it`;
+      `Saved to:\n${location}\n\n` +
+      `The PDF has been opened automatically.\n\n` +
+      `You can find it in:\n` +
+      `• Files app > Downloads > ClearLedger\n` +
+      `• Any file manager app`;
     
     alert(message);
   } else {
     console.log('[PDF Export] Web environment - no alert needed');
+  }
+};
+
+/**
+ * Share PDF on Android
+ */
+export const sharePDF = async (uri, filename) => {
+  if (!isAndroid() || !window.Capacitor) {
+    console.log('[PDF Export] Share not available on web');
+    return;
+  }
+
+  try {
+    console.log('[PDF Export] Triggering share intent...');
+    await FileOpener.open({
+      filePath: uri,
+      contentType: 'application/pdf',
+      openWithDefault: false
+    });
+    console.log('[PDF Export] ✓ Share dialog opened');
+  } catch (error) {
+    console.error('[PDF Export] Share failed:', error);
+    alert('Share failed. File is saved in Downloads/ClearLedger/');
   }
 };
 

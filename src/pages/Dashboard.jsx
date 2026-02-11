@@ -553,8 +553,10 @@ export default function Dashboard() {
       const response = await base44.functions.invoke('exportAllData', {});
       const filename = `ClearLedger_Export_${new Date().toISOString().split('T')[0]}.pdf`;
       
-      await exportPDF(response.data, filename);
-      showExportSuccess(filename);
+      const result = await exportPDF(response.data, filename);
+      if (result.success) {
+        showExportSuccess(filename, result.path, result.uri);
+      }
     } catch (error) {
       console.error('Export failed:', error);
       alert('Failed to export data. Please try again.');

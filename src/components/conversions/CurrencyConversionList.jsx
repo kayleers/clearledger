@@ -36,16 +36,28 @@ export default function CurrencyConversionList({ dragHandleProps }) {
   });
 
   const { data: conversions = [] } = useQuery({
-    queryKey: ['currency-conversions'],
+    queryKey: ['currency-conversions', user?.email],
     queryFn: async () => {
-      const data = await base44.entities.CurrencyConversion.filter({ is_active: true });
+      if (!user) return [];
+      const data = await base44.entities.CurrencyConversion.filter({ 
+        is_active: true, 
+        created_by: user.email 
+      });
       return data.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-    }
+    },
+    enabled: !!user
   });
 
   const { data: bankAccounts = [] } = useQuery({
-    queryKey: ['bank-accounts'],
-    queryFn: () => base44.entities.BankAccount.filter({ is_active: true })
+    queryKey: ['bank-accounts', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      return base44.entities.BankAccount.filter({ 
+        is_active: true, 
+        created_by: user.email 
+      });
+    },
+    enabled: !!user
   });
 
   const createMutation = useMutation({

@@ -3,8 +3,9 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { FileOpener } from '@capacitor-community/file-opener';
 
 /**
- * Production Android PDF export using native filesystem APIs
- * Saves to public Downloads/ClearLedger/ folder and auto-opens
+ * GLOBAL PDF EXPORT SYSTEM
+ * Handles ALL PDF exports across the entire application
+ * Works on web and Android (Google Play build)
  * 
  * @param {Blob|ArrayBuffer} data - PDF data
  * @param {string} filename - Desired filename
@@ -12,18 +13,24 @@ import { FileOpener } from '@capacitor-community/file-opener';
  */
 export const exportPDF = async (data, filename) => {
   console.log('[PDF Export] ═══════════════════════════════════');
-  console.log('[PDF Export] START');
+  console.log('[PDF Export] START - GLOBAL EXPORT SYSTEM');
   console.log('[PDF Export] Filename:', filename);
-  console.log('[PDF Export] Platform:', isAndroid() ? 'Android' : 'Web/Preview');
+  console.log('[PDF Export] Platform:', isAndroid() ? 'Android' : 'Web');
+  console.log('[PDF Export] Capacitor:', window.Capacitor ? 'Available' : 'Not Available');
   
-  // Convert data to Blob
+  // Validate and normalize data
   let blobData;
-  if (data instanceof Blob) {
-    blobData = data;
-  } else if (data instanceof ArrayBuffer) {
-    blobData = new Blob([data], { type: 'application/pdf' });
-  } else {
-    blobData = new Blob([data], { type: 'application/pdf' });
+  try {
+    if (data instanceof Blob) {
+      blobData = data;
+    } else if (data instanceof ArrayBuffer) {
+      blobData = new Blob([data], { type: 'application/pdf' });
+    } else {
+      blobData = new Blob([data], { type: 'application/pdf' });
+    }
+  } catch (error) {
+    console.error('[PDF Export] ❌ Data conversion error:', error);
+    throw new Error('Invalid PDF data format');
   }
   
   const fileSize = blobData.size;
@@ -34,90 +41,154 @@ export const exportPDF = async (data, filename) => {
     throw new Error('PDF generation failed - file is empty');
   }
 
-  // Android native filesystem
+  // ==========================================
+  // ANDROID NATIVE EXPORT
+  // ==========================================
   if (isAndroid() && window.Capacitor) {
-    console.log('[PDF Export] Android Capacitor - using native filesystem');
+    console.log('[PDF Export] 📱 ANDROID NATIVE MODE');
+    console.log('[PDF Export] Using Capacitor Filesystem API');
     
     try {
       // Convert Blob to base64
+      console.log('[PDF Export] Converting to base64...');
       const base64Data = await blobToBase64(blobData);
-      console.log('[PDF Export] Converted to base64:', base64Data.substring(0, 50) + '...');
+      console.log('[PDF Export] ✓ Base64 conversion complete:', base64Data.substring(0, 30) + '...');
       
-      // Save to Downloads/ClearLedger/ directory
+      // Save to public Downloads folder
       const path = `Download/ClearLedger/${filename}`;
-      console.log('[PDF Export] Saving to:', path);
+      console.log('[PDF Export] Target path:', path);
+      console.log('[PDF Export] Saving file...');
       
-      const result = await Filesystem.writeFile({
+      const writeResult = await Filesystem.writeFile({
         path: path,
         data: base64Data,
         directory: Directory.External,
         recursive: true
       });
       
-      console.log('[PDF Export] ✓ File saved successfully');
-      console.log('[PDF Export] URI:', result.uri);
+      console.log('[PDF Export] ✓✓✓ FILE SAVED SUCCESSFULLY ✓✓✓');
+      console.log('[PDF Export] File URI:', writeResult.uri);
+      console.log('[PDF Export] File path:', path);
+      
+      // Verify file was actually written
+      try {
+        const stat = await Filesystem.stat({
+          path: path,
+          directory: Directory.External
+        });
+        console.log('[PDF Export] ✓ File verified - Size:', stat.size, 'bytes');
+      } catch (statError) {
+        console.warn('[PDF Export] ⚠ Could not verify file:', statError);
+      }
       
       // Auto-open the PDF
+      console.log('[PDF Export] Attempting to open PDF...');
       try {
-        console.log('[PDF Export] Opening PDF...');
         await FileOpener.open({
-          filePath: result.uri,
+          filePath: writeResult.uri,
           contentType: 'application/pdf',
           openWithDefault: true
         });
-        console.log('[PDF Export] ✓ PDF opened');
+        console.log('[PDF Export] ✓ PDF opened automatically');
       } catch (openError) {
-        console.error('[PDF Export] ⚠ Failed to auto-open:', openError);
-        // Continue - file is saved even if open fails
+        console.error('[PDF Export] ⚠ Auto-open failed:', openError);
+        console.log('[PDF Export] File is still saved and accessible');
       }
       
       console.log('[PDF Export] ═══════════════════════════════════');
-      return { success: true, path, uri: result.uri };
+      console.log('[PDF Export] ✓✓✓ ANDROID EXPORT COMPLETE ✓✓✓');
+      return { 
+        success: true, 
+        path: `Downloads/ClearLedger/${filename}`, 
+        uri: writeResult.uri 
+      };
       
-    } catch (error) {
-      console.error('[PDF Export] ❌ Native filesystem error:', error);
+    } catch (filesystemError) {
+      console.error('[PDF Export] ❌ Filesystem API failed:', filesystemError);
+      console.error('[PDF Export] Error details:', {
+        name: filesystemError.name,
+        message: filesystemError.message,
+        code: filesystemError.code
+      });
       
       // Fallback to Web Share API
+      console.log('[PDF Export] Attempting Web Share fallback...');
       try {
-        console.log('[PDF Export] Fallback: Web Share API...');
-        const file = new File([blobData], filename, { type: 'application/pdf' });
+        const file = new File([blobData], filename, { 
+          type: 'application/pdf',
+          lastModified: Date.now()
+        });
         
-        if (navigator.canShare?.({ files: [file] })) {
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          console.log('[PDF Export] Web Share API available');
           await navigator.share({
             files: [file],
             title: 'ClearLedger Export',
             text: `Financial report - ${filename}`
           });
-          console.log('[PDF Export] ✓ Web Share success');
+          console.log('[PDF Export] ✓ Web Share successful');
           return { success: true };
+        } else {
+          console.log('[PDF Export] Web Share not available');
         }
       } catch (shareError) {
         console.error('[PDF Export] ❌ Web Share failed:', shareError);
       }
       
-      throw error;
+      // Last resort: blob URL download
+      console.log('[PDF Export] Last resort: blob URL download');
+      const url = window.URL.createObjectURL(blobData);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+      
+      console.log('[PDF Export] Blob URL download triggered');
+      return { success: true, path: 'Downloads/' + filename };
     }
-  } else {
-    // Web/Preview environment
-    console.log('[PDF Export] Web mode - standard download');
+  } 
+  
+  // ==========================================
+  // WEB BROWSER EXPORT
+  // ==========================================
+  else {
+    console.log('[PDF Export] 🌐 WEB BROWSER MODE');
+    console.log('[PDF Export] Standard download method');
     
-    const url = window.URL.createObjectURL(blobData);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    
-    a.click();
-    
-    setTimeout(() => {
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      console.log('[PDF Export] ✓ Download complete');
-    }, 100);
-    
-    console.log('[PDF Export] ═══════════════════════════════════');
-    return { success: true, path: `Downloads/${filename}` };
+    try {
+      const url = window.URL.createObjectURL(blobData);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      
+      document.body.appendChild(a);
+      console.log('[PDF Export] Download link created');
+      
+      a.click();
+      console.log('[PDF Export] Download triggered');
+      
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        console.log('[PDF Export] Cleanup complete');
+      }, 100);
+      
+      console.log('[PDF Export] ═══════════════════════════════════');
+      console.log('[PDF Export] ✓✓✓ WEB EXPORT COMPLETE ✓✓✓');
+      return { success: true, path: `Downloads/${filename}` };
+      
+    } catch (webError) {
+      console.error('[PDF Export] ❌ Web download failed:', webError);
+      throw webError;
+    }
   }
 };
 

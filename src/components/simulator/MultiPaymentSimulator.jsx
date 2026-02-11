@@ -18,7 +18,8 @@ import {
   Star,
   Trash2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Download
 } from 'lucide-react';
 import { formatCurrency, formatMonthsToYears, calculatePayoffTimeline, calculateVariablePayoffTimeline, calculateRequiredPayment } from '@/components/utils/calculations';
 import PayoffChart from './PayoffChart';
@@ -44,6 +45,7 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [scenarioName, setScenarioName] = useState('');
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [exportingScenarioId, setExportingScenarioId] = useState(null);
   const queryClient = useQueryClient();
   const accessControl = useAccessControl();
 
@@ -75,6 +77,26 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
       queryClient.invalidateQueries({ queryKey: ['multi-payment-scenarios'] });
     }
   });
+
+  const handleExportScenario = async (scenarioId) => {
+    try {
+      setExportingScenarioId(scenarioId);
+      const response = await base44.functions.invoke('exportScenario', { scenario_id: scenarioId });
+      
+      const filename = `Scenario_Export_${new Date().toISOString().split('T')[0]}.pdf`;
+      const { exportPDF, showExportSuccess } = await import('@/components/utils/exportHelper');
+      
+      const result = await exportPDF(response.data, filename);
+      if (result.success) {
+        showExportSuccess(filename, result.path, result.uri);
+      }
+    } catch (error) {
+      console.error('Export scenario failed:', error);
+      alert('Failed to export scenario. Please try again.');
+    } finally {
+      setExportingScenarioId(null);
+    }
+  };
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -274,6 +296,8 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
       type: paymentType,
       cards: paymentType === 'fixed' 
         ? Object.entries(cardPayments).map(([id, amount]) => ({ id, amount }))
+        : paymentType === 'target'
+        ? Object.entries(cardTargetMonths).map(([id, targetMonths]) => ({ id, targetMonths }))
         : Object.entries(cardVariablePayments).map(([id, payments]) => ({ 
             id, 
             payments, 
@@ -281,6 +305,8 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
           })),
       loans: paymentType === 'fixed'
         ? Object.entries(loanPayments).map(([id, amount]) => ({ id, amount }))
+        : paymentType === 'target'
+        ? Object.entries(loanTargetMonths).map(([id, targetMonths]) => ({ id, targetMonths }))
         : Object.entries(loanVariablePayments).map(([id, payments]) => ({ 
             id, 
             payments,
@@ -298,34 +324,94 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
   };
 
   const handleLoadScenario = (scenario) => {
+    console.log('[Load Scenario] Starting scenario load:', scenario.name);
+    console.log('[Load Scenario] Scenario data:', scenario);
+    
     const data = scenario.payment_data;
+    console.log('[Load Scenario] Payment data:', data);
+    console.log('[Load Scenario] Payment type:', data.type);
+    
+    // Set payment type first
     setPaymentType(data.type);
     
+    // Clear all existing state
+    console.log('[Load Scenario] Clearing existing state...');
+    setCardPayments({});
+    setLoanPayments({});
+    setCardVariablePayments({});
+    setLoanVariablePayments({});
+    setCardDefaultPayments({});
+    setLoanDefaultPayments({});
+    setCardTargetMonths({});
+    setLoanTargetMonths({});
+    
+    // Load data based on type
     if (data.type === 'fixed') {
+      console.log('[Load Scenario] Loading FIXED payment scenario');
       const cardPmts = {};
       const loanPmts = {};
-      data.cards?.forEach(c => cardPmts[c.id] = c.amount);
-      data.loans?.forEach(l => loanPmts[l.id] = l.amount);
+      
+      data.cards?.forEach(c => {
+        console.log('[Load Scenario] Card payment:', c.id, '→', c.amount);
+        cardPmts[c.id] = c.amount;
+      });
+      
+      data.loans?.forEach(l => {
+        console.log('[Load Scenario] Loan payment:', l.id, '→', l.amount);
+        loanPmts[l.id] = l.amount;
+      });
+      
       setCardPayments(cardPmts);
       setLoanPayments(loanPmts);
-    } else {
+      console.log('[Load Scenario] ✓ Fixed payments loaded');
+      
+    } else if (data.type === 'target') {
+      console.log('[Load Scenario] Loading TARGET payment scenario');
+      const cardTargets = {};
+      const loanTargets = {};
+      
+      data.cards?.forEach(c => {
+        console.log('[Load Scenario] Card target:', c.id, '→', c.targetMonths, 'months');
+        cardTargets[c.id] = c.targetMonths;
+      });
+      
+      data.loans?.forEach(l => {
+        console.log('[Load Scenario] Loan target:', l.id, '→', l.targetMonths, 'months');
+        loanTargets[l.id] = l.targetMonths;
+      });
+      
+      setCardTargetMonths(cardTargets);
+      setLoanTargetMonths(loanTargets);
+      console.log('[Load Scenario] ✓ Target months loaded');
+      
+    } else if (data.type === 'variable') {
+      console.log('[Load Scenario] Loading VARIABLE payment scenario');
       const cardPmts = {};
       const loanPmts = {};
       const cardDefaults = {};
       const loanDefaults = {};
+      
       data.cards?.forEach(c => {
-        cardPmts[c.id] = c.payments;
-        cardDefaults[c.id] = c.defaultPayment;
+        console.log('[Load Scenario] Card variable:', c.id, '→ default:', c.defaultPayment, 'payments:', c.payments);
+        cardPmts[c.id] = c.payments || [];
+        cardDefaults[c.id] = c.defaultPayment || '';
       });
+      
       data.loans?.forEach(l => {
-        loanPmts[l.id] = l.payments;
-        loanDefaults[l.id] = l.defaultPayment;
+        console.log('[Load Scenario] Loan variable:', l.id, '→ default:', l.defaultPayment, 'payments:', l.payments);
+        loanPmts[l.id] = l.payments || [];
+        loanDefaults[l.id] = l.defaultPayment || '';
       });
+      
       setCardVariablePayments(cardPmts);
       setLoanVariablePayments(loanPmts);
       setCardDefaultPayments(cardDefaults);
       setLoanDefaultPayments(loanDefaults);
+      console.log('[Load Scenario] ✓ Variable payments loaded');
     }
+    
+    console.log('[Load Scenario] ✓ Scenario loaded successfully');
+    console.log('[Load Scenario] State will update and trigger recalculation');
   };
 
   if (cards.length === 0 && loans.length === 0) {
@@ -811,10 +897,28 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleLoadScenario(scenario)}
+                        onClick={() => {
+                          handleLoadScenario(scenario);
+                          // Switch to simulator tab after loading
+                          const simulatorTab = document.querySelector('[value="simulator"]');
+                          if (simulatorTab) simulatorTab.click();
+                        }}
                         className="text-xs flex-1"
                       >
                         Load Scenario
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleExportScenario(scenario.id)}
+                        disabled={exportingScenarioId === scenario.id}
+                        className="text-xs"
+                      >
+                        {exportingScenarioId === scenario.id ? (
+                          'Exporting...'
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
                       </Button>
                     </div>
                   </div>

@@ -73,41 +73,64 @@ export default function DashboardSummary({ cards, bankAccounts = [], recurringBi
     const saved = localStorage.getItem('overview_section_order');
     return saved ? JSON.parse(saved) : DEFAULT_SECTION_ORDER;
   });
+
+  // Get current user for data scoping
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me()
+  });
+
   const totalBalance = cards.reduce((sum, card) => sum + (card.balance || 0), 0);
   const totalLimit = cards.reduce((sum, card) => sum + (card.credit_limit || 0), 0);
   const totalUtilization = calculateUtilization(totalBalance, totalLimit);
   const totalMinPayment = cards.reduce((sum, card) => 
     sum + calculateMinimumPayment(card.min_payment, card.balance), 0);
 
-  // Fetch all deposits for bank accounts
+  // Fetch all deposits for bank accounts (USER-SCOPED)
   const { data: allDeposits = [] } = useQuery({
-    queryKey: ['all-deposits'],
-    queryFn: () => base44.entities.Deposit.list(),
-    enabled: bankAccounts.length > 0
+    queryKey: ['all-deposits', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      return base44.entities.Deposit.filter({ created_by: user.email });
+    },
+    enabled: bankAccounts.length > 0 && !!user
   });
 
   const { data: recurringDeposits = [] } = useQuery({
-    queryKey: ['recurring-deposits'],
+    queryKey: ['recurring-deposits', user?.email],
     queryFn: async () => {
-      const deposits = await base44.entities.RecurringDeposit.filter({ is_active: true });
-      return deposits;
-    }
+      if (!user) return [];
+      return base44.entities.RecurringDeposit.filter({ 
+        is_active: true, 
+        created_by: user.email 
+      });
+    },
+    enabled: !!user
   });
 
   const { data: recurringWithdrawals = [] } = useQuery({
-    queryKey: ['recurring-withdrawals'],
+    queryKey: ['recurring-withdrawals', user?.email],
     queryFn: async () => {
-      const withdrawals = await base44.entities.RecurringWithdrawal.filter({ is_active: true });
-      return withdrawals;
-    }
+      if (!user) return [];
+      return base44.entities.RecurringWithdrawal.filter({ 
+        is_active: true, 
+        created_by: user.email 
+      });
+    },
+    enabled: !!user
   });
 
   const { data: bankTransfers = [] } = useQuery({
-    queryKey: ['bank-transfers'],
+    queryKey: ['bank-transfers', user?.email],
     queryFn: async () => {
-      const transfers = await base44.entities.BankTransfer.list();
-      return transfers.filter(t => t.is_active !== false);
-    }
+      if (!user) return [];
+      const transfers = await base44.entities.BankTransfer.filter({ 
+        is_active: true, 
+        created_by: user.email 
+      });
+      return transfers;
+    },
+    enabled: !!user
   });
 
   // Group by currency

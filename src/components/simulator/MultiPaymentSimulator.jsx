@@ -847,6 +847,10 @@ function CardFixedInput({ card, payment, onPaymentChange }) {
   // Calculate minimum payment only
   const minOnlyScenario = calculatePayoffTimeline(card.balance, card.apr, card.min_payment);
 
+  // Calculate current payment scenario
+  const currentPayment = parseFloat(payment) || 0;
+  const currentScenario = currentPayment > 0 ? calculatePayoffTimeline(card.balance, card.apr, currentPayment) : null;
+
   return (
     <div className="bg-white rounded-lg p-3 border border-slate-200">
       <div className="mb-2">
@@ -902,6 +906,27 @@ function CardFixedInput({ card, payment, onPaymentChange }) {
             <span className="font-medium text-emerald-700">3 years</span>
           </div>
         </div>
+
+        {/* Current Payment Scenario */}
+        {currentScenario && currentPayment > 0 && (
+          <div className="mt-3 pt-3 border-t">
+            <p className="text-xs font-semibold text-blue-700 mb-2">Your Payment Scenario:</p>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Payment:</span>
+                <span className="font-bold text-blue-700">{formatCurrency(currentPayment, card.currency)}/mo</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Payoff Time:</span>
+                <span className="font-medium text-blue-700">{formatMonthsToYears(currentScenario.months)}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Total Interest:</span>
+                <span className="font-medium text-red-600">{formatCurrency(currentScenario.totalInterest, card.currency)}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -914,6 +939,10 @@ function LoanFixedInput({ loan, payment, onPaymentChange }) {
   
   // Calculate regular payment only
   const regularOnlyScenario = calculatePayoffTimeline(loan.current_balance, loan.interest_rate, loan.monthly_payment);
+
+  // Calculate current payment scenario
+  const currentPayment = parseFloat(payment) || 0;
+  const currentScenario = currentPayment > 0 ? calculatePayoffTimeline(loan.current_balance, loan.interest_rate, currentPayment) : null;
 
   return (
     <div className="bg-white rounded-lg p-3 border border-slate-200">
@@ -962,6 +991,27 @@ function LoanFixedInput({ loan, payment, onPaymentChange }) {
             <span className="font-medium text-emerald-700">3 years</span>
           </div>
         </div>
+
+        {/* Current Payment Scenario */}
+        {currentScenario && currentPayment > 0 && (
+          <div className="mt-3 pt-3 border-t">
+            <p className="text-xs font-semibold text-orange-700 mb-2">Your Payment Scenario:</p>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Payment:</span>
+                <span className="font-bold text-orange-700">{formatCurrency(currentPayment, loan.currency)}/mo</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Payoff Time:</span>
+                <span className="font-medium text-orange-700">{formatMonthsToYears(currentScenario.months)}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Total Interest:</span>
+                <span className="font-medium text-red-600">{formatCurrency(currentScenario.totalInterest, loan.currency)}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1089,6 +1139,11 @@ function CardTargetInput({ card, targetMonths, onTargetMonthsChange }) {
   const requiredPayment = totalMonths > 0 ? calculateRequiredPayment(card.balance, card.apr, totalMonths) : 0;
   const scenario = totalMonths > 0 ? calculatePayoffTimeline(card.balance, card.apr, requiredPayment) : null;
 
+  // Calculate reference scenarios
+  const minOnlyScenario = calculatePayoffTimeline(card.balance, card.apr, card.min_payment);
+  const threeYearPayment = calculateRequiredPayment(card.balance, card.apr, 36);
+  const threeYearScenario = calculatePayoffTimeline(card.balance, card.apr, threeYearPayment);
+
   const handleYearsChange = (newYears) => {
     setYears(newYears);
     onTargetMonthsChange((newYears * 12 + months).toString());
@@ -1141,17 +1196,41 @@ function CardTargetInput({ card, targetMonths, onTargetMonthsChange }) {
           </div>
         </div>
 
-        {requiredPayment > 0 && (
-          <div className="pt-3 border-t">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-slate-600">Required Payment:</span>
-              <span className="text-lg font-bold text-blue-600">{formatCurrency(requiredPayment, card.currency)}/mo</span>
-            </div>
-            {scenario && (
-              <div className="text-xs text-slate-500">
-                Total Interest: {formatCurrency(scenario.totalInterest, card.currency)}
+        {/* Payoff Rate Estimates */}
+        <div className="mt-3 pt-3 border-t space-y-2">
+          <p className="text-xs font-medium text-slate-600">Payoff Rate Estimates:</p>
+          
+          {/* Minimum Payment Only */}
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-slate-500">Min Only ({formatCurrency(card.min_payment, card.currency)}):</span>
+            <span className="font-medium text-slate-700">{formatMonthsToYears(minOnlyScenario.months)}</span>
+          </div>
+          
+          {/* 3-Year Payoff */}
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-slate-500">3-Year Payoff ({formatCurrency(threeYearPayment, card.currency)}):</span>
+            <span className="font-medium text-emerald-700">3 years</span>
+          </div>
+        </div>
+
+        {/* Current Target Payment Scenario */}
+        {requiredPayment > 0 && scenario && (
+          <div className="mt-3 pt-3 border-t">
+            <p className="text-xs font-semibold text-blue-700 mb-2">Your Target Scenario:</p>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Required Payment:</span>
+                <span className="font-bold text-blue-700">{formatCurrency(requiredPayment, card.currency)}/mo</span>
               </div>
-            )}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Payoff Time:</span>
+                <span className="font-medium text-blue-700">{formatMonthsToYears(scenario.months)}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Total Interest:</span>
+                <span className="font-medium text-red-600">{formatCurrency(scenario.totalInterest, card.currency)}</span>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -1166,6 +1245,11 @@ function LoanTargetInput({ loan, targetMonths, onTargetMonthsChange }) {
   const totalMonths = years * 12 + months;
   const requiredPayment = totalMonths > 0 ? calculateRequiredPayment(loan.current_balance, loan.interest_rate, totalMonths) : 0;
   const scenario = totalMonths > 0 ? calculatePayoffTimeline(loan.current_balance, loan.interest_rate, requiredPayment) : null;
+
+  // Calculate reference scenarios
+  const regularOnlyScenario = calculatePayoffTimeline(loan.current_balance, loan.interest_rate, loan.monthly_payment);
+  const threeYearPayment = calculateRequiredPayment(loan.current_balance, loan.interest_rate, 36);
+  const threeYearScenario = calculatePayoffTimeline(loan.current_balance, loan.interest_rate, threeYearPayment);
 
   const handleYearsChange = (newYears) => {
     setYears(newYears);
@@ -1219,17 +1303,41 @@ function LoanTargetInput({ loan, targetMonths, onTargetMonthsChange }) {
           </div>
         </div>
 
-        {requiredPayment > 0 && (
-          <div className="pt-3 border-t">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-slate-600">Required Payment:</span>
-              <span className="text-lg font-bold text-orange-600">{formatCurrency(requiredPayment, loan.currency)}/mo</span>
-            </div>
-            {scenario && (
-              <div className="text-xs text-slate-500">
-                Total Interest: {formatCurrency(scenario.totalInterest, loan.currency)}
+        {/* Payoff Rate Estimates */}
+        <div className="mt-3 pt-3 border-t space-y-2">
+          <p className="text-xs font-medium text-slate-600">Payoff Rate Estimates:</p>
+          
+          {/* Regular Payment Only */}
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-slate-500">Regular Only ({formatCurrency(loan.monthly_payment, loan.currency)}):</span>
+            <span className="font-medium text-slate-700">{formatMonthsToYears(regularOnlyScenario.months)}</span>
+          </div>
+          
+          {/* 3-Year Payoff */}
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-slate-500">3-Year Payoff ({formatCurrency(threeYearPayment, loan.currency)}):</span>
+            <span className="font-medium text-emerald-700">3 years</span>
+          </div>
+        </div>
+
+        {/* Current Target Payment Scenario */}
+        {requiredPayment > 0 && scenario && (
+          <div className="mt-3 pt-3 border-t">
+            <p className="text-xs font-semibold text-orange-700 mb-2">Your Target Scenario:</p>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Required Payment:</span>
+                <span className="font-bold text-orange-700">{formatCurrency(requiredPayment, loan.currency)}/mo</span>
               </div>
-            )}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Payoff Time:</span>
+                <span className="font-medium text-orange-700">{formatMonthsToYears(scenario.months)}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Total Interest:</span>
+                <span className="font-medium text-red-600">{formatCurrency(scenario.totalInterest, loan.currency)}</span>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -83,18 +83,18 @@ export default function CSVImport({ cardId, onSuccess }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-full overflow-hidden">
       <div className="space-y-2">
-        <Label>Upload CSV File</Label>
-        <div className="flex items-center gap-2">
+        <Label className="dark:text-slate-200">Upload CSV File</Label>
+        <div className="flex items-center gap-2 overflow-hidden">
           <input
             type="file"
             accept=".csv"
             onChange={handleFileChange}
-            className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-950 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-900 truncate"
           />
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           Upload a CSV file with columns: description, amount, date, category
         </p>
       </div>
@@ -118,19 +118,19 @@ export default function CSVImport({ cardId, onSuccess }) {
       </Button>
 
       {result && (
-        <div className={`p-4 rounded-lg ${result.success ? 'bg-green-50' : 'bg-red-50'}`}>
+        <div className={`p-4 rounded-lg border ${result.success ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-900' : 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-900'}`}>
           <div className="flex items-center gap-2">
             {result.success ? (
               <>
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                <span className="text-green-700">
+                <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <span className="text-green-700 dark:text-green-300 text-sm break-words">
                   Successfully imported {result.count} transactions!
                 </span>
               </>
             ) : (
               <>
-                <AlertCircle className="w-5 h-5 text-red-600" />
-                <span className="text-red-700">{result.message}</span>
+                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <span className="text-red-700 dark:text-red-300 text-sm break-words">{result.message}</span>
               </>
             )}
           </div>

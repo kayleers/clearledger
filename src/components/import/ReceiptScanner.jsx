@@ -93,19 +93,19 @@ export default function ReceiptScanner({ cardId, onSuccess }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-full overflow-hidden">
       <div className="space-y-2">
-        <Label>Upload Receipt Photo</Label>
-        <div className="flex items-center gap-2">
+        <Label className="dark:text-slate-200">Upload Receipt Photo</Label>
+        <div className="flex items-center gap-2 overflow-hidden">
           <input
             type="file"
             accept="image/*"
             capture="environment"
             onChange={handleFileChange}
-            className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+            className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 dark:file:bg-purple-950 file:text-purple-700 dark:file:text-purple-300 hover:file:bg-purple-100 dark:hover:file:bg-purple-900 truncate"
           />
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           Take a photo or upload an image of your receipt
         </p>
       </div>
@@ -131,19 +131,19 @@ export default function ReceiptScanner({ cardId, onSuccess }) {
       )}
 
       {error && (
-        <div className="p-4 rounded-lg bg-red-50">
+        <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-red-600" />
-            <span className="text-red-700">{error}</span>
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+            <span className="text-red-700 dark:text-red-300 text-sm break-words">{error}</span>
           </div>
         </div>
       )}
 
       {extractedData && (
-        <div className="space-y-4 p-4 bg-green-50 rounded-lg">
+        <div className="space-y-4 p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-900">
           <div className="flex items-center gap-2 mb-2">
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
-            <span className="font-medium text-green-700">Receipt Scanned</span>
+            <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <span className="font-medium text-green-700 dark:text-green-300">Receipt Scanned</span>
           </div>
           
           <div className="space-y-2">

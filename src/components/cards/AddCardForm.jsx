@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import MobileSelect from '@/components/ui/mobile-select';
 import { Switch } from '@/components/ui/switch';
 import { X, CreditCard, HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -79,8 +79,8 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-          <CreditCard className="w-5 h-5 text-blue-600" />
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <CreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           {card ? 'Edit Credit Card' : 'Add Credit Card'}
         </h2>
       </div>
@@ -279,27 +279,23 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
           {/* Primary Payment Source */}
           <div className="space-y-2">
             <Label htmlFor="bank_account">Primary Payment Source (Optional)</Label>
-            <Select
-              value={formData.bank_account_id}
+            <MobileSelect
+              value={formData.bank_account_id || ''}
               onValueChange={(value) => updateField('bank_account_id', value)}
-            >
-              <SelectTrigger className="h-12">
-                <SelectValue placeholder="No payment source selected" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={null}>No payment source selected</SelectItem>
-                {bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => (
-                  <SelectItem key={account.id} value={account.id}>
-                    {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
-                  </SelectItem>
-                ))}
-                {creditCards.filter(c => c.is_active !== false && c.id !== card?.id).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(cc => (
-                  <SelectItem key={cc.id} value={cc.id}>
-                    {cc.name} {cc.card_last_four ? `(••••${cc.card_last_four})` : ''} - {cc.currency}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={[
+                { value: '', label: 'No payment source selected' },
+                ...bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => ({
+                  value: account.id,
+                  label: `${account.name} ${account.account_number ? `(${account.account_number})` : ''} - ${account.currency}`
+                })),
+                ...creditCards.filter(c => c.is_active !== false && c.id !== card?.id).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(cc => ({
+                  value: cc.id,
+                  label: `${cc.name} ${cc.card_last_four ? `(••••${cc.card_last_four})` : ''} - ${cc.currency}`
+                }))
+              ]}
+              placeholder="No payment source selected"
+              label="Payment Source"
+            />
           </div>
 
           {/* Pay Full Balance Monthly */}
@@ -349,27 +345,23 @@ export default function AddCardForm({ card, onSubmit, onCancel, isLoading, bankA
 
                 <div className="space-y-2">
                   <Label htmlFor="additional_bank_account">Payment Source for Additional Payment</Label>
-                  <Select
-                    value={formData.additional_payment_bank_account_id}
+                  <MobileSelect
+                    value={formData.additional_payment_bank_account_id || ''}
                     onValueChange={(value) => updateField('additional_payment_bank_account_id', value)}
-                  >
-                    <SelectTrigger className="h-12">
-                      <SelectValue placeholder="No payment source selected" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={null}>No payment source selected</SelectItem>
-                      {bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => (
-                        <SelectItem key={account.id} value={account.id}>
-                          {account.name} {account.account_number ? `(${account.account_number})` : ''} - {account.currency}
-                        </SelectItem>
-                      ))}
-                      {creditCards.filter(c => c.is_active !== false && c.id !== card?.id).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(cc => (
-                        <SelectItem key={cc.id} value={cc.id}>
-                          {cc.name} {cc.card_last_four ? `(••••${cc.card_last_four})` : ''} - {cc.currency}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    options={[
+                      { value: '', label: 'No payment source selected' },
+                      ...bankAccounts.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(account => ({
+                        value: account.id,
+                        label: `${account.name} ${account.account_number ? `(${account.account_number})` : ''} - ${account.currency}`
+                      })),
+                      ...creditCards.filter(c => c.is_active !== false && c.id !== card?.id).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(cc => ({
+                        value: cc.id,
+                        label: `${cc.name} ${cc.card_last_four ? `(••••${cc.card_last_four})` : ''} - ${cc.currency}`
+                      }))
+                    ]}
+                    placeholder="No payment source selected"
+                    label="Additional Payment Source"
+                  />
                 </div>
               </div>
             )}

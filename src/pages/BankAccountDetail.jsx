@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import MobileSelect from '@/components/ui/mobile-select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -117,14 +117,36 @@ export default function BankAccountDetail() {
 
   const deleteDepositMutation = useMutation({
     mutationFn: (id) => base44.entities.Deposit.delete(id),
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['deposits', accountId] });
+      const previousDeposits = queryClient.getQueryData(['deposits', accountId]);
+      queryClient.setQueryData(['deposits', accountId], (old) => 
+        old?.filter(d => d.id !== id) || []
+      );
+      return { previousDeposits };
+    },
+    onError: (err, id, context) => {
+      queryClient.setQueryData(['deposits', accountId], context.previousDeposits);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['deposits'] });
     }
   });
 
   const deleteRecurringMutation = useMutation({
     mutationFn: (id) => base44.entities.RecurringDeposit.delete(id),
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['recurring-deposits', accountId] });
+      const previousDeposits = queryClient.getQueryData(['recurring-deposits', accountId]);
+      queryClient.setQueryData(['recurring-deposits', accountId], (old) => 
+        old?.filter(d => d.id !== id) || []
+      );
+      return { previousDeposits };
+    },
+    onError: (err, id, context) => {
+      queryClient.setQueryData(['recurring-deposits', accountId], context.previousDeposits);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-deposits'] });
     }
   });
@@ -147,7 +169,18 @@ export default function BankAccountDetail() {
 
   const deleteRecurringWithdrawalMutation = useMutation({
     mutationFn: (id) => base44.entities.RecurringWithdrawal.delete(id),
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['recurring-withdrawals', accountId] });
+      const previousWithdrawals = queryClient.getQueryData(['recurring-withdrawals', accountId]);
+      queryClient.setQueryData(['recurring-withdrawals', accountId], (old) => 
+        old?.filter(w => w.id !== id) || []
+      );
+      return { previousWithdrawals };
+    },
+    onError: (err, id, context) => {
+      queryClient.setQueryData(['recurring-withdrawals', accountId], context.previousWithdrawals);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-withdrawals'] });
     }
   });
@@ -298,9 +331,9 @@ export default function BankAccountDetail() {
           Back to Dashboard
         </Link>
 
-        <Card className="mb-6">
+        <Card className="mb-6 dark:bg-slate-900 dark:border-slate-800">
           <CardHeader>
-            <CardTitle className="text-2xl">{account.name}</CardTitle>
+            <CardTitle className="text-2xl dark:text-slate-100">{account.name}</CardTitle>
             <div className="mt-2">
               <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
                 {formatCurrency(ongoingBalance + (account.stocks_investments || 0), account.currency)}
@@ -333,9 +366,9 @@ export default function BankAccountDetail() {
 
         {/* Monthly Projections Overview */}
         {Object.keys(monthlyProjections).length > 0 && (
-          <Card className="mb-6">
+          <Card className="mb-6 dark:bg-slate-900 dark:border-slate-800">
             <CardHeader>
-              <CardTitle className="text-lg">This Month's Projection</CardTitle>
+              <CardTitle className="text-lg dark:text-slate-100">This Month's Projection</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {Object.entries(monthlyProjections).map(([currency, data]) => {
@@ -430,7 +463,7 @@ export default function BankAccountDetail() {
 
             <div className="space-y-3">
               {sortedDeposits.length === 0 ? (
-                <Card>
+                <Card className="dark:bg-slate-900 dark:border-slate-800">
                   <CardContent className="p-6 text-center text-slate-500 dark:text-slate-400">
                     No deposits yet
                   </CardContent>
@@ -439,14 +472,14 @@ export default function BankAccountDetail() {
                 sortedDeposits.map(deposit => {
                   const category = DEPOSIT_CATEGORIES.find(c => c.value === deposit.category);
                   return (
-                    <Card key={deposit.id}>
+                    <Card key={deposit.id} className="dark:bg-slate-900 dark:border-slate-800">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3 flex-1">
                             <span className="text-2xl">{category?.icon}</span>
                             <div className="flex-1">
-                              <p className="font-medium">{deposit.description || 'Deposit'}</p>
-                              <p className="text-sm text-slate-500">
+                              <p className="font-medium dark:text-slate-100">{deposit.description || 'Deposit'}</p>
+                              <p className="text-sm text-slate-500 dark:text-slate-400">
                                 {new Date(deposit.date).toLocaleDateString()}
                               </p>
                               <Badge variant="outline" className="mt-1 text-xs">
@@ -485,7 +518,7 @@ export default function BankAccountDetail() {
 
             <div className="space-y-3">
               {sortedWithdrawals.length === 0 ? (
-                <Card>
+                <Card className="dark:bg-slate-900 dark:border-slate-800">
                   <CardContent className="p-6 text-center text-slate-500 dark:text-slate-400">
                     No withdrawals yet
                   </CardContent>
@@ -494,14 +527,14 @@ export default function BankAccountDetail() {
                 sortedWithdrawals.map(withdrawal => {
                   const category = DEPOSIT_CATEGORIES.find(c => c.value === withdrawal.category);
                   return (
-                    <Card key={withdrawal.id}>
+                    <Card key={withdrawal.id} className="dark:bg-slate-900 dark:border-slate-800">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3 flex-1">
                             <span className="text-2xl">💸</span>
                             <div className="flex-1">
-                              <p className="font-medium">{withdrawal.description || 'Withdrawal'}</p>
-                              <p className="text-sm text-slate-500">
+                              <p className="font-medium dark:text-slate-100">{withdrawal.description || 'Withdrawal'}</p>
+                              <p className="text-sm text-slate-500 dark:text-slate-400">
                                 {new Date(withdrawal.date).toLocaleDateString()}
                               </p>
                               <Badge variant="outline" className="mt-1 text-xs">
@@ -540,7 +573,7 @@ export default function BankAccountDetail() {
 
             <div className="space-y-3">
               {recurringDeposits.length === 0 ? (
-                <Card>
+                <Card className="dark:bg-slate-900 dark:border-slate-800">
                   <CardContent className="p-6 text-center text-slate-500 dark:text-slate-400">
                     No recurring deposits yet
                   </CardContent>
@@ -550,13 +583,13 @@ export default function BankAccountDetail() {
                   const category = DEPOSIT_CATEGORIES.find(c => c.value === deposit.category);
                   const frequency = FREQUENCY_OPTIONS.find(f => f.value === deposit.frequency);
                   return (
-                    <Card key={deposit.id}>
+                    <Card key={deposit.id} className="dark:bg-slate-900 dark:border-slate-800">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3 flex-1">
                             <span className="text-2xl">{category?.icon}</span>
                             <div className="flex-1">
-                              <p className="font-medium">{deposit.name}</p>
+                              <p className="font-medium dark:text-slate-100">{deposit.name}</p>
                               <div className="flex gap-2 mt-1">
                                 <Badge variant="outline" className="text-xs">
                                   {frequency?.label}
@@ -603,7 +636,7 @@ export default function BankAccountDetail() {
 
             <div className="space-y-3">
               {recurringWithdrawals.length === 0 && recurringBills.length === 0 && creditCards.length === 0 && loans.length === 0 ? (
-                <Card>
+                <Card className="dark:bg-slate-900 dark:border-slate-800">
                   <CardContent className="p-6 text-center text-slate-500 dark:text-slate-400">
                     No recurring withdrawals yet
                   </CardContent>
@@ -613,13 +646,13 @@ export default function BankAccountDetail() {
                   {recurringWithdrawals.map(withdrawal => {
                     const frequency = FREQUENCY_OPTIONS.find(f => f.value === withdrawal.frequency);
                     return (
-                      <Card key={`withdrawal-${withdrawal.id}`}>
+                      <Card key={`withdrawal-${withdrawal.id}`} className="dark:bg-slate-900 dark:border-slate-800">
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3 flex-1">
                               <span className="text-2xl">💸</span>
                               <div className="flex-1">
-                                <p className="font-medium">{withdrawal.name}</p>
+                                <p className="font-medium dark:text-slate-100">{withdrawal.name}</p>
                                 <div className="flex gap-2 mt-1">
                                   <Badge variant="outline" className="text-xs">
                                     {frequency?.label}
@@ -661,13 +694,13 @@ export default function BankAccountDetail() {
                                           bill.frequency === 'monthly' ? 'Monthly' :
                                           bill.frequency === 'quarterly' ? 'Quarterly' : 'Yearly';
                     return (
-                      <Card key={`bill-${bill.id}`}>
+                      <Card key={`bill-${bill.id}`} className="dark:bg-slate-900 dark:border-slate-800">
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3 flex-1">
                               <span className="text-2xl">📄</span>
                               <div className="flex-1">
-                                <p className="font-medium">{bill.name}</p>
+                                <p className="font-medium dark:text-slate-100">{bill.name}</p>
                                 <div className="flex gap-2 mt-1">
                                   <Badge variant="outline" className="text-xs">
                                     {frequencyLabel}
@@ -699,13 +732,13 @@ export default function BankAccountDetail() {
                                   card.autopay_amount_type === 'full_balance' ? card.balance :
                                   card.autopay_custom_amount || 0;
                     return (
-                      <Card key={`card-${card.id}`}>
+                      <Card key={`card-${card.id}`} className="dark:bg-slate-900 dark:border-slate-800">
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3 flex-1">
                               <span className="text-2xl">💳</span>
                               <div className="flex-1">
-                                <p className="font-medium">{card.name} (Autopay)</p>
+                                <p className="font-medium dark:text-slate-100">{card.name} (Autopay)</p>
                                 <div className="flex gap-2 mt-1">
                                   <Badge variant="outline" className="text-xs">
                                     Monthly
@@ -737,13 +770,13 @@ export default function BankAccountDetail() {
                   })}
 
                   {loans.map(loan => (
-                    <Card key={`loan-${loan.id}`}>
+                    <Card key={`loan-${loan.id}`} className="dark:bg-slate-900 dark:border-slate-800">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3 flex-1">
                             <span className="text-2xl">🏠</span>
                             <div className="flex-1">
-                              <p className="font-medium">{loan.name}</p>
+                              <p className="font-medium dark:text-slate-100">{loan.name}</p>
                               <div className="flex gap-2 mt-1">
                                 <Badge variant="outline" className="text-xs">
                                   Monthly
@@ -1135,19 +1168,20 @@ function RecurringWithdrawalForm({ accountId, onSubmit, onCancel, isLoading }) {
       )}
       <div>
         <Label>Category</Label>
-        <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="rent">Rent</SelectItem>
-            <SelectItem value="utilities">Utilities</SelectItem>
-            <SelectItem value="subscription">Subscription</SelectItem>
-            <SelectItem value="loan">Loan</SelectItem>
-            <SelectItem value="credit_card">Credit Card</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
+        <MobileSelect
+          value={formData.category}
+          onValueChange={(value) => setFormData({ ...formData, category: value })}
+          options={[
+            { value: 'rent', label: 'Rent' },
+            { value: 'utilities', label: 'Utilities' },
+            { value: 'subscription', label: 'Subscription' },
+            { value: 'loan', label: 'Loan' },
+            { value: 'credit_card', label: 'Credit Card' },
+            { value: 'other', label: 'Other' }
+          ]}
+          placeholder="Select category"
+          label="Category"
+        />
       </div>
       <div className="flex gap-2">
         <Button type="button" variant="outline" onClick={onCancel} className="flex-1">

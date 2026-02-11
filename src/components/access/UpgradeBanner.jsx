@@ -44,8 +44,11 @@ export default function UpgradeBanner() {
             <h3 className="text-lg font-bold text-white">Upgrade to Pro</h3>
             <Sparkles className="w-4 h-4 text-yellow-300" />
           </div>
-          <p className="text-white/90 text-sm mb-4">
-            Remove all limits and unlock unlimited access to everything
+          <p className="text-white/90 text-xs mb-3">
+            Free Tier: Max 2 cards, accounts, bills, deposits, transfers, loans & conversions
+          </p>
+          <p className="text-white font-medium text-sm mb-4">
+            Upgrade for unlimited access to everything
           </p>
           
           <div className="grid grid-cols-1 gap-2">

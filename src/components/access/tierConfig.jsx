@@ -18,16 +18,16 @@ export const GOOGLE_PLAY_PRODUCT_TO_PLAN = {
   [GOOGLE_PLAY_PRODUCTS.LIFETIME]: PLAN_TYPES.PRO
 };
 
-// Free tier limits
+// Free tier limits - MAX 2 EACH
 export const FREE_LIMITS = {
-  bankAccounts: 1,
-  loans: 1,
-  recurringBills: 2,
   creditCards: 2,
-  currencyConversions: 1,
-  scenarios: 2,
-  bankTransfers: 1,
-  recurringDeposits: 1
+  bankAccounts: 2,
+  recurringBills: 2,
+  recurringDeposits: 2,
+  bankTransfers: 2,
+  loans: 2,
+  currencyConversions: 2,
+  scenarios: 2
 };
 
 // Plan details for upgrade UI
@@ -37,11 +37,13 @@ export const PLAN_DETAILS = {
     price: '$0.00',
     limits: FREE_LIMITS,
     features: [
-      'Up to 2 credit cards',
-      'Up to 1 bank account',
-      'Up to 1 loan',
-      'Up to 2 recurring bills',
-      'Full feature access'
+      '2 credit cards',
+      '2 bank accounts',
+      '2 recurring bills',
+      '2 deposits',
+      '2 bank transfers',
+      '2 loans',
+      '2 currency conversions'
     ]
   },
   [PLAN_TYPES.PRO]: {
@@ -51,8 +53,10 @@ export const PLAN_DETAILS = {
       'Unlimited bank accounts',
       'Unlimited loans',
       'Unlimited recurring bills',
-      'Full feature access',
-      'No restrictions'
+      'Unlimited deposits',
+      'Unlimited bank transfers',
+      'Unlimited currency conversions',
+      'Full feature access'
     ]
   }
 };

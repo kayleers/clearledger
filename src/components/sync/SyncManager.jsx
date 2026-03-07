@@ -326,10 +326,14 @@ export default function SyncManager({ cards = [], bankAccounts = [], bills = [],
             size="sm"
             variant="outline"
             onClick={onExportData}
+            disabled={isExporting}
             className="bg-white/10 border-white/20 text-white hover:bg-white/20"
           >
-            <Download className="w-4 h-4 sm:mr-1" />
-            <span className="hidden sm:inline">Export</span>
+            {isExporting
+              ? <RefreshCw className="w-4 h-4 animate-spin" />
+              : <Download className="w-4 h-4 sm:mr-1" />
+            }
+            <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export'}</span>
           </Button>
         )}
       </div>

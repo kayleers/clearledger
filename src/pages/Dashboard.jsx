@@ -651,6 +651,7 @@ export default function Dashboard() {
               bills={recurringBills}
               loans={mortgageLoans}
               onExportData={handleExportData}
+              isExporting={isExporting}
             />
             {(cards.length > 0 || bankAccounts.length > 0 || recurringBills.length > 0 || mortgageLoans.length > 0) && (
               <Button

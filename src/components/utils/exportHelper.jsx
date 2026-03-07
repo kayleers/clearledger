@@ -2,9 +2,7 @@ import { isAndroid } from '@/components/platform/platformDetection';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { FileOpener } from '@capacitor-community/file-opener';
 
-/**
- * Convert Blob to base64 string (strips the data URL prefix)
- */
+/** Convert a Blob to a base64 string (data URL prefix stripped) */
 const blobToBase64 = (blob) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -13,37 +11,78 @@ const blobToBase64 = (blob) =>
     reader.readAsDataURL(blob);
   });
 
-/**
- * Normalize input to a Blob
- */
+/** Normalise any PDF data to a Blob */
 const toBlob = (data) => {
   if (data instanceof Blob) return data;
   return new Blob([data], { type: 'application/pdf' });
 };
 
 /**
- * GLOBAL PDF EXPORT SYSTEM
- * Works on both web browsers and Android (Capacitor / Google Play build).
+ * Export a PDF on Android via Web Share API (share sheet).
+ * Works inside Capacitor WebView without any FileProvider configuration.
+ * Returns true on success.
+ */
+const shareOnAndroid = async (blobData, filename) => {
+  const file = new File([blobData], filename, { type: 'application/pdf' });
+
+  // navigator.share with files is supported in Capacitor WebView (Chrome engine)
+  if (navigator.canShare?.({ files: [file] })) {
+    await navigator.share({
+      files: [file],
+      title: filename,
+    });
+    return true;
+  }
+  return false;
+};
+
+/**
+ * Export a PDF on Android by writing to the Cache directory and opening
+ * with the default PDF viewer via FileOpener.
+ * Cache dir is writable without permissions; FileOpener handles the URI.
+ */
+const saveAndOpenOnAndroid = async (blobData, filename) => {
+  const base64 = await blobToBase64(blobData);
+
+  const writeResult = await Filesystem.writeFile({
+    path: filename,
+    data: base64,
+    directory: Directory.Cache,
+    recursive: true,
+  });
+
+  console.log('[PDF Export] saved to cache:', writeResult.uri);
+
+  await FileOpener.open({
+    filePath: writeResult.uri,
+    contentType: 'application/pdf',
+    openWithDefault: true,
+  });
+
+  return writeResult.uri;
+};
+
+/**
+ * GLOBAL PDF EXPORT
  *
- * Android strategy:
- *   1. Write to app-private Documents directory (no special permission needed on Android 10+)
- *   2. Open with the default PDF viewer via FileOpener
- *   3. If FileOpener fails, share via Web Share API
+ * Android (Capacitor / Google Play):
+ *   1. Web Share API → native share sheet (save to Files, Drive, etc.)
+ *   2. Fallback: write to Cache dir + open with default PDF viewer
  *
- * Web strategy:
- *   1. Standard blob-URL <a download> trigger
+ * Web browser:
+ *   Blob URL + hidden anchor download trigger
  *
- * @param {Blob|ArrayBuffer|Uint8Array} data  PDF bytes
- * @param {string}                      filename  Desired file name (including .pdf)
- * @returns {Promise<{success: boolean, path?: string, uri?: string}>}
+ * No WRITE_EXTERNAL_STORAGE permission required.
+ * Works inside Capacitor WebView without FileProvider manifest config.
+ *
+ * @param {Blob|ArrayBuffer|Uint8Array} data
+ * @param {string} filename  e.g. "export.pdf"
  */
 export const exportPDF = async (data, filename) => {
-  console.log('[PDF Export] ──────────────────────────────────────');
-  console.log('[PDF Export] filename :', filename);
-  console.log('[PDF Export] platform :', isAndroid() ? 'Android' : 'Web');
-
   const blobData = toBlob(data);
-  console.log('[PDF Export] size     :', blobData.size, 'bytes');
+
+  console.log('[PDF Export] platform:', isAndroid() ? 'Android' : 'Web');
+  console.log('[PDF Export] filename:', filename, '— size:', blobData.size, 'bytes');
 
   if (blobData.size === 0) {
     throw new Error('PDF generation produced an empty file.');
@@ -51,124 +90,58 @@ export const exportPDF = async (data, filename) => {
 
   // ── ANDROID ──────────────────────────────────────────────────────────────
   if (isAndroid() && window.Capacitor) {
-    // Use app-private Documents dir – always writable, no manifest permission
-    // required on Android 10+ (scoped storage). FileOpener can still open it.
-    const dir  = Directory.Documents;
-    const path = `ClearLedger/${filename}`;
-
+    // Strategy 1: Web Share API (most reliable inside Capacitor WebView)
     try {
-      const base64 = await blobToBase64(blobData);
-
-      const writeResult = await Filesystem.writeFile({
-        path,
-        data: base64,
-        directory: dir,
-        recursive: true,
-      });
-
-      console.log('[PDF Export] ✓ saved to:', writeResult.uri);
-
-      // Attempt to open automatically
-      try {
-        await FileOpener.open({
-          filePath: writeResult.uri,
-          contentType: 'application/pdf',
-          openWithDefault: true,
-        });
-        console.log('[PDF Export] ✓ opened with default viewer');
-      } catch (openErr) {
-        console.warn('[PDF Export] ⚠ auto-open failed, trying share sheet:', openErr);
-
-        // Fallback: share sheet (Android share intent)
-        try {
-          const file = new File([blobData], filename, { type: 'application/pdf' });
-          if (navigator.canShare?.({ files: [file] })) {
-            await navigator.share({ files: [file], title: 'ClearLedger Export' });
-            console.log('[PDF Export] ✓ shared via Web Share API');
-          }
-        } catch (shareErr) {
-          console.warn('[PDF Export] ⚠ share also failed:', shareErr);
-          // File is still saved; alert will point user there
-        }
+      const shared = await shareOnAndroid(blobData, filename);
+      if (shared) {
+        console.log('[PDF Export] ✓ shared via Web Share API');
+        return { success: true };
       }
+    } catch (shareErr) {
+      console.warn('[PDF Export] Web Share failed, trying filesystem:', shareErr);
+    }
 
-      console.log('[PDF Export] ✓ Android export complete');
-      return { success: true, path, uri: writeResult.uri };
-
-    } catch (err) {
-      console.error('[PDF Export] ❌ Filesystem write failed:', err);
-
-      // Last resort on Android: Web Share API directly from memory
-      try {
-        const file = new File([blobData], filename, { type: 'application/pdf' });
-        if (navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'ClearLedger Export' });
-          return { success: true };
-        }
-      } catch (_) { /* ignore */ }
-
-      throw err;
+    // Strategy 2: Write to Cache dir + FileOpener
+    try {
+      const uri = await saveAndOpenOnAndroid(blobData, filename);
+      console.log('[PDF Export] ✓ opened via FileOpener');
+      return { success: true, uri };
+    } catch (fsErr) {
+      console.error('[PDF Export] Filesystem/FileOpener failed:', fsErr);
+      throw new Error(
+        `Could not export PDF on this device.\n\nDetails: ${fsErr.message}`
+      );
     }
   }
 
   // ── WEB BROWSER ──────────────────────────────────────────────────────────
   const url = URL.createObjectURL(blobData);
-  const a   = Object.assign(document.createElement('a'), {
-    href    : url,
+  const a = Object.assign(document.createElement('a'), {
+    href: url,
     download: filename,
-    style   : 'display:none',
+    style: 'display:none',
   });
   document.body.appendChild(a);
   a.click();
-  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 300);
 
   console.log('[PDF Export] ✓ web download triggered');
-  return { success: true, path: `Downloads/${filename}` };
+  return { success: true };
 };
 
-/**
- * Show a platform-appropriate success message.
- * On Android, tells the user where to find the file.
- */
-export const showExportSuccess = (filename, path = null, uri = null) => {
+/** Show a user-friendly success toast/alert (call after exportPDF resolves) */
+export const showExportSuccess = () => {
   if (isAndroid()) {
-    alert(
-      `✓ PDF exported successfully!\n\n` +
-      `File: ${filename}\n\n` +
-      `The PDF has been opened automatically.\n` +
-      `You can also find it in:\n` +
-      `  Files app › ClearLedger folder`
-    );
-  }
-  // On web, no alert needed – the browser download is self-explanatory.
-};
-
-/**
- * Share an already-saved PDF on Android.
- */
-export const sharePDF = async (uri, filename) => {
-  if (!isAndroid() || !window.Capacitor) return;
-
-  try {
-    await FileOpener.open({
-      filePath       : uri,
-      contentType    : 'application/pdf',
-      openWithDefault: false,        // shows chooser instead of default app
-    });
-  } catch (err) {
-    console.error('[PDF Export] share failed:', err);
-    alert('Could not open share sheet. The file is saved in your ClearLedger folder.');
+    // Share sheet already gives visual feedback; no extra alert needed
+    return;
   }
 };
 
-/**
- * Show a platform-appropriate error message.
- */
+/** Show a user-friendly error message */
 export const showExportError = (error) => {
-  console.error('[PDF Export] export failed:', error);
-  alert(
-    isAndroid()
-      ? `Export failed: ${error.message}\n\nPlease try again.`
-      : `Export failed: ${error.message}`
-  );
+  console.error('[PDF Export] error:', error);
+  alert(`Export failed: ${error?.message || 'Unknown error'}. Please try again.`);
 };

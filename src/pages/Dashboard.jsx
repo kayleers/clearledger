@@ -549,18 +549,20 @@ export default function Dashboard() {
     }
   };
 
+  const [isExporting, setIsExporting] = useState(false);
+
   const handleExportData = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
     try {
-      const response = await base44.functions.invoke('exportAllData', {});
+      const pdfBlob = generateFinancialSummaryPDF({ cards, bankAccounts, recurringBills, mortgageLoans });
       const filename = `ClearLedger_Export_${new Date().toISOString().split('T')[0]}.pdf`;
-      
-      const result = await exportPDF(response.data, filename);
-      if (result.success) {
-        showExportSuccess(filename, result.path, result.uri);
-      }
+      await exportPDF(pdfBlob, filename);
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Failed to export data. Please try again.');
+      alert(`Export failed: ${error?.message || 'Please try again.'}`);
+    } finally {
+      setIsExporting(false);
     }
   };
 

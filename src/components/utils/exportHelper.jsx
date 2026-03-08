@@ -21,6 +21,9 @@ export const exportPDF = async (data, filename) => {
   document.body.appendChild(a);
   a.click();
 
-  document.body.removeChild(a);
-  window.URL.revokeObjectURL(url);
+  // Delay revoke so Android WebView has time to start the download
+  setTimeout(() => {
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }, 1000);
 };

@@ -551,8 +551,32 @@ export default function Dashboard() {
 
   const [isExporting, setIsExporting] = useState(false);
 
+  // Auto-export when ?export=pdf is in the URL (triggered by Android browser redirect)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('export') === 'pdf' && !isLoading && (cards.length > 0 || bankAccounts.length > 0 || recurringBills.length > 0 || mortgageLoans.length > 0)) {
+      // Clean the URL so refreshing doesn't re-trigger
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+      // Generate and download
+      const pdfBlob = generateFinancialSummaryPDF({ cards, bankAccounts, recurringBills, mortgageLoans });
+      const filename = `ClearLedger_Export_${new Date().toISOString().split('T')[0]}.pdf`;
+      exportPDF(pdfBlob, filename);
+    }
+  }, [isLoading, cards, bankAccounts, recurringBills, mortgageLoans]);
+
   const handleExportData = async () => {
     if (isExporting) return;
+
+    // On Android (Capacitor), open the web app in the external browser with ?export=pdf
+    // The external Chrome browser handles the download natively into the Downloads folder
+    if (window.Capacitor) {
+      const exportUrl = `${window.location.origin}${window.location.pathname}?export=pdf`;
+      window.open(exportUrl, '_system');
+      return;
+    }
+
+    // Web: generate and download directly
     setIsExporting(true);
     try {
       const pdfBlob = generateFinancialSummaryPDF({ cards, bankAccounts, recurringBills, mortgageLoans });

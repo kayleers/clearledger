@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Download, RefreshCw, Edit3 } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import { exportPDF } from '@/components/utils/exportHelper';
-import { generateFinancialSummaryPDF } from '@/components/utils/clientPdfExport';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

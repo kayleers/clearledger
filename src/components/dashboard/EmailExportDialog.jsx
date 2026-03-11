@@ -1,25 +1,23 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Mail, Loader2, CheckCircle2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function EmailExportDialog({ open, onOpenChange }) {
-  const [email, setEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [sent, setSent] = useState(false);
 
   const handleSend = async () => {
-    if (!email || isSending) return;
+    if (isSending) return;
     setIsSending(true);
     try {
-      await base44.functions.invoke('exportAllData', { email });
+      // No email is passed — the backend always sends to the currently
+      // authenticated user's email derived from the session token.
+      await base44.functions.invoke('exportAllData', {});
       setSent(true);
       setTimeout(() => {
         setSent(false);
-        setEmail('');
         onOpenChange(false);
       }, 2000);
     } catch (error) {
@@ -30,7 +28,7 @@ export default function EmailExportDialog({ open, onOpenChange }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!isSending) { setEmail(''); setSent(false); onOpenChange(v); } }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!isSending) { setSent(false); onOpenChange(v); } }}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -48,19 +46,8 @@ export default function EmailExportDialog({ open, onOpenChange }) {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-slate-500">
-              We'll generate your full financial report and send a download link to your email.
+              We'll generate your full financial report and send a download link to your account's registered email address.
             </p>
-            <div className="space-y-2">
-              <Label htmlFor="export-email">Email address</Label>
-              <Input
-                id="export-email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              />
-            </div>
             <div className="flex gap-2 pt-1">
               <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)} disabled={isSending}>
                 Cancel
@@ -68,7 +55,7 @@ export default function EmailExportDialog({ open, onOpenChange }) {
               <Button
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
                 onClick={handleSend}
-                disabled={!email || isSending}
+                disabled={isSending}
               >
                 {isSending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</> : 'Send Report'}
               </Button>

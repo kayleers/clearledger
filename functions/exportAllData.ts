@@ -10,9 +10,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if we should email the PDF instead of returning it
-    const body = await req.json().catch(() => ({}));
-    const emailTo = body?.email || null;
+    // Always send to the authenticated user's email from the session token.
+    // Never accept an email address from the request body — that would allow
+    // sending another user's financial data to an arbitrary address.
+    const emailTo = user.email;
 
     // Fetch all data
     const [cards, bankAccounts, bills, loans, deposits, transfers, conversions] = await Promise.all([
@@ -290,37 +291,25 @@ Deno.serve(async (req) => {
     const pdfBytes = doc.output('arraybuffer');
     const filename = `ClearLedger_Export_${new Date().toISOString().split('T')[0]}.pdf`;
 
-    // --- EMAIL MODE: upload PDF and send a download link ---
-    if (emailTo) {
-      const pdfFile = new File([pdfBytes], filename, { type: 'application/pdf' });
-      const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({ file: pdfFile });
+    const pdfFile = new File([pdfBytes], filename, { type: 'application/pdf' });
+    const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({ file: pdfFile });
 
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: emailTo,
-        subject: 'Your ClearLedger Financial Report',
-        body: `
-          <p>Hi,</p>
-          <p>Your ClearLedger financial report is ready. Click the button below to download it:</p>
-          <p style="margin: 24px 0;">
-            <a href="${file_url}" style="background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
-              Download PDF Report
-            </a>
-          </p>
-          <p style="color:#888;font-size:12px;">Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} for ${user.email}</p>
-        `
-      });
-
-      return Response.json({ success: true, message: `Report sent to ${emailTo}` });
-    }
-
-    // --- DOWNLOAD MODE: return PDF binary ---
-    return new Response(pdfBytes, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=${filename}`
-      }
+    await base44.asServiceRole.integrations.Core.SendEmail({
+      to: emailTo,
+      subject: 'Your ClearLedger Financial Report',
+      body: `
+        <p>Hi,</p>
+        <p>Your ClearLedger financial report is ready. Click the button below to download it:</p>
+        <p style="margin: 24px 0;">
+          <a href="${file_url}" style="background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
+            Download PDF Report
+          </a>
+        </p>
+        <p style="color:#888;font-size:12px;">Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} for ${user.email}</p>
+      `
     });
+
+    return Response.json({ success: true, message: `Report sent to ${emailTo}` });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

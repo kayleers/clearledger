@@ -791,9 +791,8 @@ export default function Dashboard() {
                                        variant="ghost"
                                        onClick={async () => {
                                          try {
-                                           const response = await base44.functions.invoke('exportCreditCards', {});
-                                           const filename = `Credit_Cards_${new Date().toISOString().split('T')[0]}.pdf`;
-                                           await exportPDF(response.data, filename);
+                                           await base44.functions.invoke('exportCreditCards', {});
+                                           alert('Report emailed to your registered address.');
                                          } catch (error) {
                                            console.error('Export failed:', error);
                                            alert('Export failed. Please try again.');

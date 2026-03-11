@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { RefreshCw, Calendar, DollarSign, CreditCard, Building2, FileText, Home, CheckCircle2, Download, User } from 'lucide-react';
+import { RefreshCw, Calendar, DollarSign, CreditCard, Building2, FileText, Home, CheckCircle2, Mail } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';

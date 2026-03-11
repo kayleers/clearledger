@@ -331,9 +331,9 @@ export default function SyncManager({ cards = [], bankAccounts = [], bills = [],
           >
             {isExporting
               ? <RefreshCw className="w-4 h-4 animate-spin" />
-              : <Download className="w-4 h-4 sm:mr-1" />
+              : <Mail className="w-4 h-4 sm:mr-1" />
             }
-            <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export'}</span>
+            <span className="hidden sm:inline">{isExporting ? 'Sending...' : 'E-mail PDF Link'}</span>
           </Button>
         )}
       </div>

@@ -1167,6 +1167,9 @@ export default function Dashboard() {
           context={upgradeContext}
         />
 
+        {/* Email Export Dialog (mobile) */}
+        <EmailExportDialog open={showEmailExport} onOpenChange={setShowEmailExport} />
+
         {/* Privacy Policy Dialog */}
         <Dialog open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy}>
           <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:rounded-full">

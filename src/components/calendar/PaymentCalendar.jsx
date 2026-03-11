@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List, Lock, Download } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, List, Lock, Mail } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import MobileSelect from '@/components/ui/mobile-select';
 
@@ -694,8 +694,8 @@ export default function PaymentCalendar() {
             }}
             className="text-xs text-slate-500 hover:text-slate-700"
           >
-            <Download className="w-3 h-3 mr-1" />
-            Export PDF
+            <Mail className="w-3 h-3 mr-1" />
+            E-mail PDF Link
           </Button>
         </div>
         <div className="flex items-center justify-between mt-4">

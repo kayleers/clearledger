@@ -174,18 +174,11 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps, on
                 variant="ghost"
                 onClick={async () => {
                   try {
-                    const response = await base44.functions.invoke('exportBankAccounts', {});
-                    const blob = new Blob([response.data], { type: 'application/pdf' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Bank_Accounts_${new Date().toISOString().split('T')[0]}.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
+                    await base44.functions.invoke('exportBankAccounts', {});
+                    alert(`Report emailed to your registered address.`);
                   } catch (error) {
                     console.error('Export failed:', error);
+                    alert('Export failed. Please try again.');
                   }
                 }}
                 className="text-xs text-slate-500 hover:text-slate-700"
@@ -246,18 +239,11 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps, on
                     className="h-11 w-11 p-0 flex items-center justify-center"
                     onClick={async () => {
                       try {
-                        const response = await base44.functions.invoke('exportBankAccount', { accountId: account.id });
-                        const blob = new Blob([response.data], { type: 'application/pdf' });
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `Account_${account.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                        a.remove();
+                        await base44.functions.invoke('exportBankAccount', { accountId: account.id });
+                        alert(`Report emailed to your registered address.`);
                       } catch (error) {
                         console.error('Export failed:', error);
+                        alert('Export failed. Please try again.');
                       }
                     }}
                     title="Export to PDF"

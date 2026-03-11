@@ -243,18 +243,11 @@ export default function RecurringDepositList({ deposits = [], bankAccounts = [],
                 variant="ghost"
                 onClick={async () => {
                   try {
-                    const response = await base44.functions.invoke('exportRecurringDeposits', {});
-                    const blob = new Blob([response.data], { type: 'application/pdf' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Recurring_Deposits_${new Date().toISOString().split('T')[0]}.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
+                    await base44.functions.invoke('exportRecurringDeposits', {});
+                    alert(`Report emailed to your registered address.`);
                   } catch (error) {
                     console.error('Export failed:', error);
+                    alert('Export failed. Please try again.');
                   }
                 }}
                 className="text-xs text-slate-500 hover:text-slate-700"

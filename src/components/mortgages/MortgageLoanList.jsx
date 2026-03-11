@@ -186,18 +186,11 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
                 variant="ghost"
                 onClick={async () => {
                   try {
-                    const response = await base44.functions.invoke('exportAllLoans', {});
-                    const blob = new Blob([response.data], { type: 'application/pdf' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Loans_${new Date().toISOString().split('T')[0]}.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
+                    await base44.functions.invoke('exportAllLoans', {});
+                    alert(`Report emailed to your registered address.`);
                   } catch (error) {
                     console.error('Export failed:', error);
+                    alert('Export failed. Please try again.');
                   }
                 }}
                 className="text-xs text-slate-500 hover:text-slate-700"
@@ -248,18 +241,11 @@ export default function MortgageLoanList({ loans = [], bankAccounts = [], credit
                         onClick={async (e) => {
                           e.preventDefault();
                           try {
-                            const response = await base44.functions.invoke('exportLoan', { loanId: loan.id });
-                            const blob = new Blob([response.data], { type: 'application/pdf' });
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `Loan_${loan.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-                            document.body.appendChild(a);
-                            a.click();
-                            window.URL.revokeObjectURL(url);
-                            a.remove();
+                            await base44.functions.invoke('exportLoan', { loanId: loan.id });
+                            alert(`Report emailed to your registered address.`);
                           } catch (error) {
                             console.error('Export failed:', error);
+                            alert('Export failed. Please try again.');
                           }
                         }}
                         title="Export to PDF"

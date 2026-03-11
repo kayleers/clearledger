@@ -74,18 +74,11 @@ export default function CreditCardItem({ card, isDragging, onEdit, onDelete }) {
                 onClick={async (e) => {
                   e.preventDefault();
                   try {
-                    const response = await base44.functions.invoke('exportCard', { cardId: card.id });
-                    const blob = new Blob([response.data], { type: 'application/pdf' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Card_${card.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
+                    await base44.functions.invoke('exportCard', { cardId: card.id });
+                    alert(`Report emailed to your registered address.`);
                   } catch (error) {
                     console.error('Export failed:', error);
+                    alert('Export failed. Please try again.');
                   }
                 }}
                 className="p-1.5 hover:bg-white/20 rounded transition-colors"

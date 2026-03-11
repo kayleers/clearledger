@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowRightLeft, Plus, Edit2, Trash2, GripVertical, ChevronDown, ChevronUp, TrendingUp, Download } from 'lucide-react';
+import { ArrowRightLeft, Plus, Edit2, Trash2, GripVertical, ChevronDown, ChevronUp, TrendingUp, Mail } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { formatCurrency } from '@/components/utils/calculations';

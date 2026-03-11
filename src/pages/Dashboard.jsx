@@ -794,16 +794,15 @@ export default function Dashboard() {
                                            const response = await base44.functions.invoke('exportCreditCards', {});
                                            const filename = `Credit_Cards_${new Date().toISOString().split('T')[0]}.pdf`;
                                            await exportPDF(response.data, filename);
-                                           showExportSuccess(filename);
                                          } catch (error) {
                                            console.error('Export failed:', error);
                                            alert('Export failed. Please try again.');
                                          }
                                        }}
                                        className="text-xs text-slate-500 hover:text-slate-700"
-                                      >
-                                       <Download className="w-3 h-3 mr-1" />
-                                       Export PDF
+                                       >
+                                        <Mail className="w-3 h-3 mr-1" />
+                                        E-mail PDF Link
                                       </Button>
                                     </div>
                                   )}

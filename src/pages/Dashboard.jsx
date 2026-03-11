@@ -33,7 +33,7 @@ import UpgradeBanner from '@/components/access/UpgradeBanner';
 import { useAccessControl } from '@/components/access/useAccessControl';
 import UpgradeDialog from '@/components/access/UpgradeDialog';
 import PrivacyPolicyContent from '@/components/privacy/PrivacyPolicyContent';
-import EmailExportDialog from '@/components/dashboard/EmailExportDialog';
+
 
 export default function Dashboard() {
   const [showAddCard, setShowAddCard] = useState(false);

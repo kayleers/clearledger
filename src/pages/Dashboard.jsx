@@ -550,20 +550,13 @@ export default function Dashboard() {
   };
 
   const [isExporting, setIsExporting] = useState(false);
-  const [showEmailExport, setShowEmailExport] = useState(false);
 
   const handleExportData = async () => {
     if (isExporting) return;
-    // On mobile (Capacitor), show the email dialog instead of downloading
-    if (window.Capacitor) {
-      setShowEmailExport(true);
-      return;
-    }
     setIsExporting(true);
     try {
-      const response = await base44.functions.invoke('exportAllData', {});
-      const filename = `ClearLedger_Export_${new Date().toISOString().split('T')[0]}.pdf`;
-      await exportPDF(response.data, filename);
+      await base44.functions.invoke('exportAllData', { email: user?.email });
+      alert(`Report sent! Check ${user?.email} for the download link.`);
     } catch (error) {
       console.error('Export failed:', error);
       alert(`Export failed: ${error?.message || 'Please try again.'}`);

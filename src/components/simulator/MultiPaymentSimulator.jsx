@@ -19,7 +19,7 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
-  Download
+  Mail
 } from 'lucide-react';
 import { formatCurrency, formatMonthsToYears, calculatePayoffTimeline, calculateVariablePayoffTimeline, calculateRequiredPayment } from '@/components/utils/calculations';
 import PayoffChart from './PayoffChart';
@@ -81,18 +81,11 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
   const handleExportScenario = async (scenarioId) => {
     try {
       setExportingScenarioId(scenarioId);
-      const response = await base44.functions.invoke('exportScenario', { scenario_id: scenarioId });
-      
-      const filename = `Scenario_Export_${new Date().toISOString().split('T')[0]}.pdf`;
-      const { exportPDF, showExportSuccess } = await import('@/components/utils/exportHelper');
-      
-      const result = await exportPDF(response.data, filename);
-      if (result.success) {
-        showExportSuccess(filename, result.path, result.uri);
-      }
+      await base44.functions.invoke('exportScenario', { scenario_id: scenarioId });
+      alert('Report emailed to your registered address.');
     } catch (error) {
       console.error('Export scenario failed:', error);
-      alert('Failed to export scenario. Please try again.');
+      alert('Export failed. Please try again.');
     } finally {
       setExportingScenarioId(null);
     }
@@ -915,9 +908,9 @@ export default function MultiPaymentSimulator({ cards = [], loans = [] }) {
                         className="text-xs"
                       >
                         {exportingScenarioId === scenario.id ? (
-                          'Exporting...'
+                          'Sending...'
                         ) : (
-                          <Download className="w-4 h-4" />
+                          <Mail className="w-4 h-4" />
                         )}
                       </Button>
                     </div>

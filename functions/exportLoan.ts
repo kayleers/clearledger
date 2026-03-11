@@ -137,14 +137,17 @@ Deno.serve(async (req) => {
     }
 
     const pdfBytes = doc.output('arraybuffer');
+    const filename = `Loan_${loanData.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    const pdfFile = new File([pdfBytes], filename, { type: 'application/pdf' });
+    const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({ file: pdfFile });
 
-    return new Response(pdfBytes, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=Loan_${loanData.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
-      }
+    await base44.asServiceRole.integrations.Core.SendEmail({
+      to: user.email,
+      subject: `ClearLedger – Your ${loanData.name} Loan Report`,
+      body: `<p>Hi,</p><p>Your ClearLedger loan report for <strong>${loanData.name}</strong> is ready to download.</p><p style="margin:24px 0;"><a href="${file_url}" style="background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">Download PDF Report</a></p><p style="color:#888;font-size:12px;">Generated on ${new Date().toLocaleDateString()} for ${user.email}</p>`
     });
+
+    return Response.json({ success: true, message: `Report sent to ${user.email}` });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

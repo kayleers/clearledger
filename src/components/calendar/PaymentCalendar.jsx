@@ -682,21 +682,14 @@ export default function PaymentCalendar() {
             variant="ghost"
             onClick={async () => {
               try {
-                const response = await base44.functions.invoke('exportPaymentCalendar', {
+                await base44.functions.invoke('exportPaymentCalendar', {
                   month: currentMonth.getMonth(),
                   year: currentMonth.getFullYear()
                 });
-                const blob = new Blob([response.data], { type: 'application/pdf' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Payment_Schedule_${currentMonth.toLocaleString('default', { month: 'long' })}_${currentMonth.getFullYear()}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                a.remove();
+                alert('Report emailed to your registered address.');
               } catch (error) {
                 console.error('Export failed:', error);
+                alert('Export failed. Please try again.');
               }
             }}
             className="text-xs text-slate-500 hover:text-slate-700"

@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { jsPDF } from 'npm:jspdf@2.5.2';
 
 Deno.serve(async (req) => {
@@ -382,14 +382,17 @@ Deno.serve(async (req) => {
     }
 
     const pdfBytes = doc.output('arraybuffer');
+    const filename = `Payment_Schedule_${monthNames[month]}_${year}.pdf`;
+    const pdfFile = new File([pdfBytes], filename, { type: 'application/pdf' });
+    const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({ file: pdfFile });
 
-    return new Response(pdfBytes, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=Payment_Schedule_${monthNames[month]}_${year}.pdf`
-      }
+    await base44.asServiceRole.integrations.Core.SendEmail({
+      to: user.email,
+      subject: `ClearLedger – Your Payment Schedule for ${monthNames[month]} ${year}`,
+      body: `<p>Hi,</p><p>Your ClearLedger payment schedule for <strong>${monthNames[month]} ${year}</strong> is ready to download.</p><p style="margin:24px 0;"><a href="${file_url}" style="background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">Download PDF Report</a></p><p style="color:#888;font-size:12px;">Generated on ${new Date().toLocaleDateString()} for ${user.email}</p>`
     });
+
+    return Response.json({ success: true, message: `Report sent to ${user.email}` });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

@@ -91,7 +91,7 @@ export default function CreditCardItem({ card, isDragging, onEdit, onDelete }) {
                 className="p-1.5 hover:bg-white/20 rounded transition-colors"
                 title="Export to PDF"
               >
-                <Download className="w-4 h-4" />
+                <Mail className="w-4 h-4" />
               </button>
               <button
                 onClick={(e) => {

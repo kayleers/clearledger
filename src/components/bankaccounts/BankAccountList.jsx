@@ -190,8 +190,8 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps, on
                 }}
                 className="text-xs text-slate-500 hover:text-slate-700"
               >
-                <Download className="w-3 h-3 mr-1" />
-                Export PDF
+                <Mail className="w-3 h-3 mr-1" />
+                E-mail PDF Link
               </Button>
             </div>
           )}
@@ -262,7 +262,7 @@ export default function BankAccountList({ bankAccounts = [], dragHandleProps, on
                     }}
                     title="Export to PDF"
                   >
-                    <Download className="w-3.5 h-3.5" />
+                    <Mail className="w-3.5 h-3.5" />
                   </Button>
                   <Button
                     variant="ghost"

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Download, RefreshCw, Edit3 } from 'lucide-react';
+import { Plus, CreditCard, Loader2, Zap, ChevronDown, ChevronUp, GripVertical, Mail, RefreshCw, Edit3 } from 'lucide-react';
 import { formatCurrency } from '@/components/utils/calculations';
 import { exportPDF } from '@/components/utils/exportHelper';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';

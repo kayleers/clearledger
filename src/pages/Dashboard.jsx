@@ -550,12 +550,17 @@ export default function Dashboard() {
   };
 
   const [isExporting, setIsExporting] = useState(false);
+  const [showEmailExport, setShowEmailExport] = useState(false);
 
   const handleExportData = async () => {
     if (isExporting) return;
+    // On mobile (Capacitor), show the email dialog instead of downloading
+    if (window.Capacitor) {
+      setShowEmailExport(true);
+      return;
+    }
     setIsExporting(true);
     try {
-      // Server generates the PDF — works on web, Android WebView, and iOS
       const response = await base44.functions.invoke('exportAllData', {});
       const filename = `ClearLedger_Export_${new Date().toISOString().split('T')[0]}.pdf`;
       await exportPDF(response.data, filename);

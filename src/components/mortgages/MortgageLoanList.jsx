@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Home, Plus, Edit2, Trash2, TrendingDown, GripVertical, ChevronDown, ChevronUp, Download, Edit3 } from 'lucide-react';
+import { Home, Plus, Edit2, Trash2, TrendingDown, GripVertical, ChevronDown, ChevronUp, Mail, Edit3 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatCurrency } from '@/components/utils/calculations';
 import CurrencySelector from '@/components/currency/CurrencySelector';

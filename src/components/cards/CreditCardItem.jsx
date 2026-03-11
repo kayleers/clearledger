@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, ChevronRight, GripVertical, Zap, Calendar, Pencil, Trash2, Download } from 'lucide-react';
+import { CreditCard, ChevronRight, GripVertical, Zap, Calendar, Pencil, Trash2, Mail } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { 
   calculateUtilization, 

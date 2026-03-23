@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Crown, Loader2 } from 'lucide-react';
@@ -61,7 +61,7 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
   };
 
   // Check for successful Stripe return
-  React.useEffect(() => {
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('stripe_success') === '1') {
       refreshPlan();

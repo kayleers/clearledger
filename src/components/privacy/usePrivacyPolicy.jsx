@@ -24,11 +24,11 @@ const PRIVACY_POLICY_TEXT = {
     },
     {
       title: 'Third-Party Services',
-      content: 'We use the following service providers to operate ClearLedger:\n\nBase44\n• Cloud hosting and data storage\n• Infrastructure services\n• Acts as a data processor\n\nGoogle Play Services\n• App distribution\n• Billing and payment processing\n• Subscription management\n• Purchase verification\n• Licensing and entitlement validation\n\nClearLedger does not receive or store your full payment card information. All payments are processed directly by Google Play Billing.'
+      content: 'We use the following service providers to operate ClearLedger:\n\nBase44\n• Cloud hosting and data storage\n• Infrastructure services\n• Acts as a data processor\n\nGoogle Play Services\n• App distribution (Android)\n• In-app billing and payment processing\n• Subscription management\n• Purchase verification\n• Licensing and entitlement validation\n\nStripe\n• Payment processing for web and non-Android purchases\n• Subscription billing and management\n• Secure checkout and card tokenization\n• Stripe is PCI DSS compliant and handles all card data\n• Privacy policy: https://stripe.com/privacy\n\nClearLedger does not receive or store your full payment card information. All card data is handled directly by Stripe or Google Play Billing.'
     },
     {
       title: 'Payments and Subscriptions',
-      content: 'ClearLedger offers optional paid plans through Google Play Billing, including:\n\n• Pro Monthly subscription\n• Pro Yearly subscription\n• Lifetime one-time purchase\n\nAll payments, subscriptions, refunds, and billing data are processed by Google Play. ClearLedger does not store payment card information.\n\nClearLedger only receives:\n• purchase confirmation\n• entitlement status\n• subscription state\n• access rights'
+      content: 'ClearLedger offers optional paid plans, including:\n\n• Pro Monthly subscription\n• Pro Yearly subscription\n• Lifetime one-time purchase\n\nPayments on Android are processed via Google Play Billing. Payments on web are processed via Stripe, Inc.\n\nClearLedger does not store payment card numbers, CVV codes, or full billing details. All payment data is handled by Stripe or Google Play.\n\nClearLedger only receives:\n• purchase confirmation\n• entitlement status\n• subscription state\n• access rights\n\nFor Stripe payments, your email address may be shared with Stripe to associate your purchase with your ClearLedger account.'
     },
     {
       title: 'Account System and Google Play Separation',

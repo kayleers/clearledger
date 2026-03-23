@@ -1,22 +1,43 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Crown, Check } from 'lucide-react';
-import { PRODUCT_PRICING, GOOGLE_PLAY_PRODUCTS, FREE_LIMITS } from './tierConfig';
+import { Crown, Loader2 } from 'lucide-react';
+import { FREE_LIMITS, GOOGLE_PLAY_PRODUCTS } from './tierConfig';
 import { googlePlayBilling } from '@/components/billing/GooglePlayBillingService';
 import { useEntitlements } from './EntitlementsProvider';
 import { isAndroid } from '@/components/platform/platformDetection';
+import { base44 } from '@/api/base44Client';
 
 export default function UpgradeDialog({ open, onOpenChange, context = 'general' }) {
   const [purchasing, setPurchasing] = useState(null);
   const { refreshPlan } = useEntitlements();
 
-  const handlePurchase = async (productId) => {
-    if (!isAndroid()) {
-      alert('Purchases are only available on Android via Google Play');
+  const handleStripePurchase = async (plan) => {
+    // Block inside iframes (Base44 preview)
+    if (window.self !== window.top) {
+      alert('Checkout is only available from the published app, not the preview.');
       return;
     }
 
+    setPurchasing(plan);
+    try {
+      const response = await base44.functions.invoke('stripeCheckout', {
+        plan,
+        successUrl: window.location.origin + '?stripe_success=1',
+        cancelUrl: window.location.href
+      });
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      }
+    } catch (error) {
+      console.error('Stripe checkout error:', error);
+      alert('Could not start checkout. Please try again.');
+    } finally {
+      setPurchasing(null);
+    }
+  };
+
+  const handleGooglePlayPurchase = async (productId) => {
     setPurchasing(productId);
     try {
       await googlePlayBilling.purchaseProduct(productId);
@@ -31,14 +52,25 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
     }
   };
 
-  const contextMessages = {
-    creditCards: `You've reached the limit of ${FREE_LIMITS.creditCards} credit cards on the free plan.`,
-    loans: `You've reached the limit of ${FREE_LIMITS.loans} loan on the free plan.`,
-    bankAccounts: `You've reached the limit of ${FREE_LIMITS.bankAccounts} bank account on the free plan.`,
-    recurringBills: `You've reached the limit of ${FREE_LIMITS.recurringBills} recurring bills on the free plan.`,
-    currencyConversions: `You've reached the limit of ${FREE_LIMITS.currencyConversions} currency conversion on the free plan.`,
-    general: 'Upgrade to Pro to unlock unlimited access.'
+  const handlePurchase = (plan, googlePlayProductId) => {
+    if (isAndroid()) {
+      handleGooglePlayPurchase(googlePlayProductId);
+    } else {
+      handleStripePurchase(plan);
+    }
   };
+
+  // Check for successful Stripe return
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('stripe_success') === '1') {
+      refreshPlan();
+      // Clean up URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('stripe_success');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -69,51 +101,65 @@ export default function UpgradeDialog({ open, onOpenChange, context = 'general' 
 
           <div className="space-y-2">
             <Button
-              onClick={() => handlePurchase(GOOGLE_PLAY_PRODUCTS.PRO_MONTHLY)}
+              onClick={() => handlePurchase('monthly', GOOGLE_PLAY_PRODUCTS.PRO_MONTHLY)}
               disabled={purchasing !== null}
               className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30"
             >
-              <div className="flex items-center justify-between w-full">
-                <span>Pro Monthly</span>
-                <span className="font-bold">$2.99/mo</span>
-              </div>
-            </Button>
-
-            <Button
-              onClick={() => handlePurchase(GOOGLE_PLAY_PRODUCTS.PRO_YEARLY)}
-              disabled={purchasing !== null}
-              className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30"
-            >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <span>Pro Yearly</span>
-                  <span className="text-[10px] bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded-full font-semibold">
-                    Save 30%
-                  </span>
+              {purchasing === 'monthly' || purchasing === GOOGLE_PLAY_PRODUCTS.PRO_MONTHLY ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <div className="flex items-center justify-between w-full">
+                  <span>Pro Monthly</span>
+                  <span className="font-bold">$2.99/mo</span>
                 </div>
-                <span className="font-bold">$24.99/yr</span>
-              </div>
+              )}
             </Button>
 
             <Button
-              onClick={() => handlePurchase(GOOGLE_PLAY_PRODUCTS.LIFETIME)}
+              onClick={() => handlePurchase('yearly', GOOGLE_PLAY_PRODUCTS.PRO_YEARLY)}
+              disabled={purchasing !== null}
+              className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30"
+            >
+              {purchasing === 'yearly' || purchasing === GOOGLE_PLAY_PRODUCTS.PRO_YEARLY ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <span>Pro Yearly</span>
+                    <span className="text-[10px] bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded-full font-semibold">
+                      Save 30%
+                    </span>
+                  </div>
+                  <span className="font-bold">$24.99/yr</span>
+                </div>
+              )}
+            </Button>
+
+            <Button
+              onClick={() => handlePurchase('lifetime', GOOGLE_PLAY_PRODUCTS.LIFETIME)}
               disabled={purchasing !== null}
               className="w-full bg-yellow-400/90 hover:bg-yellow-400 text-yellow-900 font-bold border-0"
             >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <span>Lifetime Access</span>
-                  <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-semibold">
-                    BEST VALUE
-                  </span>
+              {purchasing === 'lifetime' || purchasing === GOOGLE_PLAY_PRODUCTS.LIFETIME ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <span>Lifetime Access</span>
+                    <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-semibold">
+                      BEST VALUE
+                    </span>
+                  </div>
+                  <span className="font-bold">$49.99</span>
                 </div>
-                <span className="font-bold">$49.99</span>
-              </div>
+              )}
             </Button>
           </div>
 
-          {purchasing && (
-            <p className="text-sm text-white/80 text-center">Processing purchase...</p>
+          {!isAndroid() && (
+            <p className="text-xs text-white/60 text-center">
+              Payments processed securely by Stripe
+            </p>
           )}
         </div>
       </DialogContent>

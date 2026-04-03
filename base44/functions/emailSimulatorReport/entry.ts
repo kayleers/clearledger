@@ -110,14 +110,22 @@ Deno.serve(async (req) => {
 
     summaryData.forEach((row, idx) => {
       checkPage(18);
-      tableRow(row, summaryColW, y, false, idx % 2 === 0);
-      // Color the value cell
-      doc.setFont('helvetica', 'bold');
+      // Draw row background and label only (col 0)
+      if (idx % 2 === 0) {
+        doc.setFillColor(250, 252, 255);
+        doc.rect(margin, y - 12, contentW, 16, 'F');
+      }
+      doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
+      doc.setTextColor(30, 41, 59);
+      doc.text(String(row[0]), margin + 6, y);
+      // Draw value with color
+      doc.setFont('helvetica', 'bold');
       if (row[0].startsWith('Total Interest')) doc.setTextColor(220, 38, 38);
       else if (row[0].startsWith('Interest Saved')) doc.setTextColor(5, 150, 105);
       else doc.setTextColor(30, 41, 59);
-      doc.text(row[1], margin + contentW - 8, y, { align: 'right' });
+      doc.text(String(row[1]), margin + contentW - 8, y, { align: 'right' });
+      doc.setTextColor(30, 41, 59);
       y += 16;
     });
     y += 12;

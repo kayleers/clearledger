@@ -48,7 +48,7 @@ export default function Simulator() {
       let scenario;
 
       if (paymentType === 'fixed') {
-        const payment = parseFloat(cardPayments[card.id]) || 0;
+        const payment = parseFloat(cardPayments[card.id]) || minPmt || 0;
         if (payment > 0) scenario = calculatePayoffTimeline(balance, apr, payment);
       } else if (paymentType === 'target') {
         const tm = parseInt(cardTargetMonths[card.id]) || 0;

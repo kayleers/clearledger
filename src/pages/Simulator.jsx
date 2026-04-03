@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calculator, CreditCard, Calendar, DollarSign, Sparkles, ChevronDown, ChevronUp, Plus, Trash2, Mail, CheckCircle, Loader2 } from 'lucide-react';
-import { formatCurrency, formatMonthsToYears, calculatePayoffTimeline, calculateRequiredPayment } from '@/components/utils/calculations';
+import { formatCurrency, formatMonthsToYears, calculatePayoffTimeline, calculateRequiredPayment, calculateVariablePayoffTimeline } from '@/components/utils/calculations';
 import PayoffChart from '@/components/simulator/PayoffChart';
 import { base44 } from '@/api/base44Client';
 
@@ -24,6 +24,8 @@ export default function Simulator() {
   const [paymentType, setPaymentType] = useState('fixed');
   const [cardPayments, setCardPayments] = useState({});
   const [cardTargetMonths, setCardTargetMonths] = useState({});
+  // variable: { [cardId]: [{ month: number, amount: string }] }
+  const [cardVariablePayments, setCardVariablePayments] = useState({});
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [nextId, setNextId] = useState(2);
   const [emailInput, setEmailInput] = useState('');
@@ -53,6 +55,11 @@ export default function Simulator() {
           const req = calculateRequiredPayment(balance, apr, tm);
           scenario = calculatePayoffTimeline(balance, apr, req);
         }
+      } else if (paymentType === 'variable') {
+        const varPayments = (cardVariablePayments[card.id] || []).map(r => ({ amount: parseFloat(r.amount) || 0 }));
+        if (varPayments.some(p => p.amount > 0)) {
+          scenario = calculateVariablePayoffTimeline(balance, apr, varPayments);
+        }
       }
 
       if (scenario) {
@@ -60,7 +67,7 @@ export default function Simulator() {
       }
     });
     return scenarios;
-  }, [validCards, paymentType, cardPayments, cardTargetMonths]);
+  }, [validCards, paymentType, cardPayments, cardTargetMonths, cardVariablePayments]);
 
   const longestMonths = Math.max(...allScenarios.map(s => s.months), 0);
 
@@ -161,9 +168,10 @@ export default function Simulator() {
             {validCards.length > 0 && (
               <div className="border-t border-white/20 pt-4 space-y-4">
                 <Tabs value={paymentType} onValueChange={setPaymentType}>
-                  <TabsList className="grid grid-cols-2 w-full bg-white/10">
-                    <TabsTrigger value="fixed" className="text-white data-[state=active]:bg-white/20">Fixed Payment</TabsTrigger>
-                    <TabsTrigger value="target" className="text-white data-[state=active]:bg-white/20">Target Payoff</TabsTrigger>
+                  <TabsList className="grid grid-cols-3 w-full bg-white/10">
+                    <TabsTrigger value="fixed" className="text-white data-[state=active]:bg-white/20">Fixed</TabsTrigger>
+                    <TabsTrigger value="target" className="text-white data-[state=active]:bg-white/20">Target</TabsTrigger>
+                    <TabsTrigger value="variable" className="text-white data-[state=active]:bg-white/20">Variable</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="fixed" className="space-y-3 mt-4">
@@ -201,6 +209,54 @@ export default function Simulator() {
                           <p className="text-xs text-white/60 mb-2">{formatCurrency(balance, card.currency)} • {card.apr}% APR</p>
                           <Label className="text-xs text-white/70">Target: {Math.floor(tm / 12)}y {tm % 12}m — Required: <span className="text-teal-300 font-semibold">{formatCurrency(req, card.currency)}/mo</span></Label>
                           <input type="range" min="1" max="120" value={tm} onChange={e => setCardTargetMonths({ ...cardTargetMonths, [card.id]: e.target.value })} className="w-full mt-2 accent-teal-400" />
+                        </div>
+                      );
+                    })}
+                  </TabsContent>
+
+                  <TabsContent value="variable" className="space-y-3 mt-4">
+                    <p className="text-xs text-white/60">Enter different payment amounts for each month. Leave blank to stop.</p>
+                    {validCards.map(card => {
+                      const rows = cardVariablePayments[card.id] || [{ month: 1, amount: '' }];
+                      const updateRow = (idx, amount) => {
+                        const updated = [...rows];
+                        updated[idx] = { month: idx + 1, amount };
+                        // Auto-add a new row if editing the last one
+                        if (idx === updated.length - 1 && amount !== '') {
+                          updated.push({ month: updated.length + 1, amount: '' });
+                        }
+                        setCardVariablePayments({ ...cardVariablePayments, [card.id]: updated });
+                      };
+                      const removeRow = (idx) => {
+                        const updated = rows.filter((_, i) => i !== idx).map((r, i) => ({ ...r, month: i + 1 }));
+                        setCardVariablePayments({ ...cardVariablePayments, [card.id]: updated.length ? updated : [{ month: 1, amount: '' }] });
+                      };
+                      return (
+                        <div key={card.id} className="bg-white/10 rounded-xl p-3">
+                          <p className="font-medium text-sm text-white mb-1">{card.name}</p>
+                          <p className="text-xs text-white/60 mb-3">{formatCurrency(parseFloat(card.balance), card.currency)} • {card.apr}% APR</p>
+                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            {rows.map((row, idx) => (
+                              <div key={idx} className="flex items-center gap-2">
+                                <span className="text-white/50 text-xs w-14 shrink-0">Month {row.month}</span>
+                                <div className="relative flex-1">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm">{getCurrencySymbol(card.currency)}</span>
+                                  <Input
+                                    type="number"
+                                    placeholder="0"
+                                    value={row.amount}
+                                    onChange={e => updateRow(idx, e.target.value)}
+                                    className="pl-7 h-8 text-sm bg-white/20 border-white/30 text-white placeholder:text-white/40"
+                                  />
+                                </div>
+                                {rows.length > 1 && (
+                                  <Button size="icon" variant="ghost" onClick={() => removeRow(idx)} className="h-8 w-8 text-red-300 hover:text-red-200 hover:bg-red-500/20 shrink-0">
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       );
                     })}

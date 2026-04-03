@@ -202,12 +202,13 @@ export default function Simulator() {
                           <p className="font-medium text-sm text-white mb-1">{card.name}</p>
                           <p className="text-xs text-white/60 mb-2">{formatCurrency(balance, card.currency)} • {card.apr}% APR</p>
                           <div className="flex gap-2">
-                            <div className="relative flex-1">
+                            <div className="relative flex-[0_0_40%]">
                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm">{getCurrencySymbol(card.currency)}</span>
-                              <Input type="number" value={cardPayments[card.id] || ''} onChange={e => setCardPayments({ ...cardPayments, [card.id]: e.target.value })} className="pl-7 h-9 bg-white/20 border-white/30 text-white placeholder:text-white/40" placeholder="0" />
+                              <Input type="number" value={cardPayments[card.id] || ''} onChange={e => setCardPayments({ ...cardPayments, [card.id]: e.target.value })} className="pl-7 h-9 bg-white/20 border-white/30 text-white placeholder:text-white/40 w-full" placeholder="0" />
                             </div>
-                            <Button size="sm" variant="outline" onClick={() => setCardPayments({ ...cardPayments, [card.id]: minPmt.toString() })} className="text-xs border-white/30 text-white bg-white/10 hover:bg-white/20">Min</Button>
-                            <Button size="sm" variant="outline" onClick={() => setCardPayments({ ...cardPayments, [card.id]: threeYearPmt.toString() })} className="text-xs border-white/30 text-white bg-white/10 hover:bg-white/20">3yr</Button>
+                            <Button size="sm" variant="outline" onClick={() => setCardPayments({ ...cardPayments, [card.id]: minPmt.toString() })} className="text-xs border-white/30 text-white bg-white/10 hover:bg-white/20 shrink-0">Min</Button>
+                            <Button size="sm" variant="outline" onClick={() => setCardPayments({ ...cardPayments, [card.id]: (parseFloat(cardPayments[card.id]) || minPmt).toString() })} className="text-xs border-white/30 text-white bg-white/10 hover:bg-white/20 shrink-0" disabled={!cardPayments[card.id]}>Fixed</Button>
+                            <Button size="sm" variant="outline" onClick={() => setCardPayments({ ...cardPayments, [card.id]: threeYearPmt.toString() })} className="text-xs border-white/30 text-white bg-white/10 hover:bg-white/20 shrink-0">3yr</Button>
                           </div>
                         </div>
                       );

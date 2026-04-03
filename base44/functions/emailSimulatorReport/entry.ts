@@ -187,12 +187,10 @@ Deno.serve(async (req) => {
       doc.text(`Page ${i} of ${totalPages}`, pageW - margin, pageH - 20, { align: 'right' });
     }
 
-    // Export to Uint8Array and upload
-    const pdfBytes = doc.output('arraybuffer');
-    const pdfUint8 = new Uint8Array(pdfBytes);
-    const blob = new Blob([pdfUint8], { type: 'application/pdf' });
+    // Export to base64 and upload
+    const pdfBase64 = doc.output('datauristring'); // data:application/pdf;base64,...
 
-    const { file_url } = await base44.integrations.Core.UploadFile({ file: blob });
+    const { file_url } = await base44.integrations.Core.UploadFile({ file: pdfBase64 });
 
     // Send email with download link
     const htmlBody = `

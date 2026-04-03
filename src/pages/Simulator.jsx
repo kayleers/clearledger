@@ -287,6 +287,68 @@ export default function Simulator() {
 
                     <p className="text-sm font-medium text-white/80">Monthly Breakdown</p>
 
+                    {/* Combined summary when multiple debts */}
+                    {allScenarios.length > 1 && (() => {
+                     // Build a combined month-by-month view across all scenarios
+                     const maxMonths = Math.max(...allScenarios.map(s => s.breakdown.length));
+                     const combinedRows = [];
+                     for (let i = 0; i < maxMonths; i++) {
+                       let totalPayment = 0, totalInterest = 0, totalBalance = 0;
+                       allScenarios.forEach(s => {
+                         if (i < s.breakdown.length) {
+                           totalPayment += s.breakdown[i].payment;
+                           totalInterest += s.breakdown[i].interest;
+                           totalBalance += s.breakdown[i].balance;
+                         }
+                       });
+                       combinedRows.push({ month: i + 1, payment: totalPayment, interest: totalInterest, balance: totalBalance });
+                     }
+                     const showMoreCombined = showMoreBreakdown['__combined__'] || false;
+                     const visibleCombined = showMoreCombined ? combinedRows : combinedRows.slice(0, 12);
+                     const hasMoreCombined = combinedRows.length > 12;
+                     const totalInterestAll = allScenarios.reduce((sum, s) => sum + s.totalInterest, 0);
+                     return (
+                       <div className="bg-white rounded-xl overflow-hidden border-2 border-teal-400">
+                         <div className="px-3 py-2 bg-teal-50">
+                           <p className="font-semibold text-sm text-teal-800">Combined — All Debts</p>
+                           <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-xs text-slate-500">
+                             <span>Debt-free in: <span className="font-medium text-teal-700">{formatMonthsToYears(longestMonths)}</span></span>
+                             <span>Total Interest: <span className="font-medium text-red-500">{formatCurrency(totalInterestAll)}</span></span>
+                             <span>Debts: <span className="font-medium text-slate-700">{allScenarios.map(s => s.name).join(', ')}</span></span>
+                           </div>
+                         </div>
+                         <table className="w-full text-sm">
+                           <thead className="bg-slate-50">
+                             <tr>
+                               <th className="text-left p-2 text-xs">Mo.</th>
+                               <th className="text-right p-2 text-xs">Payment</th>
+                               <th className="text-right p-2 text-xs">Interest</th>
+                               <th className="text-right p-2 text-xs">Total Balance</th>
+                             </tr>
+                           </thead>
+                           <tbody>
+                             {visibleCombined.map(row => (
+                               <tr key={row.month} className="border-b border-slate-100">
+                                 <td className="p-2 text-slate-600">{row.month}</td>
+                                 <td className="text-right p-2 text-slate-700">{formatCurrency(row.payment)}</td>
+                                 <td className="text-right p-2 text-red-500">{formatCurrency(row.interest)}</td>
+                                 <td className="text-right p-2 font-medium text-slate-800">{formatCurrency(row.balance)}</td>
+                               </tr>
+                             ))}
+                           </tbody>
+                         </table>
+                         {hasMoreCombined && (
+                           <button
+                             className="w-full py-2 text-xs text-teal-600 hover:text-teal-800 hover:bg-slate-50 flex items-center justify-center gap-1 transition-colors"
+                             onClick={() => setShowMoreBreakdown(prev => ({ ...prev, '__combined__': !showMoreCombined }))}
+                           >
+                             {showMoreCombined ? <><ChevronUp className="w-3 h-3" /> Show less</> : <><ChevronDown className="w-3 h-3" /> Show {combinedRows.length - 12} more months</>}
+                           </button>
+                         )}
+                       </div>
+                     );
+                    })()}
+
                     {allScenarios.map(scenario => {
                        const applyPaymentOverride = (month, newAmount) => {
                          const existing = scenario.breakdown.map((r) => ({

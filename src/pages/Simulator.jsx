@@ -65,7 +65,9 @@ export default function Simulator() {
 
       if (scenario) {
         const fixedPayment = parseFloat(cardPayments[card.id]) || 0;
-        scenarios.push({ id: card.id, name: card.name, type: 'card', balance, apr, minPayment: minPmt, fixedPayment, currency: card.currency, ...scenario });
+        const minScenario = calculatePayoffTimeline(balance, apr, minPmt || 0);
+        const interestSaved = (minScenario.totalInterest || 0) - (scenario.totalInterest || 0);
+        scenarios.push({ id: card.id, name: card.name, type: 'card', balance, apr, minPayment: minPmt, fixedPayment, currency: card.currency, interestSaved: Math.max(0, interestSaved), ...scenario });
       }
     });
     return scenarios;

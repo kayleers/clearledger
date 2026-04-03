@@ -132,8 +132,8 @@ Deno.serve(async (req) => {
 
     // Per-debt individual summaries
     sectionTitle('Individual Debt Summaries');
-    const indColW = [contentW * 0.28, contentW * 0.18, contentW * 0.09, contentW * 0.15, contentW * 0.15, contentW * 0.15];
-    tableRow(['Name', 'Balance', 'APR', 'Monthly Payment', 'Total Interest', 'Payoff Time'], indColW, y, true, false);
+    const indColW = [contentW * 0.22, contentW * 0.14, contentW * 0.08, contentW * 0.14, contentW * 0.14, contentW * 0.14, contentW * 0.14];
+    tableRow(['Name', 'Balance', 'APR', 'Monthly Pmt', 'Total Interest', 'Interest Saved', 'Payoff Time'], indColW, y, true, false);
     y += 18;
 
     scenarios.forEach((s, idx) => {
@@ -142,19 +142,19 @@ Deno.serve(async (req) => {
         doc.setFillColor(250, 252, 255);
         doc.rect(margin, y - 12, contentW, 16, 'F');
       }
-      // Name (left-aligned)
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(30, 41, 59);
+      // Name
       doc.text(String(s.name), margin + 6, y);
-      // Balance
       let x = margin + 6 + indColW[0];
+      // Balance
       doc.text(formatCurrency(s.balance, s.currency), x + indColW[1] - 8, y, { align: 'right' });
       x += indColW[1];
       // APR
       doc.text(`${(s.apr * 100).toFixed(2)}%`, x + indColW[2] - 8, y, { align: 'right' });
       x += indColW[2];
-      // Monthly payment (fixedPayment or first breakdown payment)
+      // Monthly payment
       const monthlyPmt = s.fixedPayment || (s.breakdown && s.breakdown[0]?.payment) || 0;
       doc.text(formatCurrency(monthlyPmt, s.currency), x + indColW[3] - 8, y, { align: 'right' });
       x += indColW[3];
@@ -163,11 +163,17 @@ Deno.serve(async (req) => {
       doc.setFont('helvetica', 'bold');
       doc.text(formatCurrency(s.totalInterest, s.currency), x + indColW[4] - 8, y, { align: 'right' });
       x += indColW[4];
+      // Interest Saved (green, or dash if zero)
+      const saved = s.interestSaved || 0;
+      doc.setTextColor(saved > 0 ? 5 : 156, saved > 0 ? 150 : 163, saved > 0 ? 105 : 175);
+      doc.setFont('helvetica', saved > 0 ? 'bold' : 'normal');
+      doc.text(saved > 0 ? formatCurrency(saved, s.currency) : '—', x + indColW[5] - 8, y, { align: 'right' });
+      x += indColW[5];
       // Payoff Time (teal)
       doc.setTextColor(5, 150, 105);
-      doc.text(formatMonths(s.months), x + indColW[5] - 8, y, { align: 'right' });
-      doc.setTextColor(30, 41, 59);
       doc.setFont('helvetica', 'normal');
+      doc.text(formatMonths(s.months), x + indColW[6] - 8, y, { align: 'right' });
+      doc.setTextColor(30, 41, 59);
       y += 16;
     });
     y += 12;

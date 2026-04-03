@@ -167,8 +167,27 @@ Deno.serve(async (req) => {
     // Monthly Breakdowns
     scenarios.forEach(s => {
       if (!s.breakdown || s.breakdown.length === 0) return;
-      checkPage(50);
+      checkPage(60);
       sectionTitle(`${s.type === 'card' ? 'Credit Card' : 'Loan'}: ${s.name} — Monthly Breakdown`);
+
+      // Stats row: Starting Balance, APR, Payoff, Total Interest
+      checkPage(20);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      const stats = [
+        `Starting Balance: ${formatCurrency(s.balance, s.currency)}`,
+        `APR: ${(s.apr * 100).toFixed(2)}%`,
+        `Payoff: ${formatMonths(s.months)}`,
+        `Total Interest: ${formatCurrency(s.totalInterest, s.currency)}`
+      ];
+      const statW = contentW / stats.length;
+      stats.forEach((stat, i) => {
+        const isInterest = stat.startsWith('Total Interest');
+        doc.setTextColor(isInterest ? 220 : 30, isInterest ? 38 : 41, isInterest ? 38 : 59);
+        doc.text(stat, margin + i * statW, y);
+      });
+      doc.setTextColor(30, 41, 59);
+      y += 14;
 
       const bColW = [contentW * 0.15, contentW * 0.25, contentW * 0.25, contentW * 0.35];
       tableRow(['Month', 'Payment', 'Interest', 'Remaining Balance'], bColW, y, true, false);

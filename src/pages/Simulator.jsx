@@ -314,10 +314,6 @@ export default function Simulator() {
                       ))}
                     </div>
 
-                    {allScenarios[0]?.breakdown && (
-                      <PayoffChart breakdown={allScenarios[0].breakdown} multipleDebts={allScenarios} />
-                    )}
-
                     {/* Email Report */}
                     <div className="p-4 bg-white/10 rounded-xl space-y-3">
                       <p className="text-sm font-medium text-white flex items-center gap-2">

@@ -351,11 +351,25 @@ export default function Simulator() {
 
                     {allScenarios.map(scenario => {
                        const applyPaymentOverride = (month, newAmount) => {
-                         const existing = scenario.breakdown.map((r) => ({
+                         // Build variable payments for the edited card
+                         const editedCardPayments = scenario.breakdown.map((r) => ({
                            month: r.month,
                            amount: (r.month === month ? newAmount : r.payment).toString()
                          }));
-                         setCardVariablePayments(prev => ({ ...prev, [scenario.id]: existing }));
+                         // Also seed variable payments for all OTHER cards that don't have them yet,
+                         // so they don't disappear when paymentType switches to 'variable'
+                         setCardVariablePayments(prev => {
+                           const updated = { ...prev, [scenario.id]: editedCardPayments };
+                           allScenarios.forEach(s => {
+                             if (s.id !== scenario.id && !updated[s.id]) {
+                               updated[s.id] = s.breakdown.map(r => ({
+                                 month: r.month,
+                                 amount: r.payment.toString()
+                               }));
+                             }
+                           });
+                           return updated;
+                         });
                          setPaymentType('variable');
                          setEditingCell(null);
                        };

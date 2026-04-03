@@ -373,28 +373,33 @@ export default function Simulator() {
                     </Button>
 
                     {showBreakdown && allScenarios.map(scenario => {
-                      const applyPaymentOverride = (month, newAmount) => {
-                        // Build variable payments from current breakdown, override this month
-                        const existing = scenario.breakdown.map((r, i) => ({
-                          month: i + 1,
-                          amount: (month === r.month ? newAmount : r.payment).toString()
-                        }));
-                        setCardVariablePayments(prev => ({ ...prev, [scenario.id]: existing }));
-                        setPaymentType('variable');
-                        setEditingCell(null);
-                      };
-                      return (
-                        <div key={scenario.id} className="bg-white rounded-xl overflow-hidden">
-                          <div className="px-3 py-2 bg-slate-100">
-                            <p className="font-medium text-sm text-slate-700">{scenario.name}</p>
-                            <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-xs text-slate-500">
-                              <span>Starting Balance: <span className="font-medium text-slate-700">{formatCurrency(scenario.balance, scenario.currency)}</span></span>
-                              <span>APR: <span className="font-medium text-slate-700">{(scenario.apr * 100).toFixed(2)}%</span></span>
-                              <span>Payoff: <span className="font-medium text-teal-600">{formatMonthsToYears(scenario.months)}</span></span>
-                              <span>Total Interest: <span className="font-medium text-red-500">{formatCurrency(scenario.totalInterest, scenario.currency)}</span></span>
-                            </div>
-                            <p className="text-xs text-slate-400 mt-1">Click any payment to edit it</p>
-                          </div>
+                       const applyPaymentOverride = (month, newAmount) => {
+                         // Build variable payments from the current breakdown, overriding the edited month
+                         const existing = scenario.breakdown.map((r) => ({
+                           month: r.month,
+                           amount: (r.month === month ? newAmount : r.payment).toString()
+                         }));
+                         setCardVariablePayments(prev => ({ ...prev, [scenario.id]: existing }));
+                         setPaymentType('variable');
+                         setEditingCell(null);
+                       };
+
+                       // Compute fresh stats directly from the scenario (which is already from allScenarios memo)
+                       const liveMonths = scenario.months;
+                       const liveTotalInterest = scenario.totalInterest;
+
+                       return (
+                         <div key={scenario.id} className="bg-white rounded-xl overflow-hidden">
+                           <div className="px-3 py-2 bg-slate-100">
+                             <p className="font-medium text-sm text-slate-700">{scenario.name}</p>
+                             <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-xs text-slate-500">
+                               <span>Starting Balance: <span className="font-medium text-slate-700">{formatCurrency(scenario.balance, scenario.currency)}</span></span>
+                               <span>APR: <span className="font-medium text-slate-700">{(scenario.apr * 100).toFixed(2)}%</span></span>
+                               <span>Payoff: <span className="font-medium text-teal-600">{formatMonthsToYears(liveMonths)}</span></span>
+                               <span>Total Interest: <span className="font-medium text-red-500">{formatCurrency(liveTotalInterest, scenario.currency)}</span></span>
+                             </div>
+                             <p className="text-xs text-slate-400 mt-1">Click any payment to edit it</p>
+                           </div>
                           <div className="max-h-64 overflow-y-auto">
                             <table className="w-full text-sm">
                               <thead className="bg-slate-50 sticky top-0">
@@ -406,7 +411,7 @@ export default function Simulator() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {scenario.breakdown.slice(0, 60).map(row => {
+                                {scenario.breakdown.slice(0, Math.max(60, liveMonths)).map(row => {
                                   const isEditing = editingCell?.cardId === scenario.id && editingCell?.month === row.month;
                                   return (
                                     <tr key={row.month} className="border-b border-slate-100">
@@ -449,7 +454,7 @@ export default function Simulator() {
                                 })}
                               </tbody>
                             </table>
-                            {scenario.breakdown.length > 60 && <p className="text-center text-xs text-slate-400 py-2">Showing first 60 of {scenario.breakdown.length} months</p>}
+                            {scenario.breakdown.length > 60 && liveMonths > 60 && <p className="text-center text-xs text-slate-400 py-2">Showing first {liveMonths} of {scenario.breakdown.length} months</p>}
                           </div>
                         </div>
                       );

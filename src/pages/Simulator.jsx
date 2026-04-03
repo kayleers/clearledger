@@ -284,55 +284,6 @@ export default function Simulator() {
                       ))}
                     </div>
 
-                    {/* Email Report */}
-                    <div className="p-4 bg-white/10 rounded-xl space-y-3">
-                      <p className="text-sm font-medium text-white flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-teal-300" />
-                        Email this report to yourself
-                      </p>
-                      {emailSent ? (
-                        <div className="flex items-center gap-2 text-emerald-300 text-sm">
-                          <CheckCircle className="w-4 h-4" />
-                          Report sent! Check your inbox.
-                        </div>
-                      ) : (
-                        <div className="flex gap-2">
-                          <Input
-                            type="email"
-                            placeholder="your@email.com"
-                            value={emailInput}
-                            onChange={e => setEmailInput(e.target.value)}
-                            className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-9 flex-1"
-                          />
-                          <Button
-                            size="sm"
-                            disabled={!emailInput || emailSending}
-                            onClick={async () => {
-                              setEmailSending(true);
-                              try {
-                                await base44.functions.invoke('emailSimulatorReport', {
-                                  email: emailInput,
-                                  scenarios: allScenarios,
-                                  interestByCurrency,
-                                  interestSavedByCurrency,
-                                  longestMonths
-                                });
-                                setEmailSent(true);
-                                setTimeout(() => setEmailSent(false), 8000);
-                              } catch (e) {
-                                alert('Failed to send email. Please try again.');
-                              } finally {
-                                setEmailSending(false);
-                              }
-                            }}
-                            className="bg-teal-500 hover:bg-teal-400 text-white h-9 px-4"
-                          >
-                            {emailSending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send'}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-
                     <Button variant="ghost" className="w-full justify-between text-white/80 hover:text-white hover:bg-white/10" onClick={() => setShowBreakdown(!showBreakdown)}>
                       <span>Monthly Breakdown</span>
                       {showBreakdown ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -428,12 +379,61 @@ export default function Simulator() {
                               </tbody>
                             </table>
                             {scenario.breakdown.length > 60 && liveMonths > 60 && <p className="text-center text-xs text-slate-400 py-2">Showing first {liveMonths} of {scenario.breakdown.length} months</p>}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                            </div>
+                            </div>
+                            );
+                            })}
+
+                            {/* Email Report */}
+                            <div className="p-4 bg-white/10 rounded-xl space-y-3">
+                            <p className="text-sm font-medium text-white flex items-center gap-2">
+                            <Mail className="w-4 h-4 text-teal-300" />
+                            Email this report to yourself
+                            </p>
+                            {emailSent ? (
+                            <div className="flex items-center gap-2 text-emerald-300 text-sm">
+                            <CheckCircle className="w-4 h-4" />
+                            Report sent! Check your inbox.
+                            </div>
+                            ) : (
+                            <div className="flex gap-2">
+                            <Input
+                            type="email"
+                            placeholder="your@email.com"
+                            value={emailInput}
+                            onChange={e => setEmailInput(e.target.value)}
+                            className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-9 flex-1"
+                            />
+                            <Button
+                            size="sm"
+                            disabled={!emailInput || emailSending}
+                            onClick={async () => {
+                             setEmailSending(true);
+                             try {
+                               await base44.functions.invoke('emailSimulatorReport', {
+                                 email: emailInput,
+                                 scenarios: allScenarios,
+                                 interestByCurrency,
+                                 interestSavedByCurrency,
+                                 longestMonths
+                               });
+                               setEmailSent(true);
+                               setTimeout(() => setEmailSent(false), 8000);
+                             } catch (e) {
+                               alert('Failed to send email. Please try again.');
+                             } finally {
+                               setEmailSending(false);
+                             }
+                            }}
+                            className="bg-teal-500 hover:bg-teal-400 text-white h-9 px-4"
+                            >
+                            {emailSending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send'}
+                            </Button>
+                            </div>
+                            )}
+                            </div>
+                            </div>
+                            )}
               </div>
             )}
           </CardContent>

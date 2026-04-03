@@ -128,6 +128,48 @@ Deno.serve(async (req) => {
       doc.setTextColor(30, 41, 59);
       y += 16;
     });
+    y += 16;
+
+    // Per-debt individual summaries
+    sectionTitle('Individual Debt Summaries');
+    const indColW = [contentW * 0.28, contentW * 0.18, contentW * 0.09, contentW * 0.15, contentW * 0.15, contentW * 0.15];
+    tableRow(['Name', 'Balance', 'APR', 'Monthly Payment', 'Total Interest', 'Payoff Time'], indColW, y, true, false);
+    y += 18;
+
+    scenarios.forEach((s, idx) => {
+      checkPage(18);
+      if (idx % 2 === 0) {
+        doc.setFillColor(250, 252, 255);
+        doc.rect(margin, y - 12, contentW, 16, 'F');
+      }
+      // Name (left-aligned)
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(30, 41, 59);
+      doc.text(String(s.name), margin + 6, y);
+      // Balance
+      let x = margin + 6 + indColW[0];
+      doc.text(formatCurrency(s.balance, s.currency), x + indColW[1] - 8, y, { align: 'right' });
+      x += indColW[1];
+      // APR
+      doc.text(`${(s.apr * 100).toFixed(2)}%`, x + indColW[2] - 8, y, { align: 'right' });
+      x += indColW[2];
+      // Monthly payment (fixedPayment or first breakdown payment)
+      const monthlyPmt = s.fixedPayment || (s.breakdown && s.breakdown[0]?.payment) || 0;
+      doc.text(formatCurrency(monthlyPmt, s.currency), x + indColW[3] - 8, y, { align: 'right' });
+      x += indColW[3];
+      // Total Interest (red)
+      doc.setTextColor(220, 38, 38);
+      doc.setFont('helvetica', 'bold');
+      doc.text(formatCurrency(s.totalInterest, s.currency), x + indColW[4] - 8, y, { align: 'right' });
+      x += indColW[4];
+      // Payoff Time (teal)
+      doc.setTextColor(5, 150, 105);
+      doc.text(formatMonths(s.months), x + indColW[5] - 8, y, { align: 'right' });
+      doc.setTextColor(30, 41, 59);
+      doc.setFont('helvetica', 'normal');
+      y += 16;
+    });
     y += 12;
 
     // Helper: calculate required payment for N months (PMT formula)

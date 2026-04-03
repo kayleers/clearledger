@@ -64,7 +64,8 @@ export default function Simulator() {
       }
 
       if (scenario) {
-        scenarios.push({ id: card.id, name: card.name, type: 'card', balance, apr, minPayment: minPmt, currency: card.currency, ...scenario });
+        const fixedPayment = parseFloat(cardPayments[card.id]) || 0;
+        scenarios.push({ id: card.id, name: card.name, type: 'card', balance, apr, minPayment: minPmt, fixedPayment, currency: card.currency, ...scenario });
       }
     });
     return scenarios;

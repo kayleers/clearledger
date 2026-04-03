@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
 
     // Summary section
     sectionTitle('Summary');
-    const summaryColW = [contentW * 0.65, contentW * 0.35];
+    const summaryColW = [contentW * 0.60, contentW * 0.40];
     tableRow(['Metric', 'Value'], summaryColW, y, true, false);
     y += 18;
 
@@ -122,16 +122,34 @@ Deno.serve(async (req) => {
     });
     y += 12;
 
+    // Helper: calculate required payment for N months (PMT formula)
+    const calcRequiredPayment = (balance, apr, targetMonths) => {
+      if (balance <= 0 || targetMonths <= 0) return 0;
+      if (!apr || apr === 0) return Math.ceil((balance / targetMonths) * 100) / 100;
+      const r = apr / 12;
+      const payment = balance * (r * Math.pow(1 + r, targetMonths)) / (Math.pow(1 + r, targetMonths) - 1);
+      return Math.ceil(payment * 100) / 100;
+    };
+
     // Debt Details
     sectionTitle('Debt Details');
-    const detailColW = [contentW * 0.30, contentW * 0.16, contentW * 0.12, contentW * 0.18, contentW * 0.24];
-    tableRow(['Name', 'Balance', 'APR', 'Total Interest', 'Payoff Time'], detailColW, y, true, false);
+    const detailColW = [contentW * 0.22, contentW * 0.13, contentW * 0.10, contentW * 0.14, contentW * 0.13, contentW * 0.14, contentW * 0.14];
+    tableRow(['Name', 'Balance', 'APR', 'Min Payment', 'Fixed Pmt', '3yr Payoff', 'Payoff Time'], detailColW, y, true, false);
     y += 18;
 
     scenarios.forEach((s, idx) => {
       checkPage(18);
+      const threeYrPmt = calcRequiredPayment(s.balance, s.apr, 36);
       tableRow(
-        [s.name, formatCurrency(s.balance, s.currency), `${(s.apr * 100).toFixed(2)}%`, formatCurrency(s.totalInterest, s.currency), formatMonths(s.months)],
+        [
+          s.name,
+          formatCurrency(s.balance, s.currency),
+          `${(s.apr * 100).toFixed(2)}%`,
+          formatCurrency(s.minPayment, s.currency),
+          formatCurrency(s.fixedPayment || 0, s.currency),
+          formatCurrency(threeYrPmt, s.currency),
+          formatMonths(s.months)
+        ],
         detailColW, y, false, idx % 2 === 0
       );
       y += 16;

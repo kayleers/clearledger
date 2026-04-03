@@ -27,6 +27,7 @@ export default function Simulator() {
   // variable: { [cardId]: [{ month: number, amount: string }] }
   const [cardVariablePayments, setCardVariablePayments] = useState({});
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [editingCell, setEditingCell] = useState(null); // { cardId, month, value }
   const [nextId, setNextId] = useState(2);
   const [emailInput, setEmailInput] = useState('');
   const [emailSending, setEmailSending] = useState(false);
@@ -371,42 +372,88 @@ export default function Simulator() {
                       {showBreakdown ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     </Button>
 
-                    {showBreakdown && allScenarios.map(scenario => (
-                      <div key={scenario.id} className="bg-white rounded-xl overflow-hidden">
-                        <div className="px-3 py-2 bg-slate-100">
-                          <p className="font-medium text-sm text-slate-700">{scenario.name}</p>
-                          <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-xs text-slate-500">
-                            <span>Balance: <span className="font-medium text-slate-700">{formatCurrency(scenario.balance, scenario.currency)}</span></span>
-                            <span>APR: <span className="font-medium text-slate-700">{(scenario.apr * 100).toFixed(2)}%</span></span>
-                            <span>Payoff: <span className="font-medium text-teal-600">{formatMonthsToYears(scenario.months)}</span></span>
-                            <span>Total Interest: <span className="font-medium text-red-500">{formatCurrency(scenario.totalInterest, scenario.currency)}</span></span>
+                    {showBreakdown && allScenarios.map(scenario => {
+                      const applyPaymentOverride = (month, newAmount) => {
+                        // Build variable payments from current breakdown, override this month
+                        const existing = scenario.breakdown.map((r, i) => ({
+                          month: i + 1,
+                          amount: (month === r.month ? newAmount : r.payment).toString()
+                        }));
+                        setCardVariablePayments(prev => ({ ...prev, [scenario.id]: existing }));
+                        setPaymentType('variable');
+                        setEditingCell(null);
+                      };
+                      return (
+                        <div key={scenario.id} className="bg-white rounded-xl overflow-hidden">
+                          <div className="px-3 py-2 bg-slate-100">
+                            <p className="font-medium text-sm text-slate-700">{scenario.name}</p>
+                            <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-xs text-slate-500">
+                              <span>Starting Balance: <span className="font-medium text-slate-700">{formatCurrency(scenario.balance, scenario.currency)}</span></span>
+                              <span>APR: <span className="font-medium text-slate-700">{(scenario.apr * 100).toFixed(2)}%</span></span>
+                              <span>Payoff: <span className="font-medium text-teal-600">{formatMonthsToYears(scenario.months)}</span></span>
+                              <span>Total Interest: <span className="font-medium text-red-500">{formatCurrency(scenario.totalInterest, scenario.currency)}</span></span>
+                            </div>
+                            <p className="text-xs text-slate-400 mt-1">Click any payment to edit it</p>
+                          </div>
+                          <div className="max-h-64 overflow-y-auto">
+                            <table className="w-full text-sm">
+                              <thead className="bg-slate-50 sticky top-0">
+                                <tr>
+                                  <th className="text-left p-2 text-xs">Mo.</th>
+                                  <th className="text-right p-2 text-xs">Payment</th>
+                                  <th className="text-right p-2 text-xs">Interest</th>
+                                  <th className="text-right p-2 text-xs">Balance</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {scenario.breakdown.slice(0, 60).map(row => {
+                                  const isEditing = editingCell?.cardId === scenario.id && editingCell?.month === row.month;
+                                  return (
+                                    <tr key={row.month} className="border-b border-slate-100">
+                                      <td className="p-2 text-slate-600">{row.month}</td>
+                                      <td className="text-right p-1 text-slate-700">
+                                        {isEditing ? (
+                                          <input
+                                            autoFocus
+                                            type="number"
+                                            value={editingCell.value}
+                                            onChange={e => setEditingCell({ ...editingCell, value: e.target.value })}
+                                            onBlur={() => {
+                                              const val = parseFloat(editingCell.value);
+                                              if (!isNaN(val) && val >= 0) applyPaymentOverride(row.month, val);
+                                              else setEditingCell(null);
+                                            }}
+                                            onKeyDown={e => {
+                                              if (e.key === 'Enter') {
+                                                const val = parseFloat(editingCell.value);
+                                                if (!isNaN(val) && val >= 0) applyPaymentOverride(row.month, val);
+                                                else setEditingCell(null);
+                                              }
+                                              if (e.key === 'Escape') setEditingCell(null);
+                                            }}
+                                            className="w-24 text-right border border-teal-400 rounded px-1 py-0.5 text-xs focus:outline-none"
+                                          />
+                                        ) : (
+                                          <span
+                                            className="cursor-pointer hover:bg-teal-50 hover:text-teal-700 rounded px-1 py-0.5 transition-colors"
+                                            onClick={() => setEditingCell({ cardId: scenario.id, month: row.month, value: row.payment.toString() })}
+                                          >
+                                            {formatCurrency(row.payment, scenario.currency)}
+                                          </span>
+                                        )}
+                                      </td>
+                                      <td className="text-right p-2 text-red-500">{formatCurrency(row.interest, scenario.currency)}</td>
+                                      <td className="text-right p-2 font-medium text-slate-800">{formatCurrency(row.balance, scenario.currency)}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                            {scenario.breakdown.length > 60 && <p className="text-center text-xs text-slate-400 py-2">Showing first 60 of {scenario.breakdown.length} months</p>}
                           </div>
                         </div>
-                        <div className="max-h-64 overflow-y-auto">
-                          <table className="w-full text-sm">
-                            <thead className="bg-slate-50 sticky top-0">
-                              <tr>
-                                <th className="text-left p-2 text-xs">Mo.</th>
-                                <th className="text-right p-2 text-xs">Payment</th>
-                                <th className="text-right p-2 text-xs">Interest</th>
-                                <th className="text-right p-2 text-xs">Balance</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {scenario.breakdown.slice(0, 60).map(row => (
-                                <tr key={row.month} className="border-b border-slate-100">
-                                  <td className="p-2 text-slate-600">{row.month}</td>
-                                  <td className="text-right p-2 text-slate-700">{formatCurrency(row.payment, scenario.currency)}</td>
-                                  <td className="text-right p-2 text-red-500">{formatCurrency(row.interest, scenario.currency)}</td>
-                                  <td className="text-right p-2 font-medium text-slate-800">{formatCurrency(row.balance, scenario.currency)}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                          {scenario.breakdown.length > 60 && <p className="text-center text-xs text-slate-400 py-2">Showing first 60 of {scenario.breakdown.length} months</p>}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

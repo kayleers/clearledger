@@ -317,7 +317,15 @@ export default function Simulator() {
 
                     {showBreakdown && allScenarios.map(scenario => (
                       <div key={scenario.id} className="bg-white rounded-xl overflow-hidden">
-                        <div className="px-3 py-2 bg-slate-100 font-medium text-sm text-slate-700">{scenario.name}</div>
+                        <div className="px-3 py-2 bg-slate-100">
+                          <p className="font-medium text-sm text-slate-700">{scenario.name}</p>
+                          <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-xs text-slate-500">
+                            <span>Balance: <span className="font-medium text-slate-700">{formatCurrency(scenario.balance, scenario.currency)}</span></span>
+                            <span>APR: <span className="font-medium text-slate-700">{(scenario.apr * 100).toFixed(2)}%</span></span>
+                            <span>Payoff: <span className="font-medium text-teal-600">{formatMonthsToYears(scenario.months)}</span></span>
+                            <span>Total Interest: <span className="font-medium text-red-500">{formatCurrency(scenario.totalInterest, scenario.currency)}</span></span>
+                          </div>
+                        </div>
                         <div className="max-h-64 overflow-y-auto">
                           <table className="w-full text-sm">
                             <thead className="bg-slate-50 sticky top-0">

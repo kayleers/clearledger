@@ -371,7 +371,14 @@ export default function Simulator() {
                               <thead className="bg-slate-50 sticky top-0">
                                 <tr>
                                   <th className="text-left p-2 text-xs">Mo.</th>
-                                  <th className="text-right p-2 text-xs">Payment</th>
+                                  <th className="text-right p-2 text-xs">
+                                    <span className="relative group cursor-help">
+                                      Payment
+                                      <span className="absolute bottom-full right-0 mb-1 w-44 bg-slate-800 text-white text-xs rounded-lg px-2 py-1.5 hidden group-hover:block z-10 shadow-lg text-center leading-snug">
+                                        Click any payment to edit it individually
+                                      </span>
+                                    </span>
+                                  </th>
                                   <th className="text-right p-2 text-xs">Interest</th>
                                   <th className="text-right p-2 text-xs">Balance</th>
                                 </tr>

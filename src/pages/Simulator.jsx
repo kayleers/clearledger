@@ -147,7 +147,7 @@ export default function Simulator() {
             <div>
               <p className="text-white flex items-center gap-2 text-sm font-medium mb-2">
                 <CreditCard className="w-4 h-4 text-blue-300" />
-                Credit Cards
+                Credit Card or Loan
               </p>
               <div className="space-y-3">
                 {cards.map((card) => (

@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calculator, CreditCard, Landmark, Calendar, DollarSign, Sparkles, ChevronDown, ChevronUp, Plus, Trash2, Mail, CheckCircle, Loader2 } from 'lucide-react';
-import { formatCurrency, formatMonthsToYears, calculatePayoffTimeline, calculateVariablePayoffTimeline, calculateRequiredPayment } from '@/components/utils/calculations';
+import { Calculator, CreditCard, Calendar, DollarSign, Sparkles, ChevronDown, ChevronUp, Plus, Trash2, Mail, CheckCircle, Loader2 } from 'lucide-react';
+import { formatCurrency, formatMonthsToYears, calculatePayoffTimeline, calculateRequiredPayment } from '@/components/utils/calculations';
 import PayoffChart from '@/components/simulator/PayoffChart';
 import { base44 } from '@/api/base44Client';
 
@@ -19,18 +19,11 @@ function newCard(id) {
   return { id, name: '', balance: '', apr: '', min_payment: '', currency: 'USD', type: 'card' };
 }
 
-function newLoan(id) {
-  return { id, name: '', current_balance: '', interest_rate: '', monthly_payment: '', currency: 'USD', type: 'loan' };
-}
-
 export default function Simulator() {
   const [cards, setCards] = useState([newCard(1)]);
-  const [loans, setLoans] = useState([]);
   const [paymentType, setPaymentType] = useState('fixed');
   const [cardPayments, setCardPayments] = useState({});
-  const [loanPayments, setLoanPayments] = useState({});
   const [cardTargetMonths, setCardTargetMonths] = useState({});
-  const [loanTargetMonths, setLoanTargetMonths] = useState({});
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [nextId, setNextId] = useState(2);
   const [emailInput, setEmailInput] = useState('');
@@ -41,16 +34,10 @@ export default function Simulator() {
   const removeCard = (id) => setCards(cards.filter(c => c.id !== id));
   const updateCard = (id, field, val) => setCards(cards.map(c => c.id === id ? { ...c, [field]: val } : c));
 
-  const addLoan = () => { setLoans([...loans, newLoan(nextId)]); setNextId(nextId + 1); };
-  const removeLoan = (id) => setLoans(loans.filter(l => l.id !== id));
-  const updateLoan = (id, field, val) => setLoans(loans.map(l => l.id === id ? { ...l, [field]: val } : l));
-
   const validCards = cards.filter(c => c.name && parseFloat(c.balance) > 0 && parseFloat(c.apr) >= 0 && parseFloat(c.min_payment) >= 0);
-  const validLoans = loans.filter(l => l.name && parseFloat(l.current_balance) > 0 && parseFloat(l.interest_rate) >= 0 && parseFloat(l.monthly_payment) >= 0);
 
   const allScenarios = useMemo(() => {
     const scenarios = [];
-
     validCards.forEach(card => {
       const balance = parseFloat(card.balance);
       const apr = parseFloat(card.apr) / 100;
@@ -72,33 +59,11 @@ export default function Simulator() {
         scenarios.push({ id: card.id, name: card.name, type: 'card', balance, apr, minPayment: minPmt, currency: card.currency, ...scenario });
       }
     });
-
-    validLoans.forEach(loan => {
-      const balance = parseFloat(loan.current_balance);
-      const apr = parseFloat(loan.interest_rate) / 100;
-      const monthlyPmt = parseFloat(loan.monthly_payment);
-      let scenario;
-
-      if (paymentType === 'fixed') {
-        const payment = parseFloat(loanPayments[loan.id]) || 0;
-        if (payment > 0) scenario = calculatePayoffTimeline(balance, apr, payment);
-      } else if (paymentType === 'target') {
-        const tm = parseInt(loanTargetMonths[loan.id]) || 0;
-        if (tm > 0) {
-          const req = calculateRequiredPayment(balance, apr, tm);
-          scenario = calculatePayoffTimeline(balance, apr, req);
-        }
-      }
-
-      if (scenario) {
-        scenarios.push({ id: loan.id, name: loan.name, type: 'loan', balance, apr, minPayment: monthlyPmt, currency: loan.currency, ...scenario });
-      }
-    });
-
     return scenarios;
-  }, [validCards, validLoans, paymentType, cardPayments, loanPayments, cardTargetMonths, loanTargetMonths]);
+  }, [validCards, paymentType, cardPayments, cardTargetMonths]);
 
   const longestMonths = Math.max(...allScenarios.map(s => s.months), 0);
+
   const interestByCurrency = useMemo(() => {
     const g = {};
     allScenarios.forEach(s => { g[s.currency || 'USD'] = (g[s.currency || 'USD'] || 0) + s.totalInterest; });
@@ -107,8 +72,7 @@ export default function Simulator() {
 
   const minScenarios = useMemo(() => [
     ...validCards.map(c => ({ ...calculatePayoffTimeline(parseFloat(c.balance), parseFloat(c.apr) / 100, parseFloat(c.min_payment)), currency: c.currency, id: c.id })),
-    ...validLoans.map(l => ({ ...calculatePayoffTimeline(parseFloat(l.current_balance), parseFloat(l.interest_rate) / 100, parseFloat(l.monthly_payment)), currency: l.currency, id: l.id }))
-  ], [validCards, validLoans]);
+  ], [validCards]);
 
   const interestSavedByCurrency = useMemo(() => {
     const g = {};
@@ -143,7 +107,7 @@ export default function Simulator() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Credit Cards Input */}
+            {/* Debt Input */}
             <div>
               <p className="text-white flex items-center gap-2 text-sm font-medium mb-2">
                 <CreditCard className="w-4 h-4 text-blue-300" />
@@ -154,7 +118,7 @@ export default function Simulator() {
                   <div key={card.id} className="bg-white/10 rounded-xl p-3 space-y-3">
                     <div className="flex items-center justify-between">
                       <Input
-                        placeholder="Card name (e.g. Visa)"
+                        placeholder="Name (e.g. Visa, Car Loan)"
                         value={card.name}
                         onChange={e => updateCard(card.id, 'name', e.target.value)}
                         className="bg-white/20 border-white/30 text-white placeholder:text-white/50 h-8 text-sm flex-1 mr-2"
@@ -188,282 +152,200 @@ export default function Simulator() {
                   </div>
                 ))}
                 <Button onClick={addCard} variant="ghost" className="w-full text-teal-300 hover:text-teal-200 hover:bg-white/10 border border-dashed border-white/30 h-9">
-                  <Plus className="w-4 h-4 mr-2" /> Add Card
+                  <Plus className="w-4 h-4 mr-2" /> Add Another
                 </Button>
               </div>
             </div>
 
-            {/* Loans Input */}
-            <div>
-              <p className="text-white flex items-center gap-2 text-sm font-medium mb-2">
-                <Landmark className="w-4 h-4 text-orange-300" />
-                Loans & Mortgages
-              </p>
-              <div className="space-y-3">
-                {loans.map((loan) => (
-                  <div key={loan.id} className="bg-white/10 rounded-xl p-3 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Input
-                        placeholder="Loan name (e.g. Car Loan)"
-                        value={loan.name}
-                        onChange={e => updateLoan(loan.id, 'name', e.target.value)}
-                        className="bg-white/20 border-white/30 text-white placeholder:text-white/50 h-8 text-sm flex-1 mr-2"
-                      />
-                      <Button size="icon" variant="ghost" onClick={() => removeLoan(loan.id)} className="h-8 w-8 text-red-300 hover:text-red-200 hover:bg-red-500/20">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label className="text-white/70 text-xs">Balance ($)</Label>
-                        <Input type="number" placeholder="20000" value={loan.current_balance} onChange={e => updateLoan(loan.id, 'current_balance', e.target.value)} className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm" />
-                      </div>
-                      <div>
-                        <Label className="text-white/70 text-xs">Interest Rate (%)</Label>
-                        <Input type="number" placeholder="5.5" value={loan.interest_rate} onChange={e => updateLoan(loan.id, 'interest_rate', e.target.value)} className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm" />
-                      </div>
-                      <div>
-                        <Label className="text-white/70 text-xs">Monthly Payment ($)</Label>
-                        <Input type="number" placeholder="300" value={loan.monthly_payment} onChange={e => updateLoan(loan.id, 'monthly_payment', e.target.value)} className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm" />
-                      </div>
-                      <div>
-                        <Label className="text-white/70 text-xs">Currency</Label>
-                        <select value={loan.currency} onChange={e => updateLoan(loan.id, 'currency', e.target.value)} className="w-full h-8 text-sm bg-white/20 border border-white/30 text-white rounded-md px-2">
-                          {CURRENCIES.map(c => <option key={c} value={c} className="text-slate-900">{c}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <Button onClick={addLoan} variant="ghost" className="w-full text-orange-300 hover:text-orange-200 hover:bg-white/10 border border-dashed border-white/30 h-9">
-                  <Plus className="w-4 h-4 mr-2" /> Add Loan
-                </Button>
-              </div>
-            </div>
+            {/* Simulator Tabs */}
+            {validCards.length > 0 && (
+              <div className="border-t border-white/20 pt-4 space-y-4">
+                <Tabs value={paymentType} onValueChange={setPaymentType}>
+                  <TabsList className="grid grid-cols-2 w-full bg-white/10">
+                    <TabsTrigger value="fixed" className="text-white data-[state=active]:bg-white/20">Fixed Payment</TabsTrigger>
+                    <TabsTrigger value="target" className="text-white data-[state=active]:bg-white/20">Target Payoff</TabsTrigger>
+                  </TabsList>
 
-            {/* Simulator Tabs — only show when there are valid debts */}
-            {(validCards.length > 0 || validLoans.length > 0) && (
-            <div className="border-t border-white/20 pt-4 space-y-4">
-              <Tabs value={paymentType} onValueChange={setPaymentType}>
-                <TabsList className="grid grid-cols-2 w-full bg-white/10">
-                  <TabsTrigger value="fixed" className="text-white data-[state=active]:bg-white/20">Fixed Payment</TabsTrigger>
-                  <TabsTrigger value="target" className="text-white data-[state=active]:bg-white/20">Target Payoff</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="fixed" className="space-y-3 mt-4">
-                  {validCards.map(card => {
-                    const balance = parseFloat(card.balance);
-                    const apr = parseFloat(card.apr) / 100;
-                    const minPmt = parseFloat(card.min_payment);
-                    const threeYearPmt = calculateRequiredPayment(balance, apr, 36);
-                    return (
-                      <div key={card.id} className="bg-white/10 rounded-xl p-3">
-                        <p className="font-medium text-sm text-white mb-1">{card.name}</p>
-                        <p className="text-xs text-white/60 mb-2">{formatCurrency(balance, card.currency)} • {card.apr}% APR</p>
-                        <div className="flex gap-2">
-                          <div className="relative flex-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm">{getCurrencySymbol(card.currency)}</span>
-                            <Input type="number" value={cardPayments[card.id] || ''} onChange={e => setCardPayments({ ...cardPayments, [card.id]: e.target.value })} className="pl-7 h-9 bg-white/20 border-white/30 text-white placeholder:text-white/40" placeholder="0" />
+                  <TabsContent value="fixed" className="space-y-3 mt-4">
+                    {validCards.map(card => {
+                      const balance = parseFloat(card.balance);
+                      const apr = parseFloat(card.apr) / 100;
+                      const minPmt = parseFloat(card.min_payment);
+                      const threeYearPmt = calculateRequiredPayment(balance, apr, 36);
+                      return (
+                        <div key={card.id} className="bg-white/10 rounded-xl p-3">
+                          <p className="font-medium text-sm text-white mb-1">{card.name}</p>
+                          <p className="text-xs text-white/60 mb-2">{formatCurrency(balance, card.currency)} • {card.apr}% APR</p>
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm">{getCurrencySymbol(card.currency)}</span>
+                              <Input type="number" value={cardPayments[card.id] || ''} onChange={e => setCardPayments({ ...cardPayments, [card.id]: e.target.value })} className="pl-7 h-9 bg-white/20 border-white/30 text-white placeholder:text-white/40" placeholder="0" />
+                            </div>
+                            <Button size="sm" variant="outline" onClick={() => setCardPayments({ ...cardPayments, [card.id]: minPmt.toString() })} className="text-xs border-white/30 text-white bg-white/10 hover:bg-white/20">Min</Button>
+                            <Button size="sm" variant="outline" onClick={() => setCardPayments({ ...cardPayments, [card.id]: threeYearPmt.toString() })} className="text-xs border-white/30 text-white bg-white/10 hover:bg-white/20">3yr</Button>
                           </div>
-                          <Button size="sm" variant="outline" onClick={() => setCardPayments({ ...cardPayments, [card.id]: minPmt.toString() })} className="text-xs border-white/30 text-white bg-white/10 hover:bg-white/20">Min</Button>
-                          <Button size="sm" variant="outline" onClick={() => setCardPayments({ ...cardPayments, [card.id]: threeYearPmt.toString() })} className="text-xs border-white/30 text-white bg-white/10 hover:bg-white/20">3yr</Button>
                         </div>
+                      );
+                    })}
+                  </TabsContent>
+
+                  <TabsContent value="target" className="space-y-3 mt-4">
+                    {validCards.map(card => {
+                      const balance = parseFloat(card.balance);
+                      const apr = parseFloat(card.apr) / 100;
+                      const tm = parseInt(cardTargetMonths[card.id]) || 36;
+                      const req = calculateRequiredPayment(balance, apr, tm);
+                      return (
+                        <div key={card.id} className="bg-white/10 rounded-xl p-3">
+                          <p className="font-medium text-sm text-white mb-1">{card.name}</p>
+                          <p className="text-xs text-white/60 mb-2">{formatCurrency(balance, card.currency)} • {card.apr}% APR</p>
+                          <Label className="text-xs text-white/70">Target: {Math.floor(tm / 12)}y {tm % 12}m — Required: <span className="text-teal-300 font-semibold">{formatCurrency(req, card.currency)}/mo</span></Label>
+                          <input type="range" min="1" max="120" value={tm} onChange={e => setCardTargetMonths({ ...cardTargetMonths, [card.id]: e.target.value })} className="w-full mt-2 accent-teal-400" />
+                        </div>
+                      );
+                    })}
+                  </TabsContent>
+                </Tabs>
+
+                {/* Results */}
+                {allScenarios.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t border-white/20">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 bg-blue-500/20 rounded-xl text-center">
+                        <Calendar className="w-5 h-5 text-blue-300 mx-auto mb-1" />
+                        <p className="text-lg font-bold text-white">{formatMonthsToYears(longestMonths)}</p>
+                        <p className="text-xs text-blue-200">to pay off</p>
                       </div>
-                    );
-                  })}
-                  {validLoans.map(loan => {
-                    const balance = parseFloat(loan.current_balance);
-                    const apr = parseFloat(loan.interest_rate) / 100;
-                    const monthlyPmt = parseFloat(loan.monthly_payment);
-                    const threeYearPmt = calculateRequiredPayment(balance, apr, 36);
-                    return (
-                      <div key={loan.id} className="bg-white/10 rounded-xl p-3">
-                        <p className="font-medium text-sm text-white mb-1">{loan.name}</p>
-                        <p className="text-xs text-white/60 mb-2">{formatCurrency(balance, loan.currency)} • {loan.interest_rate}% APR</p>
-                        <div className="flex gap-2">
-                          <div className="relative flex-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm">{getCurrencySymbol(loan.currency)}</span>
-                            <Input type="number" value={loanPayments[loan.id] || ''} onChange={e => setLoanPayments({ ...loanPayments, [loan.id]: e.target.value })} className="pl-7 h-9 bg-white/20 border-white/30 text-white placeholder:text-white/40" placeholder="0" />
+                      <div className="p-3 bg-purple-500/20 rounded-xl text-center">
+                        <DollarSign className="w-5 h-5 text-purple-300 mx-auto mb-1" />
+                        {Object.entries(interestByCurrency).map(([curr, amt]) => (
+                          <p key={curr} className="text-lg font-bold text-white">{formatCurrency(amt, curr)}</p>
+                        ))}
+                        <p className="text-xs text-purple-200">total interest</p>
+                      </div>
+                    </div>
+
+                    {Object.values(interestSavedByCurrency).some(v => v > 0) && (
+                      <div className="p-4 bg-gradient-to-r from-emerald-500/80 to-teal-500/80 rounded-xl text-white">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Sparkles className="w-4 h-4" />
+                          <span className="font-medium text-sm">You Save vs. Minimums</span>
+                        </div>
+                        {Object.entries(interestSavedByCurrency).filter(([, v]) => v > 0).map(([curr, amt]) => (
+                          <p key={curr} className="text-xl font-bold">{formatCurrency(amt, curr)}</p>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      {allScenarios.map(s => (
+                        <div key={s.id} className="bg-white/10 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <CreditCard className="w-4 h-4 text-blue-300" />
+                              <span className="font-medium text-sm text-white">{s.name}</span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-semibold text-white">{formatMonthsToYears(s.months)}</p>
+                              <p className="text-xs text-white/60">{formatCurrency(s.totalInterest, s.currency)} interest</p>
+                            </div>
                           </div>
-                          <Button size="sm" variant="outline" onClick={() => setLoanPayments({ ...loanPayments, [loan.id]: monthlyPmt.toString() })} className="text-xs border-white/30 text-white bg-white/10 hover:bg-white/20">Reg</Button>
-                          <Button size="sm" variant="outline" onClick={() => setLoanPayments({ ...loanPayments, [loan.id]: threeYearPmt.toString() })} className="text-xs border-white/30 text-white bg-white/10 hover:bg-white/20">3yr</Button>
+                          <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-400" style={{ width: `${Math.min((s.months / longestMonths) * 100, 100)}%` }} />
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </TabsContent>
-
-                <TabsContent value="target" className="space-y-3 mt-4">
-                  {validCards.map(card => {
-                    const balance = parseFloat(card.balance);
-                    const apr = parseFloat(card.apr) / 100;
-                    const tm = parseInt(cardTargetMonths[card.id]) || 36;
-                    const req = calculateRequiredPayment(balance, apr, tm);
-                    return (
-                      <div key={card.id} className="bg-white/10 rounded-xl p-3">
-                        <p className="font-medium text-sm text-white mb-1">{card.name}</p>
-                        <p className="text-xs text-white/60 mb-2">{formatCurrency(balance, card.currency)} • {card.apr}% APR</p>
-                        <Label className="text-xs text-white/70">Target: {Math.floor(tm / 12)}y {tm % 12}m — Required: <span className="text-teal-300 font-semibold">{formatCurrency(req, card.currency)}/mo</span></Label>
-                        <input type="range" min="1" max="120" value={tm} onChange={e => setCardTargetMonths({ ...cardTargetMonths, [card.id]: e.target.value })} className="w-full mt-2 accent-teal-400" />
-                      </div>
-                    );
-                  })}
-                  {validLoans.map(loan => {
-                    const balance = parseFloat(loan.current_balance);
-                    const apr = parseFloat(loan.interest_rate) / 100;
-                    const tm = parseInt(loanTargetMonths[loan.id]) || 60;
-                    const req = calculateRequiredPayment(balance, apr, tm);
-                    return (
-                      <div key={loan.id} className="bg-white/10 rounded-xl p-3">
-                        <p className="font-medium text-sm text-white mb-1">{loan.name}</p>
-                        <p className="text-xs text-white/60 mb-2">{formatCurrency(balance, loan.currency)} • {loan.interest_rate}% APR</p>
-                        <Label className="text-xs text-white/70">Target: {Math.floor(tm / 12)}y {tm % 12}m — Required: <span className="text-orange-300 font-semibold">{formatCurrency(req, loan.currency)}/mo</span></Label>
-                        <input type="range" min="1" max="360" value={tm} onChange={e => setLoanTargetMonths({ ...loanTargetMonths, [loan.id]: e.target.value })} className="w-full mt-2 accent-orange-400" />
-                      </div>
-                    );
-                  })}
-                </TabsContent>
-              </Tabs>
-
-              {/* Results */}
-              {allScenarios.length > 0 && (
-                <div className="mt-6 space-y-4 pt-4 border-t border-white/20">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-blue-500/20 rounded-xl text-center">
-                      <Calendar className="w-5 h-5 text-blue-300 mx-auto mb-1" />
-                      <p className="text-lg font-bold text-white">{formatMonthsToYears(longestMonths)}</p>
-                      <p className="text-xs text-blue-200">to pay off</p>
-                    </div>
-                    <div className="p-3 bg-purple-500/20 rounded-xl text-center">
-                      <DollarSign className="w-5 h-5 text-purple-300 mx-auto mb-1" />
-                      {Object.entries(interestByCurrency).map(([curr, amt]) => (
-                        <p key={curr} className="text-lg font-bold text-white">{formatCurrency(amt, curr)}</p>
-                      ))}
-                      <p className="text-xs text-purple-200">total interest</p>
-                    </div>
-                  </div>
-
-                  {Object.values(interestSavedByCurrency).some(v => v > 0) && (
-                    <div className="p-4 bg-gradient-to-r from-emerald-500/80 to-teal-500/80 rounded-xl text-white">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Sparkles className="w-4 h-4" />
-                        <span className="font-medium text-sm">You Save vs. Minimums</span>
-                      </div>
-                      {Object.entries(interestSavedByCurrency).filter(([, v]) => v > 0).map(([curr, amt]) => (
-                        <p key={curr} className="text-xl font-bold">{formatCurrency(amt, curr)}</p>
                       ))}
                     </div>
-                  )}
 
-                  <div className="space-y-2">
-                    {allScenarios.map(s => (
-                      <div key={s.id} className="bg-white/10 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            {s.type === 'card' ? <CreditCard className="w-4 h-4 text-blue-300" /> : <Landmark className="w-4 h-4 text-orange-300" />}
-                            <span className="font-medium text-sm text-white">{s.name}</span>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-semibold text-white">{formatMonthsToYears(s.months)}</p>
-                            <p className="text-xs text-white/60">{formatCurrency(s.totalInterest, s.currency)} interest</p>
-                          </div>
+                    {allScenarios[0]?.breakdown && (
+                      <PayoffChart breakdown={allScenarios[0].breakdown} multipleDebts={allScenarios} />
+                    )}
+
+                    {/* Email Report */}
+                    <div className="p-4 bg-white/10 rounded-xl space-y-3">
+                      <p className="text-sm font-medium text-white flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-teal-300" />
+                        Email this report to yourself
+                      </p>
+                      {emailSent ? (
+                        <div className="flex items-center gap-2 text-emerald-300 text-sm">
+                          <CheckCircle className="w-4 h-4" />
+                          Report sent! Check your inbox.
                         </div>
-                        <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
-                          <div className={`h-full ${s.type === 'card' ? 'bg-blue-400' : 'bg-orange-400'}`} style={{ width: `${Math.min((s.months / longestMonths) * 100, 100)}%` }} />
+                      ) : (
+                        <div className="flex gap-2">
+                          <Input
+                            type="email"
+                            placeholder="your@email.com"
+                            value={emailInput}
+                            onChange={e => setEmailInput(e.target.value)}
+                            className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-9 flex-1"
+                          />
+                          <Button
+                            size="sm"
+                            disabled={!emailInput || emailSending}
+                            onClick={async () => {
+                              setEmailSending(true);
+                              try {
+                                await base44.functions.invoke('emailSimulatorReport', {
+                                  email: emailInput,
+                                  scenarios: allScenarios,
+                                  interestByCurrency,
+                                  interestSavedByCurrency,
+                                  longestMonths
+                                });
+                                setEmailSent(true);
+                                setTimeout(() => setEmailSent(false), 8000);
+                              } catch (e) {
+                                alert('Failed to send email. Please try again.');
+                              } finally {
+                                setEmailSending(false);
+                              }
+                            }}
+                            className="bg-teal-500 hover:bg-teal-400 text-white h-9 px-4"
+                          >
+                            {emailSending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send'}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    <Button variant="ghost" className="w-full justify-between text-white/80 hover:text-white hover:bg-white/10" onClick={() => setShowBreakdown(!showBreakdown)}>
+                      <span>Monthly Breakdown</span>
+                      {showBreakdown ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </Button>
+
+                    {showBreakdown && allScenarios.map(scenario => (
+                      <div key={scenario.id} className="bg-white rounded-xl overflow-hidden">
+                        <div className="px-3 py-2 bg-slate-100 font-medium text-sm text-slate-700">{scenario.name}</div>
+                        <div className="max-h-64 overflow-y-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-slate-50 sticky top-0">
+                              <tr>
+                                <th className="text-left p-2 text-xs">Mo.</th>
+                                <th className="text-right p-2 text-xs">Payment</th>
+                                <th className="text-right p-2 text-xs">Interest</th>
+                                <th className="text-right p-2 text-xs">Balance</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {scenario.breakdown.slice(0, 60).map(row => (
+                                <tr key={row.month} className="border-b border-slate-100">
+                                  <td className="p-2 text-slate-600">{row.month}</td>
+                                  <td className="text-right p-2 text-slate-700">{formatCurrency(row.payment, scenario.currency)}</td>
+                                  <td className="text-right p-2 text-red-500">{formatCurrency(row.interest, scenario.currency)}</td>
+                                  <td className="text-right p-2 font-medium text-slate-800">{formatCurrency(row.balance, scenario.currency)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          {scenario.breakdown.length > 60 && <p className="text-center text-xs text-slate-400 py-2">Showing first 60 of {scenario.breakdown.length} months</p>}
                         </div>
                       </div>
                     ))}
                   </div>
-
-                  {allScenarios[0]?.breakdown && (
-                    <PayoffChart breakdown={allScenarios[0].breakdown} multipleDebts={allScenarios} />
-                  )}
-
-                  {/* Email Report */}
-                  <div className="p-4 bg-white/10 rounded-xl space-y-3">
-                    <p className="text-sm font-medium text-white flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-teal-300" />
-                      Email this report to yourself
-                    </p>
-                    {emailSent ? (
-                      <div className="flex items-center gap-2 text-emerald-300 text-sm">
-                        <CheckCircle className="w-4 h-4" />
-                        Report sent! Check your inbox.
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <Input
-                          type="email"
-                          placeholder="your@email.com"
-                          value={emailInput}
-                          onChange={e => setEmailInput(e.target.value)}
-                          className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-9 flex-1"
-                        />
-                        <Button
-                          size="sm"
-                          disabled={!emailInput || emailSending}
-                          onClick={async () => {
-                            setEmailSending(true);
-                            try {
-                              await base44.functions.invoke('emailSimulatorReport', {
-                                email: emailInput,
-                                scenarios: allScenarios,
-                                interestByCurrency,
-                                interestSavedByCurrency,
-                                longestMonths
-                              });
-                              setEmailSent(true);
-                              setTimeout(() => setEmailSent(false), 8000);
-                            } catch (e) {
-                              alert('Failed to send email. Please try again.');
-                            } finally {
-                              setEmailSending(false);
-                            }
-                          }}
-                          className="bg-teal-500 hover:bg-teal-400 text-white h-9 px-4"
-                        >
-                          {emailSending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send'}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-
-                  <Button variant="ghost" className="w-full justify-between text-white/80 hover:text-white hover:bg-white/10" onClick={() => setShowBreakdown(!showBreakdown)}>
-                    <span>Monthly Breakdown</span>
-                    {showBreakdown ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </Button>
-
-                  {showBreakdown && allScenarios.map(scenario => (
-                    <div key={scenario.id} className="bg-white rounded-xl overflow-hidden">
-                      <div className="px-3 py-2 bg-slate-100 font-medium text-sm text-slate-700">{scenario.name}</div>
-                      <div className="max-h-64 overflow-y-auto">
-                        <table className="w-full text-sm">
-                          <thead className="bg-slate-50 sticky top-0">
-                            <tr>
-                              <th className="text-left p-2 text-xs">Mo.</th>
-                              <th className="text-right p-2 text-xs">Payment</th>
-                              <th className="text-right p-2 text-xs">Interest</th>
-                              <th className="text-right p-2 text-xs">Balance</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {scenario.breakdown.slice(0, 60).map(row => (
-                              <tr key={row.month} className="border-b border-slate-100">
-                                <td className="p-2 text-slate-600">{row.month}</td>
-                                <td className="text-right p-2 text-slate-700">{formatCurrency(row.payment, scenario.currency)}</td>
-                                <td className="text-right p-2 text-red-500">{formatCurrency(row.interest, scenario.currency)}</td>
-                                <td className="text-right p-2 font-medium text-slate-800">{formatCurrency(row.balance, scenario.currency)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                        {scenario.breakdown.length > 60 && <p className="text-center text-xs text-slate-400 py-2">Showing first 60 of {scenario.breakdown.length} months</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>

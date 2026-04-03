@@ -147,30 +147,30 @@ export default function Simulator() {
                         <Input type="number" placeholder="19.99" value={card.apr} onChange={e => updateCard(card.id, 'apr', e.target.value)} className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm" />
                       </div>
                       <div>
-                       <Label className="text-white/70 text-xs">Min Payment ($)</Label>
-                       <Input type="number" placeholder="25" value={card.min_payment} onChange={e => updateCard(card.id, 'min_payment', e.target.value)} className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm" />
+                        <Label className="text-white/70 text-xs">Min Payment ($)</Label>
+                        <Input type="number" placeholder="25" value={card.min_payment} onChange={e => updateCard(card.id, 'min_payment', e.target.value)} className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm" />
                       </div>
                       <div>
-                       <Label className="text-white/70 text-xs">Currency</Label>
-                       <select value={card.currency} onChange={e => updateCard(card.id, 'currency', e.target.value)} className="w-full h-8 text-sm bg-white/20 border border-white/30 text-white rounded-md px-2">
-                         {CURRENCIES.map(c => <option key={c} value={c} className="text-slate-900">{c}</option>)}
-                       </select>
+                        <Label className="text-white/70 text-xs">Fixed Payment ($) <span className="text-white/40">(optional)</span></Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm">{getCurrencySymbol(card.currency)}</span>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            value={cardPayments[card.id] || ''}
+                            onChange={e => {
+                              setCardPayments({ ...cardPayments, [card.id]: e.target.value });
+                              if (e.target.value) setPaymentType('fixed');
+                            }}
+                            className="pl-7 bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm"
+                          />
+                        </div>
                       </div>
-                      <div className="col-span-2">
-                       <Label className="text-white/70 text-xs">Fixed Monthly Payment ($) <span className="text-white/40">(optional)</span></Label>
-                       <div className="relative">
-                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm">{getCurrencySymbol(card.currency)}</span>
-                         <Input
-                           type="number"
-                           placeholder="Enter fixed payment amount"
-                           value={cardPayments[card.id] || ''}
-                           onChange={e => {
-                             setCardPayments({ ...cardPayments, [card.id]: e.target.value });
-                             if (e.target.value) setPaymentType('fixed');
-                           }}
-                           className="pl-7 bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm"
-                         />
-                       </div>
+                      <div>
+                        <Label className="text-white/70 text-xs">Currency</Label>
+                        <select value={card.currency} onChange={e => updateCard(card.id, 'currency', e.target.value)} className="w-full h-8 text-sm bg-white/20 border border-white/30 text-white rounded-md px-2">
+                          {CURRENCIES.map(c => <option key={c} value={c} className="text-slate-900">{c}</option>)}
+                        </select>
                       </div>
                     </div>
                   </div>

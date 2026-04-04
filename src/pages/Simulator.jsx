@@ -101,12 +101,14 @@ export default function Simulator() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-teal-800 p-4 pb-8">
       <div className="max-w-2xl mx-auto space-y-4">
         {/* Header */}
-        <div className="pt-6 pb-2 text-center">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <Calculator className="w-7 h-7 text-teal-300" />
-            <h1 className="text-2xl font-bold text-white">Debt Payoff Simulator</h1>
+        <div className="pt-4 pb-2">
+          <div className="flex items-center gap-3 mb-1">
+            <img src="https://media.base44.com/images/public/69502fff0681a8caf0666aa0/9ac43cd64_Debtpayoffsimulatorappicon.png" alt="Logo" className="w-12 h-12 rounded-xl shadow-lg" />
+            <div>
+              <h1 className="text-2xl font-bold text-white">Debt Payoff Simulator</h1>
+              <p className="text-slate-300 text-sm">Enter your debts below and simulate different payment strategies</p>
+            </div>
           </div>
-          <p className="text-slate-300 text-sm">Enter your debts below and simulate different payment strategies</p>
         </div>
 
         {/* Single Simulator Card */}

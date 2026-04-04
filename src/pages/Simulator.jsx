@@ -191,11 +191,11 @@ export default function Simulator() {
                         <Input type="number" placeholder="19.99" value={card.apr} onChange={e => updateCard(card.id, 'apr', e.target.value)} className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm" />
                       </div>
                       <div className="col-span-1">
-                        <Label className="text-white/70 text-xs">Min Pmt ($)</Label>
+                        <Label className="text-white/70 text-xs">Min Pmt ({getCurrencySymbol(card.currency)})</Label>
                         <Input type="number" placeholder="25" value={card.min_payment} onChange={e => updateCard(card.id, 'min_payment', e.target.value)} className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm" />
                       </div>
                       <div className="col-span-1">
-                       <Label className="text-white/70 text-xs">Fixed Pmt ($)</Label>
+                       <Label className="text-white/70 text-xs">Fixed Pmt ({getCurrencySymbol(card.currency)})</Label>
                        <Input
                          type="number"
                          placeholder="0"

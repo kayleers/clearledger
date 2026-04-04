@@ -195,20 +195,17 @@ export default function Simulator() {
                         <Input type="number" placeholder="25" value={card.min_payment} onChange={e => updateCard(card.id, 'min_payment', e.target.value)} className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm" />
                       </div>
                       <div className="col-span-1">
-                        <Label className="text-white/70 text-xs">Fixed Pmt ($)</Label>
-                        <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-white/50 text-xs">{getCurrencySymbol(card.currency)}</span>
-                          <Input
-                            type="number"
-                            placeholder="0"
-                            value={cardPayments[card.id] || ''}
-                            onChange={e => {
-                              setCardPayments({ ...cardPayments, [card.id]: e.target.value });
-                              if (e.target.value) setPaymentType('fixed');
-                            }}
-                            className="pl-5 bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm"
-                          />
-                        </div>
+                       <Label className="text-white/70 text-xs">Fixed Pmt ($)</Label>
+                       <Input
+                         type="number"
+                         placeholder="0"
+                         value={cardPayments[card.id] || ''}
+                         onChange={e => {
+                           setCardPayments({ ...cardPayments, [card.id]: e.target.value });
+                           if (e.target.value) setPaymentType('fixed');
+                         }}
+                         className="bg-white/20 border-white/30 text-white placeholder:text-white/40 h-8 text-sm"
+                       />
                       </div>
                       <div className="col-span-2">
                         <Label className="text-white/70 text-xs">Currency</Label>

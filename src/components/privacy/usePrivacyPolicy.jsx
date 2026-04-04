@@ -1,14 +1,14 @@
 // Static Privacy Policy Data - No external fetching
 const PRIVACY_POLICY_TEXT = {
-  lastUpdated: 'Feb. 7, 2026',
+  lastUpdated: 'April 4, 2026',
   sections: [
     {
-      title: 'Privacy Policy – ClearLedger',
+      title: 'Privacy Policy – Debt Payoff Simulator',
       content: ''
     },
     {
       title: '',
-      content: 'Last updated: Feb. 7, 2026.\n\nClearLedger ("the app") is operated by Khaos (doing business as Khaos KRServices), located in The Netherlands.\n\nClearLedger is a privacy-first, manual financial planning application that allows users to track bills, loans, credit cards, bank accounts, payment schedules, and financial scenarios across multiple currencies. The app does not connect to banks, financial institutions, or third-party financial data providers.\n\nWe are committed to protecting your privacy and being transparent about how your data is collected, used, stored, and processed.'
+      content: 'Last updated: April 4, 2026.\n\nDebt Payoff Simulator ("the app") is operated by Khaos (doing business as Khaos KRServices), located in The Netherlands.\n\nDebt Payoff Simulator is a free, privacy-first financial planning application that allows users to simulate debt payoff scenarios, including credit cards and loans, across multiple currencies. The app does not connect to banks, financial institutions, or any third-party financial data providers.\n\nWe are committed to protecting your privacy and being transparent about how your data is collected, used, stored, and processed.'
     },
     {
       title: 'Legal Basis for Processing',
@@ -16,7 +16,7 @@ const PRIVACY_POLICY_TEXT = {
     },
     {
       title: 'Data We Collect',
-      content: 'Information you provide:\n\n• Email address (for account creation and authentication)\n• Name (if provided)\n• Financial data manually entered into the app, including:\n  - bills\n  - loans\n  - credit cards\n  - bank accounts\n  - balances\n  - payment schedules\n  - financial planning data\n• App preferences and settings\n\nInformation we do not collect:\n\n• Bank login credentials\n• Full credit card numbers\n• Financial institution access tokens\n• Government identifiers\n• Physical addresses\n• Location data\n• Contacts\n• Photos or files\n• Advertising identifiers\n• Device tracking identifiers\n• Behavioral tracking data\n• Cross-app or cross-site tracking data\n\nClearLedger does not connect to banks, credit bureaus, payment networks, or financial institutions.\nAll financial data is manually entered by the user.'
+      content: 'Information you provide:\n\n• Email address (for account creation and authentication)\n• Name (if provided)\n• Financial data manually entered into the app, including:\n  - debt names and balances\n  - interest rates (APR)\n  - minimum payments\n  - payment scenarios and simulations\n• App preferences and settings\n\nInformation we do not collect:\n\n• Bank login credentials\n• Full credit card numbers\n• Financial institution access tokens\n• Government identifiers\n• Physical addresses\n• Location data\n• Contacts\n• Photos or files\n• Advertising identifiers\n• Device tracking identifiers\n• Behavioral tracking data\n• Cross-app or cross-site tracking data\n\nDebt Payoff Simulator does not connect to banks, credit bureaus, payment networks, or financial institutions. All financial data is manually entered by the user.'
     },
     {
       title: 'How We Store and Process Data',
@@ -24,15 +24,11 @@ const PRIVACY_POLICY_TEXT = {
     },
     {
       title: 'Third-Party Services',
-      content: 'We use the following service providers to operate ClearLedger:\n\nBase44\n• Cloud hosting and data storage\n• Infrastructure services\n• Acts as a data processor\n\nGoogle Play Services\n• App distribution (Android)\n• In-app billing and payment processing\n• Subscription management\n• Purchase verification\n• Licensing and entitlement validation\n\nStripe\n• Payment processing for web and non-Android purchases\n• Subscription billing and management\n• Secure checkout and card tokenization\n• Stripe is PCI DSS compliant and handles all card data\n• Privacy policy: https://stripe.com/privacy\n\nClearLedger does not receive or store your full payment card information. All card data is handled directly by Stripe or Google Play Billing.'
+      content: 'We use the following service providers to operate Debt Payoff Simulator:\n\nBase44\n• Cloud hosting and data storage\n• Infrastructure services\n• Acts as a data processor\n\nGoogle Play Services\n• App distribution (Android)\n• Licensing and app verification\n\nDebt Payoff Simulator does not use any advertising SDKs, analytics services that profile users, or payment processors. The app is free with no in-app purchases.'
     },
     {
       title: 'Payments and Subscriptions',
-      content: 'ClearLedger offers optional paid plans, including:\n\n• Pro Monthly subscription\n• Pro Yearly subscription\n• Lifetime one-time purchase\n\nPayments on Android are processed via Google Play Billing. Payments on web are processed via Stripe, Inc.\n\nClearLedger does not store payment card numbers, CVV codes, or full billing details. All payment data is handled by Stripe or Google Play.\n\nClearLedger only receives:\n• purchase confirmation\n• entitlement status\n• subscription state\n• access rights\n\nFor Stripe payments, your email address may be shared with Stripe to associate your purchase with your ClearLedger account.'
-    },
-    {
-      title: 'Account System and Google Play Separation',
-      content: 'Your ClearLedger app account is separate from your Google Play account.\n\n• App login credentials are independent of Google Play\n• Changing your email/password in the app does not affect Google Play\n• Google Play billing identity is managed solely by Google\n• Subscription access is determined by Google Play purchase status'
+      content: 'Debt Payoff Simulator is a free app.\n\n• There are no in-app purchases\n• There are no subscriptions\n• There are no paid features\n• No payment data is collected or processed\n\nWe do not collect, store, or process any payment or billing information.'
     },
     {
       title: 'International Data Transfers',
@@ -48,7 +44,7 @@ const PRIVACY_POLICY_TEXT = {
     },
     {
       title: 'Ads and Tracking',
-      content: 'ClearLedger:\n\n• Does not display ads\n• Does not use advertising SDKs\n• Does not track users across apps or websites\n• Does not use behavioral tracking\n• Does not use third-party analytics for profiling\n• Does not sell or monetize user data'
+      content: 'Debt Payoff Simulator:\n\n• Does not display ads\n• Does not use advertising SDKs\n• Does not track users across apps or websites\n• Does not use behavioral tracking\n• Does not use third-party analytics for profiling\n• Does not sell or monetize user data'
     },
     {
       title: 'Security',
@@ -56,11 +52,11 @@ const PRIVACY_POLICY_TEXT = {
     },
     {
       title: "Children's Privacy",
-      content: 'ClearLedger is not intended for children under:\n\n• 13 years old (globally)\n• 16 years old (European Union)\n\nWe do not knowingly collect data from children. If we become aware of such data, it will be deleted promptly.'
+      content: 'Debt Payoff Simulator is not intended for children under:\n\n• 13 years old (globally)\n• 16 years old (European Union)\n\nWe do not knowingly collect data from children. If we become aware of such data, it will be deleted promptly.'
     },
     {
       title: 'Changes to This Policy',
-      content: 'This privacy policy may be updated periodically. Updates will be reflected with a revised date.'
+      content: 'This privacy policy may be updated periodically. Updates will be reflected with a revised date. Continued use of the app after changes constitutes acceptance of the updated policy.'
     },
     {
       title: 'Contact Information',

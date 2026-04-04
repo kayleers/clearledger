@@ -13,7 +13,9 @@ import PayoffChart from '@/components/simulator/PayoffChart';
 import { base44 } from '@/api/base44Client';
 
 const getCurrencySymbol = (currency = 'USD') => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(0).replace(/[\d.,\s]/g, '');
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency, currencyDisplay: 'narrowSymbol' })
+    .formatToParts(0)
+    .find(p => p.type === 'currency')?.value || currency;
 };
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];

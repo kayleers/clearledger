@@ -138,14 +138,14 @@ export default function Simulator() {
 
             {/* Privacy Policy Dialog */}
             <Dialog open={showPrivacy} onOpenChange={setShowPrivacy}>
-              <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
-                <DialogHeader>
+              <DialogContent className="max-w-lg flex flex-col" style={{maxHeight: '80vh'}}>
+                <DialogHeader className="shrink-0">
                   <DialogTitle className="flex items-center gap-2">
                     <Shield className="w-4 h-4 text-teal-600" />
                     Privacy Policy
                   </DialogTitle>
                 </DialogHeader>
-                <ScrollArea className="flex-1 pr-2">
+                <ScrollArea className="overflow-y-auto flex-1" style={{height: '60vh'}}>
                   <div className="space-y-4 text-sm text-slate-700 pb-4">
                     <p className="text-xs text-slate-400">Last updated: {lastUpdated}</p>
                     {sections.map((section, i) => (

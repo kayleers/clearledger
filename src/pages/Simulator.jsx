@@ -4,7 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calculator, CreditCard, Calendar, DollarSign, Sparkles, ChevronDown, ChevronUp, Plus, Trash2, Mail, CheckCircle, Loader2 } from 'lucide-react';
+import { Calculator, CreditCard, Calendar, DollarSign, Sparkles, ChevronDown, ChevronUp, Plus, Trash2, Mail, CheckCircle, Loader2, Shield } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { usePrivacyPolicy } from '@/components/privacy/usePrivacyPolicy';
 import { formatCurrency, formatMonthsToYears, calculatePayoffTimeline, calculateRequiredPayment, calculateVariablePayoffTimeline } from '@/components/utils/calculations';
 import PayoffChart from '@/components/simulator/PayoffChart';
 import { base44 } from '@/api/base44Client';
@@ -32,6 +35,8 @@ export default function Simulator() {
   const [emailInput, setEmailInput] = useState('');
   const [emailSending, setEmailSending] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const { sections, lastUpdated } = usePrivacyPolicy();
 
   const addCard = () => { setCards([...cards, newCard(nextId)]); setNextId(nextId + 1); };
   const removeCard = (id) => setCards(cards.filter(c => c.id !== id));
@@ -120,6 +125,40 @@ export default function Simulator() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Privacy Policy Button */}
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowPrivacy(true)}
+                className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors"
+              >
+                <Shield className="w-3 h-3" />
+                Privacy Policy
+              </button>
+            </div>
+
+            {/* Privacy Policy Dialog */}
+            <Dialog open={showPrivacy} onOpenChange={setShowPrivacy}>
+              <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-teal-600" />
+                    Privacy Policy
+                  </DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="flex-1 pr-2">
+                  <div className="space-y-4 text-sm text-slate-700 pb-4">
+                    <p className="text-xs text-slate-400">Last updated: {lastUpdated}</p>
+                    {sections.map((section, i) => (
+                      <div key={i}>
+                        {section.title && <h3 className="font-semibold text-slate-900 mb-1">{section.title}</h3>}
+                        {section.content && <p className="whitespace-pre-line leading-relaxed">{section.content}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+
             {/* Debt Input */}
             <div>
               <p className="text-white flex items-center gap-2 text-sm font-medium mb-2">
